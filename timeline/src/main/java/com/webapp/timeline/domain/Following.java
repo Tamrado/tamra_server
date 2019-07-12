@@ -1,36 +1,35 @@
 package com.webapp.timeline.domain;
 
-import java.sql.Date;
 
+import java.sql.Date;
+import javax.persistence.*;
+
+
+@Entity
+@Table(name = "following")
 public class Following {
-    private int masterId;
-    private String followId;
+    @EmbeddedId
+    private FollowingId id;
+
     private int isAccepted;
+
     private Date timestamp;
 
-    public Following(int masterId, String followId, int isAccepted, Date timestamp) {
-        this.masterId = masterId;
-        this.followId = followId;
+
+    public Following(FollowingId id, int isAccepted, Date timestamp) {
+        this.id = id;
         this.isAccepted = isAccepted;
         this.timestamp = timestamp;
     }
 
     public Following() {}
 
-    public void setMasterId(int masterId) {
-        this.masterId = masterId;
+    public void setId(FollowingId id) {
+        this.id = id;
     }
 
-    public int getMasterId() {
-        return masterId;
-    }
-
-    public void setFollowId(String followId) {
-        this.followId = followId;
-    }
-
-    public String getFollowId() {
-        return followId;
+    public FollowingId getId() {
+        return id;
     }
 
     public void setIsAccepted(int isAccepted) {

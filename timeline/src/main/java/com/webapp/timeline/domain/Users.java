@@ -1,12 +1,14 @@
 package com.webapp.timeline.domain;
 
-import org.apache.tomcat.jni.Local;
-
 import java.sql.Date;
+import javax.persistence.*;
 
-//데이터를 운반할 Value Object
+@Entity
+@Table(name = "users")
 public class Users {
-    private String id;
+    @EmbeddedId
+    private MasterId id;
+
     private String password;
     private String name;
     private String phone;
@@ -22,7 +24,7 @@ public class Users {
     private int group3;
     private int group4;
 
-    public Users(String id, String password, String name, String phone, String email, Date birthday, int gender,
+    public Users(MasterId id, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, String profileUrl, Date timestamp, int group1, int group2, int group3, int group4) {
         this.id = id;
         this.password = password;
@@ -43,11 +45,11 @@ public class Users {
 
     public Users() {}
 
-    public void setId(String id) {
+    public void setId(MasterId id) {
         this.id = id;
     }
 
-    public String getId() {
+    public MasterId getId() {
         return id;
     }
 
@@ -162,4 +164,5 @@ public class Users {
     public int getGroup4() {
         return group4;
     }
+
 }

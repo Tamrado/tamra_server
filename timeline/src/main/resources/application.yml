@@ -1,12 +1,29 @@
 spring:
-  active: local
   datasource:
-    url: jdbc:mysql://localhost:3306/user?useSSL=false&useUnicode=yes&characterEncoding=utf-8&serverTimezone=UTC
-    username: tlproject
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    localdb:
+      jdbc-url: jdbc:mysql://localhost:3306/user?useSSL=false&useUnicode=yes&characterEncoding=utf-8&serverTimezone=UTC
+      username: tlproject
+      password: 1234
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    properties:
+      hibernate:
+        format_sql: true
+
   session:
     store-type: jdbc
     jdbc:
       initialize-schema: always
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
 

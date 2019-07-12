@@ -1,38 +1,42 @@
 package com.webapp.timeline.domain;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import javax.persistence.*;
 
+@Entity
+@Table(name = "posts")
 public class Posts {
-    private int postId;
-    private int masterId;
+    @EmbeddedId
+    private PostId id;
+
     private String content;
+
     private int showLevel;
+
     private Timestamp lastUpdate;
 
-    public Posts(int postId, int masterId, String content, int showLevel, Timestamp lastUpdate) {
-        this.postId = postId;
-        this.masterId = masterId;
+    private ArrayList<ListVO> photoUrl;
+
+    private int photoId;
+
+    public Posts(PostId id, String content, int showLevel, Timestamp lastUpdate, ArrayList<ListVO> photoUrl, int photoId) {
+        this.id = id;
         this.content = content;
         this.showLevel = showLevel;
         this.lastUpdate = lastUpdate;
+        this.photoUrl = photoUrl;
+        this.photoId = photoId;
     }
 
     public Posts() {}
 
-    public void setPostId(int postId) {
-        this.postId = postId;
+    public void setid(PostId id) {
+        this.id = id;
     }
 
-    public int getPostId() {
-        return postId;
-    }
-
-    public void setMasterId(int masterId) {
-        this.masterId = masterId;
-    }
-
-    public int getMasterId() {
-        return masterId;
+    public PostId getId() {
+        return id;
     }
 
     public void setContent(String content) {
@@ -58,4 +62,22 @@ public class Posts {
     public Timestamp getLastUpdate() {
         return lastUpdate;
     }
+
+    public void setPhotoUrl(ArrayList<ListVO> photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public ArrayList<ListVO> getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoId(int photoId) {
+        this.photoId = photoId;
+    }
+
+    public int getPhotoId() {
+        return photoId;
+    }
+
+
 }

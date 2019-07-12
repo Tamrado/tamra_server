@@ -1,8 +1,16 @@
 package com.webapp.timeline.domain;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "grouplist")
 public class Grouplist {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int groupId;
+
     private int category;
+
     private String groupName;
 
     public Grouplist(int groupId, int category, String groupName) {
