@@ -14,10 +14,8 @@ public class MasterId implements Serializable {
     private int masterId;
     private String userId;
 
-    public MasterId(int masterId, String userId) {
+    public MasterId( int masterId,String userId) {
         Preconditions.checkArgument(userId.length() <= USERID_SIZE);
-
-        this.masterId = masterId;
         this.userId = userId;
     }
 

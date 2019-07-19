@@ -1,15 +1,22 @@
 package com.webapp.timeline.domain;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Collection;
 import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
-public class Users {
+public class Users implements UserDetails {
     @EmbeddedId
     private MasterId id;
-
     private String password;
+    private String authority;
+    private boolean enabled;
     private String name;
     private String phone;
     private String email;
@@ -19,6 +26,7 @@ public class Users {
     private String comment;
     private String profileUrl;
     private Date timestamp;
+
     private int group1;
     private int group2;
     private int group3;
@@ -45,8 +53,31 @@ public class Users {
 
     public Users() {}
 
-    public void setId(MasterId id) {
-        this.id = id;
+    @Override
+    //특수문자가 들어간 아이디는 관리자, 안들어간 아이디는 사용자
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        ArrayList<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
+        auth.add(new SimpleGrantedAuthority(authority));
+        return auth;
+    }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public MasterId getId() {
@@ -65,7 +96,7 @@ public class Users {
         this.name = name;
     }
 
-    public String getName() {
+    public String getUsername() {
         return name;
     }
 
