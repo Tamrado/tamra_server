@@ -1,42 +1,67 @@
 package com.webapp.timeline.domain;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import javax.persistence.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
+import java.sql.Timestamp;
+import java.util.List;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+
+//@DynamicInsert
+//@DynamicUpdate
 @Entity
 @Table(name = "posts")
 public class Posts {
-    @EmbeddedId
-    private PostId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Version
+    private int postId;
 
+    private int masterId;
+
+    private String userId;
+
+    @NotNull(message="소식을 전달해주세요.")
     private String content;
 
+    //@Convert(converter = ConverterShowLevel.class)
     private int showLevel;
 
     private Timestamp lastUpdate;
 
-    private ArrayList<ListVO> photoUrl;
+    @Convert(converter = JpaConverterJson.class)
+    private List<PhotoVO> photoUrl;
 
-    private int photoId;
-
-    public Posts(PostId id, String content, int showLevel, Timestamp lastUpdate, ArrayList<ListVO> photoUrl, int photoId) {
-        this.id = id;
+    public Posts(int masterId, String userId, String content, int showLevel, Timestamp lastUpdate, List<PhotoVO> photoUrl) {
+        this.masterId = masterId;
+        this.userId = userId;
         this.content = content;
         this.showLevel = showLevel;
         this.lastUpdate = lastUpdate;
         this.photoUrl = photoUrl;
-        this.photoId = photoId;
     }
 
     public Posts() {}
 
-    public void setid(PostId id) {
-        this.id = id;
+    public int getPostId() {
+        return postId;
     }
 
-    public PostId getId() {
-        return id;
+    public void setMasterId(int masterId) {
+        this.masterId = masterId;
+    }
+
+    public int getMasterId() {
+        return masterId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public void setContent(String content) {
@@ -63,20 +88,12 @@ public class Posts {
         return lastUpdate;
     }
 
-    public void setPhotoUrl(ArrayList<ListVO> photoUrl) {
+    public void setPhotoUrl(List<PhotoVO> photoUrl) {
         this.photoUrl = photoUrl;
     }
 
-    public ArrayList<ListVO> getPhotoUrl() {
+    public List<PhotoVO> getPhotoUrl() {
         return photoUrl;
-    }
-
-    public void setPhotoId(int photoId) {
-        this.photoId = photoId;
-    }
-
-    public int getPhotoId() {
-        return photoId;
     }
 
 
