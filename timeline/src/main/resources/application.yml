@@ -6,6 +6,7 @@ spring:
       password: 1234
       driver-class-name: com.mysql.cj.jdbc.Driver
 
+
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     properties:
@@ -26,4 +27,6 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+
+
 

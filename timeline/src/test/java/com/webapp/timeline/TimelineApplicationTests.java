@@ -3,7 +3,6 @@ package com.webapp.timeline;
 
 import com.webapp.timeline.domain.Following;
 import com.webapp.timeline.domain.FollowingId;
-import com.webapp.timeline.domain.MasterId;
 import com.webapp.timeline.repository.FollowingRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +25,7 @@ public class TimelineApplicationTests {
     @Rollback(false)
     public void createFollowing() {
         Following following = new Following();
-        following.setId(new FollowingId(new MasterId(7, "forTest~"), "myFriend123"));
+        following.setId(new FollowingId(new MasterId(2,"dgsdgad"), "myFriend123"));
         following.setIsAccepted(1);
         String now = "2019-07-12";
         following.setTimestamp(java.sql.Date.valueOf(now));

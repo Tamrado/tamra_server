@@ -10,28 +10,29 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 @Transactional
 @Service
 public class UserServiceImpl implements UserDetailsService {
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
+    private MasterId masterId;
     private UsersEntityRepository usersEntityRepository;
     @Autowired
-    private void setUsersEntityRepository(UsersEntityRepository usersEntityRepository){
+    private UserServiceImpl(PasswordEncoder passwordEncoder,UsersEntityRepository usersEntityRepository) {
         this.usersEntityRepository = usersEntityRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users user = usersEntityRepository.findByEmail(username);
+        Users user = usersEntityRepository.findIdByExistingId(username);
         if (user == null) {
             throw new UsernameNotFoundException("user not found");
         }
-        return createSpringUser(user);
+        return user;
     }
+
 
 }

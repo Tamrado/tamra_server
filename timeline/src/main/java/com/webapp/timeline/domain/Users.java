@@ -1,5 +1,7 @@
 package com.webapp.timeline.domain;
 
+import com.google.common.primitives.UnsignedInts;
+import org.checkerframework.checker.signedness.qual.Unsigned;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,16 +9,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.regex.Pattern;
 import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
 public class Users implements UserDetails {
     @EmbeddedId
-    private MasterId id;
+    private String userId;
+    private Long masterId;
     private String password;
     private String authority;
-    private boolean enabled;
     private String name;
     private String phone;
     private String email;
@@ -26,15 +29,18 @@ public class Users implements UserDetails {
     private String comment;
     private String profileUrl;
     private Date timestamp;
-
+    private ArrayList<GrantedAuthority> auth;
     private int group1;
     private int group2;
     private int group3;
     private int group4;
+    private String pattern;
+    private Boolean result;
 
-    public Users(MasterId id, String password, String name, String phone, String email, Date birthday, int gender,
+    public Users(String userId,Long masterId, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, String profileUrl, Date timestamp, int group1, int group2, int group3, int group4) {
-        this.id = id;
+        this.userId = userId;
+        this.masterId = masterId;
         this.password = password;
         this.name = name;
         this.phone = phone;
@@ -56,10 +62,21 @@ public class Users implements UserDetails {
     @Override
     //특수문자가 들어간 아이디는 관리자, 안들어간 아이디는 사용자
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        ArrayList<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
+        auth = new ArrayList<GrantedAuthority>();
         auth.add(new SimpleGrantedAuthority(authority));
         return auth;
     }
+
+    public void setAuthorities(Users user){
+        pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
+        result = Pattern.matches(pattern,user.getId());
+        if(result)
+            authority = "ROLE_USER";
+
+        else
+            authority = "ROLE_ADMIN";
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -80,9 +97,11 @@ public class Users implements UserDetails {
         return true;
     }
 
-    public MasterId getId() {
-        return id;
+    public String getId() {
+        return userId;
     }
+
+    public Long getMasterId(){ return masterId; }
 
     public void setPassword(String password) {
         this.password = password;
