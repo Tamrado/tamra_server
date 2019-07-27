@@ -1,15 +1,15 @@
 package com.webapp.timeline.domain;
 
-public class ListVO {
+public class PhotoVO {
     private int id;
     private String url;
 
-    public ListVO(int id, String url) {
+    public PhotoVO(int id, String url) {
         this.id = id;
         this.url = url;
     }
 
-    public ListVO() {}
+    public PhotoVO() {}
 
     public void setPhotoId(int photoId) {
         this.id = photoId;
