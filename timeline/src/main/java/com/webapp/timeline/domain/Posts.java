@@ -13,12 +13,12 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "posts")
 public class Posts {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Version
     private int postId;
 
-    private int masterId;
+    private long masterId;
 
     private String userId;
 
@@ -27,7 +27,7 @@ public class Posts {
 
     @Convert(converter = ConverterShowLevel.class)
     private String showLevel;
-
+    
     private Timestamp lastUpdate;
 
     @Convert(converter = JpaConverterJson.class)
@@ -52,7 +52,7 @@ public class Posts {
         this.masterId = masterId;
     }
 
-    public int getMasterId() {
+    public long getMasterId() {
         return masterId;
     }
 
