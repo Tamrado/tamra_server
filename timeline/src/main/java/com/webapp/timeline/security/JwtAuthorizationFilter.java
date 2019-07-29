@@ -18,7 +18,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     Logger log = LoggerFactory.getLogger(this.getClass());
     public JwtAuthorizationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
-        // TODO Auto-generated constructor stub
+
     }
 
     @Override

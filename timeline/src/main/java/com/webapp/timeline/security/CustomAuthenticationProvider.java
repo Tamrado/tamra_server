@@ -2,6 +2,8 @@ package com.webapp.timeline.security;
 
 
 import com.webapp.timeline.domain.Users;
+import com.webapp.timeline.service.membership.UserServiceImpl;
+import io.jsonwebtoken.Jwts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +23,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private UserDetailsService userDetailsService;
     private PasswordEncoder encoder;
     private Logger log = LoggerFactory.getLogger(this.getClass());
-    private UserDetails user;
+    private Users user;
+    private String userId;
 
     @Autowired
-    public CustomAuthenticationProvider(UserDetails user, UserDetailsService userDetailsService, PasswordEncoder encoder) {
-        this.user = user;
+    public CustomAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder encoder) {
         this.userDetailsService = userDetailsService;
         this.encoder = encoder;
     }
@@ -36,17 +38,17 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken)authentication;
 
-        String userId = token.getName();
+        userId = token.getName();
 
         if(!StringUtils.isEmpty(userId)) {
-            user =  userDetailsService.loadUserByUsername(userId);
+            user = (Users)userDetailsService.loadUserByUsername(userId);
         }
 
         if(ObjectUtils.isEmpty(user)) {
             throw new UsernameNotFoundException("Invalid username");
         }
 
-        user.setUsername(user.getUsername());
+        user.setId(user.getId());
         user.setPassword(user.getPassword());
 
         String password = user.getPassword();
@@ -58,6 +60,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
 
     }
+
 
     @Override
     public boolean supports(Class<?> authentication) {

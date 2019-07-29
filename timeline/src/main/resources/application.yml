@@ -11,8 +11,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     properties:
       hibernate:
+        hbm2ddl:
+          auto: update
         format_sql: true
-
+  jwt:
+    secret:
   session:
     store-type: jdbc
     jdbc:

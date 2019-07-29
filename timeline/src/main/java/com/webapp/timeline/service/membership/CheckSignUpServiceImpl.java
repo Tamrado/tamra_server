@@ -29,8 +29,8 @@ public class CheckSignUpServiceImpl implements CheckSignUpService {
 
     @Override
     public Boolean checkIfExistingIdOverlap(Users user){
-        existingUser = usersEntityRepository.findIdByExistingId(user.getId().getUserId());
-        if(existingUser.getId().getUserId().equals(user.getId().getUserId()))
+        existingUser = usersEntityRepository.findIdByExistingId(user.getId());
+        if(existingUser.getId().equals(user.getId()))
             idCheckingOverlapping = true;
         return idCheckingOverlapping;
     }

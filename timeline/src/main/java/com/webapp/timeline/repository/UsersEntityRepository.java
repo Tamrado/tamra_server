@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface UsersEntityRepository extends JpaRepository<Users, MasterId> {
+public interface UsersEntityRepository extends JpaRepository<Users,String> {
 
     @Query(value = "select u from Users u where u.id = :id")
     Users findIdByExistingId(@Param("id") String id);

@@ -5,6 +5,7 @@ import org.checkerframework.checker.signedness.qual.Unsigned;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -15,8 +16,10 @@ import javax.persistence.*;
 @Entity
 @Table(name = "users")
 public class Users implements UserDetails {
-    @EmbeddedId
     private String userId;
+    @Id
+    @Column(name = "ID")
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long masterId;
     private String password;
     private String authority;
@@ -99,6 +102,11 @@ public class Users implements UserDetails {
 
     public String getId() {
         return userId;
+    }
+
+    public void setId(String userId){
+        this.userId = userId;
+
     }
 
     public Long getMasterId(){ return masterId; }
