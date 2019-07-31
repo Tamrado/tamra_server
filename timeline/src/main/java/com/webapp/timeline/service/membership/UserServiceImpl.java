@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("user not found");
         }
-        user.setAuthorities(user);
+        user.setAuthorities();
         return user;
     }
 

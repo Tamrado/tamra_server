@@ -40,10 +40,9 @@ public class Users implements UserDetails {
     private String pattern;
     private Boolean result;
 
-    public Users(String userId,Long masterId, String password, String name, String phone, String email, Date birthday, int gender,
+    public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, String profileUrl, Date timestamp, int group1, int group2, int group3, int group4) {
         this.userId = userId;
-        this.masterId = masterId;
         this.password = password;
         this.name = name;
         this.phone = phone;
@@ -70,9 +69,9 @@ public class Users implements UserDetails {
         return auth;
     }
 
-    public void setAuthorities(Users user){
+    public void setAuthorities(){
         pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
-        result = Pattern.matches(pattern,user.getId());
+        result = Pattern.matches(pattern,this.getId());
         if(result)
             authority = "ROLE_USER";
 

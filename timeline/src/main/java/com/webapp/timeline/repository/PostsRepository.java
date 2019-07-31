@@ -1,12 +1,12 @@
 package com.webapp.timeline.repository;
 
-import com.webapp.timeline.domain.PostId;
+
 import com.webapp.timeline.domain.Posts;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-public interface PostsRepository extends JpaRepository<Posts, PostId> {
+/*public interface PostsRepository extends JpaRepository<Posts, PostId> {
 
     /*
     * save() 레코드 저장 (insert, update)
@@ -18,4 +18,4 @@ public interface PostsRepository extends JpaRepository<Posts, PostId> {
      */
 
 
-}
+//}

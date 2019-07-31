@@ -15,7 +15,7 @@ spring:
           auto: update
         format_sql: true
   jwt:
-    secret:
+    secret: yaizasika*&&*!!;
   session:
     store-type: jdbc
     jdbc:

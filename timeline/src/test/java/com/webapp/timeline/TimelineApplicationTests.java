@@ -20,10 +20,10 @@ public class TimelineApplicationTests {
     @Autowired
     private FollowingRepository followingRepository;
 
-    @Test
+    /*@Test
     @Transactional
     @Rollback(false)
-    public void createFollowing() {
+   public void createFollowing() {
         Following following = new Following();
         following.setId(new FollowingId(new MasterId(2,"dgsdgad"), "myFriend123"));
         following.setIsAccepted(1);
@@ -31,7 +31,7 @@ public class TimelineApplicationTests {
         following.setTimestamp(java.sql.Date.valueOf(now));
         followingRepository.save(following);
         followingRepository.flush();
-    }
+    }*/
 
 
 

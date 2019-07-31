@@ -1,6 +1,7 @@
 package com.webapp.timeline.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -29,7 +30,7 @@ public class JpaConfig {
     @Bean(name = "entityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("dataSource") DataSource dataSource) {
+            @Qualifier("dataSource") DataSource dataSource) throws NoSuchBeanDefinitionException {
 
         return builder.dataSource(dataSource).packages("com.webapp.timeline").build();
     }

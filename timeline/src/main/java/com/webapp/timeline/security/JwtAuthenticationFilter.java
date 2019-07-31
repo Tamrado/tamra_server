@@ -29,13 +29,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws AuthenticationException {
         log.debug("JwtAuthentication.attemptAuthentication ::::");
 
-        /*
-         * POST로 넘어왔는지 체크
-         */
         if(postOnly && !request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException(
                     "Authentication method not supported: " + request.getMethod());
         }
+
 
         String username = obtainUsername(request);
         String password = obtainPassword(request);
