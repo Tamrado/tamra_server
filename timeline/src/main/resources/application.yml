@@ -5,8 +5,6 @@ spring:
       username: tlproject
       password: 1234
       driver-class-name: com.mysql.cj.jdbc.Driver
-
-
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     properties:
@@ -14,13 +12,10 @@ spring:
         hbm2ddl:
           auto: update
         format_sql: true
-  jwt:
-    secret: yaizasika*&&*!!;
   session:
     store-type: jdbc
     jdbc:
       initialize-schema: always
-
 logging:
   level:
     org:
