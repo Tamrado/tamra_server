@@ -1,9 +1,5 @@
 package com.webapp.timeline;
 
-
-import com.webapp.timeline.domain.Following;
-import com.webapp.timeline.domain.FollowingId;
-import com.webapp.timeline.repository.FollowingRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +13,8 @@ import javax.transaction.Transactional;
 @SpringBootTest
 public class TimelineApplicationTests {
 
-    @Autowired
-    private FollowingRepository followingRepository;
+    /*@Autowired
+    private FollowingRepository followingRepository;*/
 
     /*@Test
     @Transactional

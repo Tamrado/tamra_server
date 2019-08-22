@@ -2,80 +2,88 @@ package com.webapp.timeline.security;
 
 import com.webapp.timeline.domain.Users;
 import com.webapp.timeline.repository.UsersEntityRepository;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.webapp.timeline.service.membership.CommonResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
-import java.util.ArrayList;
+import org.springframework.stereotype.Service;
 
-@Component
-public class SignUpValidator implements Validator {
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    private String idfield = false;
-    private Boolean phoneCheckingOverlapping = false;
+@Service
+public class SignUpValidator{
+
+    Logger log = LoggerFactory.getLogger(this.getClass());
+    private Boolean nameCheckingOverlapping = false;
     private Boolean emailCheckingOverlapping = false;
-    private Boolean groupCheckingOverlapping = false;
-    private ArrayList<Integer> group = new ArrayList<>();
-    private int i,j;
-    private Users users;
+    @Autowired
     private UsersEntityRepository usersEntityRepository;
-    private UserDetails userDetails;
-    @Override
-    public boolean supports(Class<?> arg0){
-        return Users.class.isAssignableFrom(arg0);
-    }
-    @Override
-    public void validate(Object obj, Errors errors){
-        users = (Users) obj;
-        if(checkIfIdOverlap(users))
-            errors.rejectValue("userId","overlap");
-        if(checkIfEmailOverlap(users))
-            errors.rejectValue("email","overlap");
-        if(checkIfPhoneOverlap(users))
-            errors.rejectValue("phone","overlap");
-        if(checkIfGroupOverlap(users)) {
-            errors.rejectValue("group", "overlap");
+
+    public CommonResult validate(Users users, CommonResult commonResult){
+        commonResult.setCode(0);
+        commonResult.setSuccess(true);
+        commonResult.setMsg("success");
+
+        if(checkIfEmailOverlap(users)) {
+            commonResult.setCode(-1);
+            commonResult.setSuccess(false);
+            commonResult.setMsg("overlapped email");
         }
+        if(checkIfEmailIsWrongForm(users)){
+            commonResult.setCode(-1);
+            commonResult.setSuccess(false);
+            commonResult.setMsg("wrong formed email");
+        }
+        if(checkIfPasswordIsWrongForm(users)){
+            commonResult.setCode(-1);
+            commonResult.setSuccess(false);
+            commonResult.setMsg("wrong formed password");
+        }
+
+        return commonResult;
+
     }
-    public String checkIfIdOverlap(Users user){
-        users = usersEntityRepository.findIdByExistingId(user.getId());
-        if(users.getId().equals(user.getId()))
-            idCheckingOverlapping = ;
-        return idCheckingOverlapping;
+    public Boolean checkIfEmailIsWrongForm(Users user){
+        String regex = "^[_a-z0-9-]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(user.getEmail());
+        if(m.matches())
+            return false;
+
+        else return true;
+    }
+    public Boolean checkIfPasswordIsWrongForm(Users user){
+        Boolean returnValue = false;
+
+        //정규식 (영문(대소문자 구분), 숫자, 특수문자 조합, 9~12자리)
+        String regex = "^(?=.*\\d)(?=.*[~`!@#$%\\^&*()-])(?=.*[a-z])(?=.*[A-Z]).{9,12}$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(user.getPassword());
+        if(!m.matches()) returnValue = true;
+        log.error(returnValue.toString());
+        //정규식 (같은 문자 4개 이상 사용 불가)
+        regex =  "(.)\\1\\1\\1";
+        p = Pattern.compile(regex);
+        m = p.matcher(user.getPassword());
+        if(m.find()) returnValue = true;
+        log.error(returnValue.toString());
+        return returnValue;
     }
 
-    public String checkIfPhoneOverlap(Users user){
-        users = usersEntityRepository.findPhoneByExistingPhone(user.getPhone());
-        if(users.getPhone().equals(user.getPhone()))
-            phoneCheckingOverlapping = true;
-        return phoneCheckingOverlapping;
-
-    }
-
-    public String checkIfEmailOverlap(Users user){
-        users = usersEntityRepository.findEmailByExistingEmail(user.getEmail());
-        if(users.getEmail().equals(user.getEmail()))
+    public Boolean checkIfEmailOverlap(Users user){
+        Users result;
+        try {
+            result = usersEntityRepository.findEmailByExistingEmail(user.getEmail());
+        } catch(NullPointerException e) {
+            result = null;
+        }
+        Optional<Users> optional = Optional.ofNullable(result);
+        if(optional.isPresent())
             emailCheckingOverlapping = true;
         return emailCheckingOverlapping;
     }
-
-    public String checkIfGroupOverlap(Users user){
-        group.add(user.getGroup1());
-        group.add(user.getGroup2());
-        group.add(user.getGroup3());
-        group.add(user.getGroup4());
-
-        for(i = 0; i < group.size(); i++){
-            for(j = 0; j < group.size(); j++){
-                if(group.get(i) == group.get(j)) {
-                    groupCheckingOverlapping = true;
-                    break;
-                }
-
-            }
-        }
-        return groupCheckingOverlapping;
-    }
-
 
 }

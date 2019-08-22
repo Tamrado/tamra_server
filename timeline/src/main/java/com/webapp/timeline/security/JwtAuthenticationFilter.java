@@ -27,6 +27,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         this.usersEntityRepository = usersEntityRepository;
     }
 
+    public JwtAuthenticationFilter(){
+
+    }
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {

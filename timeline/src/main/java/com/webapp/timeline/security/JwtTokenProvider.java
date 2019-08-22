@@ -1,7 +1,6 @@
 package com.webapp.timeline.security;
 
 import com.webapp.timeline.domain.Users;
-import com.webapp.timeline.service.membership.CommonResult;
 import com.webapp.timeline.service.membership.UserServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -22,7 +20,6 @@ import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -34,8 +31,6 @@ public class JwtTokenProvider {
     @Value("spring.jwt.secret")
     private String secretKey;
     private UserServiceImpl userServiceImpl;
-    private PasswordEncoder encoder;
-    private JwtTokenProvider jwtTokenProvider;
     private final long tokenValidMilisecond = 1000L *60*60;
     private String jws;
     private Claims claims;
@@ -43,11 +38,13 @@ public class JwtTokenProvider {
     private Date expiration;
     private Users user;
     private String userId;
+
     @Autowired
-    public JwtTokenProvider(UserServiceImpl userServiceImpl, PasswordEncoder encoder, JwtTokenProvider jwtTokenProvider) {
+    public JwtTokenProvider(UserServiceImpl userServiceImpl) {
         this.userServiceImpl = userServiceImpl;
-        this.encoder = encoder;
-        this.jwtTokenProvider = jwtTokenProvider;
+    }
+    public JwtTokenProvider(){
+
     }
 
     @PostConstruct

@@ -18,7 +18,6 @@ import javax.persistence.*;
 public class Users implements UserDetails {
     private String userId;
     @Id
-    @Column(name = "ID")
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long masterId;
     private String password;
@@ -32,13 +31,10 @@ public class Users implements UserDetails {
     private String comment;
     private String profileUrl;
     private Date timestamp;
-    private ArrayList<GrantedAuthority> auth;
     private int group1;
     private int group2;
     private int group3;
     private int group4;
-    private String pattern;
-    private Boolean result;
 
     public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, String profileUrl, Date timestamp, int group1, int group2, int group3, int group4) {
@@ -64,14 +60,14 @@ public class Users implements UserDetails {
     @Override
     //특수문자가 들어간 아이디는 관리자, 안들어간 아이디는 사용자
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        auth = new ArrayList<GrantedAuthority>();
+        ArrayList<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
         auth.add(new SimpleGrantedAuthority(authority));
         return auth;
     }
 
     public void setAuthorities(){
-        pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
-        result = Pattern.matches(pattern,this.getId());
+       String pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
+       Boolean result = Pattern.matches(pattern,this.getId());
         if(result)
             authority = "ROLE_USER";
 

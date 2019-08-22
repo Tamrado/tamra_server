@@ -26,35 +26,20 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private AuthenticationProvider authenticationProvider;
-    private AuthenticationManager authenticationManager;
-    private JwtTokenProvider jwtTokenProvider;
-    private UsersEntityRepository usersEntityRepository;
-
-    @Autowired
-    private SecurityConfig(AuthenticationManager authenticationManager,UsersEntityRepository usersEntityRepository){
-        this.authenticationManager = authenticationManager;
-        this.usersEntityRepository = usersEntityRepository;
-
-    }
-    private void setAuthenticationProvider(AuthenticationProvider authenticationProvider){
-        this.authenticationProvider = authenticationProvider;
-    }
 
     @Override
     public void configure(WebSecurity web) throws Exception{
-        web.ignoring().antMatchers("/test","/swagger-resources/**",
-                "/swagger-ui.html","/v1/api-docs","/swagger/**");
+        web.ignoring().antMatchers("/swagger-resources/**","/webjars/**", "/swagger-ui.html","/swagger/**","/v2/api-docs");
     }
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         http.authorizeRequests()
-                .antMatchers("/*/signin","/*/signup").permitAll()
-                .antMatchers(HttpMethod.GET,"pass/**").permitAll()
+                .antMatchers("/*/signin","/*/signUp").permitAll()
                 .anyRequest().hasAnyRole("ROLE_USER","ROLE_ADMIN")
                 .and().logout()
                 .logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler())
-                .and().addFilterBefore(jwtAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class)
+                .and().addFilterBefore(new JwtAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class)
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -105,20 +90,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager,usersEntityRepository);
-        jwtAuthenticationFilter.setFilterProcessesUrl("/siginUp");
-        jwtAuthenticationFilter.setUsernameParameter("userId");
-        jwtAuthenticationFilter.setPasswordParameter("password");
 
-        jwtAuthenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
-        jwtAuthenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler());
-
-        jwtAuthenticationFilter.afterPropertiesSet();
-
-        return jwtAuthenticationFilter;
-    }
 
 
 

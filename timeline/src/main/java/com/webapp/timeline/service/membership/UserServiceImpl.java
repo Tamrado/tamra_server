@@ -6,9 +6,7 @@ import com.webapp.timeline.repository.UsersEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
@@ -16,15 +14,15 @@ import javax.transaction.Transactional;
 @Component
 public class UserServiceImpl implements UserDetailsService {
 
-    private PasswordEncoder passwordEncoder;
-    private String userId;
-    private Long masterId;
+
     private UsersEntityRepository usersEntityRepository;
     private Users user;
     @Autowired
-    private UserServiceImpl(PasswordEncoder passwordEncoder,UsersEntityRepository usersEntityRepository) {
+    public UserServiceImpl(UsersEntityRepository usersEntityRepository) {
         this.usersEntityRepository = usersEntityRepository;
-        this.passwordEncoder = passwordEncoder;
+    }
+    public UserServiceImpl(){
+
     }
 
     @Override
