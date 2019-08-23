@@ -1,6 +1,7 @@
 package com.webapp.timeline.service.membership;
 
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.stereotype.Component;
 
 public class CommonResult {
 
@@ -13,6 +14,9 @@ public class CommonResult {
     @ApiModelProperty(value = "응답 메시지")
     private String msg;
 
+    public CommonResult(){
+
+    }
     public void setSuccess(boolean success){
         this.success = success;
     }
