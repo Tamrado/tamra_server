@@ -1,7 +1,0 @@
-cloud:
-  aws:
-    credentials:
-      accessKey: AKIAVEUW3OTIRF3EW2BC
-      secretKey: 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
-    stack:
-      auto: false

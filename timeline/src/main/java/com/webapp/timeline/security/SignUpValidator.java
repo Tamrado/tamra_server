@@ -80,7 +80,6 @@ public class SignUpValidator{
     }
 
     public Boolean checkIfObjectOverlap(Users user){
-        log.error(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).toString());
         if(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).isEmpty())
             return false;
         return true;
