@@ -2,21 +2,15 @@ package com.webapp.timeline.service.membership;
 
 import com.webapp.timeline.domain.Users;
 import com.webapp.timeline.repository.UsersEntityRepository;
-
 import com.webapp.timeline.security.CustomPasswordEncoder;
-<<<<<<< HEAD
 import com.webapp.timeline.security.JwtTokenProvider;
 import com.webapp.timeline.security.SignUpValidator;
 import com.webapp.timeline.service.result.CommonResult;
 import com.webapp.timeline.service.result.SingleResult;
-=======
-import com.webapp.timeline.security.SignUpValidator;
->>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
 import javax.transaction.Transactional;
 
 @Transactional
@@ -24,10 +18,8 @@ import javax.transaction.Transactional;
 public class UserServiceImpl implements UserDetailsService {
     private UsersEntityRepository usersEntityRepository;
     private CustomPasswordEncoder customPasswordEncoder;
-<<<<<<< HEAD
     private JwtTokenProvider jwtTokenProvider;
-=======
->>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
+
     private Users user;
     @Autowired
     public UserServiceImpl(UsersEntityRepository usersEntityRepository, CustomPasswordEncoder customPasswordEncoder) {
@@ -54,10 +46,7 @@ public class UserServiceImpl implements UserDetailsService {
     }
     public CommonResult saveUser(Users user,CommonResult commonResult){
         user.setPassword(customPasswordEncoder.encode(user.getPassword()));
-<<<<<<< HEAD
         user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
-=======
->>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
         user.setAuthorities();
         try {
             usersEntityRepository.save(user);
@@ -70,7 +59,6 @@ public class UserServiceImpl implements UserDetailsService {
         }
         return commonResult;
     }
-<<<<<<< HEAD
     public SingleResult<String> findUser(String id, String password) {
         Users foundedUser = loadUserByUsername(id);
         SingleResult<String> singleResult = new SingleResult<String>();
@@ -90,8 +78,5 @@ public class UserServiceImpl implements UserDetailsService {
         }
         return singleResult;
     }
-=======
-
->>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
 
 }
