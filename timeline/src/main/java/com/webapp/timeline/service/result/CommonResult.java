@@ -15,9 +15,13 @@ public class CommonResult {
     private String msg;
 
     public CommonResult(){
+<<<<<<< HEAD:timeline/src/main/java/com/webapp/timeline/service/result/CommonResult.java
         success = false;
         code = -1;
         msg = null;
+=======
+
+>>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa:timeline/src/main/java/com/webapp/timeline/service/membership/CommonResult.java
     }
     public void setSuccess(boolean success){
         this.success = success;

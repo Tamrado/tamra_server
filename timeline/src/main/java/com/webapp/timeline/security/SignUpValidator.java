@@ -17,6 +17,10 @@ import java.util.regex.Pattern;
 @Configurable
 public class SignUpValidator{
     private UsersEntityRepository usersEntityRepository;
+<<<<<<< HEAD
+=======
+    Logger log = LoggerFactory.getLogger(this.getClass());
+>>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
     private ArrayList<Integer> group = new ArrayList<>();
 
     @Autowired
@@ -78,13 +82,21 @@ public class SignUpValidator{
         return returnValue;
     }
 
+<<<<<<< HEAD
     private Boolean checkIfObjectOverlap(Users user){
+=======
+    public Boolean checkIfObjectOverlap(Users user){
+>>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
         if(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).isEmpty())
             return false;
         return true;
     }
 
+<<<<<<< HEAD
     private Boolean checkIfGroupOverlap(Users user){
+=======
+    public Boolean checkIfGroupOverlap(Users user){
+>>>>>>> 1bb85d954bff476da70b1b312038057e1a9640aa
         group.add(user.getGroup1());
         group.add(user.getGroup2());
         group.add(user.getGroup3());
