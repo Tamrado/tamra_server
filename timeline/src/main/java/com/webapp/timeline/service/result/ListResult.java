@@ -1,8 +1,10 @@
-package com.webapp.timeline.service.membership;
+package com.webapp.timeline.service.result;
+
+import com.webapp.timeline.service.result.CommonResult;
 
 import java.util.List;
 
-public class ListResult<T> extends CommonResult{
+public class ListResult<T> extends CommonResult {
     private List<T> list;
     public List<T> getList(){
         return list;

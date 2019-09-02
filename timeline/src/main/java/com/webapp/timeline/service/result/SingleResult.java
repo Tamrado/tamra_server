@@ -1,11 +1,14 @@
-package com.webapp.timeline.service.membership;
+package com.webapp.timeline.service.result;
 
 
-import java.util.List;
+import com.webapp.timeline.service.result.CommonResult;
 
 public class SingleResult<T> extends CommonResult {
     private T data;
-
+    public SingleResult(){
+        super();
+        data = null;
+    }
     public T getData() {
         return data;
     }

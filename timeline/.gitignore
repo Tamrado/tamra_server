@@ -21,6 +21,7 @@ build/
 *.ipr
 out/
 jwt.yml
+aws.yml
 
 ### NetBeans ###
 /nbproject/private/
