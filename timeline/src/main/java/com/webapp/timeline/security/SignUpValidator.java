@@ -2,7 +2,7 @@ package com.webapp.timeline.security;
 
 import com.webapp.timeline.domain.Users;
 import com.webapp.timeline.repository.UsersEntityRepository;
-import com.webapp.timeline.service.membership.CommonResult;
+import com.webapp.timeline.service.result.CommonResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public class SignUpValidator{
         return commonResult;
 
     }
-    public Boolean checkIfEmailIsWrongForm(Users user){
+    private Boolean checkIfEmailIsWrongForm(Users user){
         String regex = "^[_a-z0-9-]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(user.getEmail());
@@ -63,7 +63,7 @@ public class SignUpValidator{
 
         else return true;
     }
-    public Boolean checkIfPasswordIsWrongForm(Users user){
+    private Boolean checkIfPasswordIsWrongForm(Users user){
         Boolean returnValue = false;
 
         //정규식 (영문(대소문자 구분), 숫자, 특수문자 조합, 9~12자리)
@@ -79,7 +79,9 @@ public class SignUpValidator{
         return returnValue;
     }
 
-    public Boolean checkIfObjectOverlap(Users user){
+    private Boolean checkIfObjectOverlap(Users user){
+
+
         if(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).isEmpty())
             return false;
         return true;

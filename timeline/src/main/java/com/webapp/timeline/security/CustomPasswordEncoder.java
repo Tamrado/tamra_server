@@ -1,5 +1,8 @@
 package com.webapp.timeline.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +16,7 @@ import java.util.Map;
 @Component
 public class CustomPasswordEncoder implements PasswordEncoder {
     private String idForEncode;
+    Logger log = LoggerFactory.getLogger(this.getClass());
     private Map<String, PasswordEncoder> encoders;
     private PasswordEncoder passwordEncoder;
 
@@ -27,13 +31,13 @@ public class CustomPasswordEncoder implements PasswordEncoder {
     @Override
     public String encode(CharSequence rawPassword)
     {
-        return passwordEncoder.encode(rawPassword);
+        return BCrypt.hashpw((String)rawPassword, BCrypt.gensalt(10));
     }
 
     @Override
     public boolean matches(CharSequence rawPassword, String encodedPassword)
     {
-        return encodedPassword.equals(encode(rawPassword));
+        return BCrypt.checkpw((String)rawPassword, encodedPassword);
     }
 
 }

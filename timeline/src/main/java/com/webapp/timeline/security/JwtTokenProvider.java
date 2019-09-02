@@ -6,35 +6,33 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.thymeleaf.util.StringUtils;
-
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Base64;
+import java.security.Key;
 import java.util.Date;
-import java.util.List;
 
+@PropertySource("classpath:/jwt.yml")
 @Component
 public class JwtTokenProvider {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
-    @Value("spring.jwt.secret")
-    private String secretKey;
+    @Value("jwt.secretKey")
+    private String secret;
     private UserServiceImpl userServiceImpl;
     private final long tokenValidMilisecond = 1000L *60*60;
     private String jws;
     private Claims claims;
-    private Date now;
     private Date expiration;
     private Users user;
     private String userId;
@@ -47,29 +45,26 @@ public class JwtTokenProvider {
 
     }
 
-    @PostConstruct
-    protected void init(){
-        secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
-    }
-
-    public String createToken(String userId, List<String> authority){
+    public String createToken(String userId,String password){
+        Key tokenKey = MacProvider.generateKey(SignatureAlgorithm.HS256);
         log.debug("JwtTokenProvider.createToken ::::");
+        log.error(secret);
         claims = Jwts.claims().setSubject(userId);
-        claims.put("typ","JWT");
-        now = new Date();
-        expiration = new Date(now.getTime() + tokenValidMilisecond);
+        claims.put("password",password);
+        expiration = new Date(System.currentTimeMillis() + tokenValidMilisecond);
         jws = Jwts.builder()
+                .setHeaderParam("typ","JWT")
                 .setClaims(claims)
-                .setIssuedAt(now)
+                .setIssuedAt(new java.sql.Date(System.currentTimeMillis()))
                 .setExpiration(expiration)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(SignatureAlgorithm.HS256, tokenKey)
                 .compact();
         return jws;
     }
     public String extractUserIdFromToken(String token) {
         log.debug("JwtTokenProvider.extractUserIdFromToken ::::");
         try {
-            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
             return null;
         }
@@ -84,7 +79,7 @@ public class JwtTokenProvider {
     public boolean validateExpirationToken(String jwtToken) {
         log.debug("JwtTokenProvider.validateExpirationToken ::::");
         try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken);
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
         }
         catch (Exception e) {

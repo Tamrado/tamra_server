@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -35,7 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.authorizeRequests()
-                .antMatchers("/*/signin","/*/signUp").permitAll()
+                .antMatchers("/*/signIn","/*/signUp").permitAll()
                 .anyRequest().hasAnyRole("ROLE_USER","ROLE_ADMIN")
                 .and().logout()
                 .logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler())
@@ -79,20 +81,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new CustomAuthenticationEntryPoint("/loginPage?error=e");
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception{
-        auth.authenticationProvider(authenticationProvider);
-
-    }
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-
-
-
-
-
 
 }
