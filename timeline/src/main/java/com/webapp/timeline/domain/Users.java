@@ -1,6 +1,8 @@
 package com.webapp.timeline.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.primitives.UnsignedInts;
+import com.webapp.timeline.web.UsersDeserializer;
 import org.checkerframework.checker.signedness.qual.Unsigned;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +17,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
+@JsonDeserialize(using = UsersDeserializer.class)
 public class Users implements UserDetails {
     private String userId;
     @Id
@@ -29,7 +32,6 @@ public class Users implements UserDetails {
     private int gender;
     private String address;
     private String comment;
-    private String profileUrl;
     private Date timestamp;
     private int group1;
     private int group2;
@@ -37,7 +39,7 @@ public class Users implements UserDetails {
     private int group4;
 
     public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
-                 String address, String comment, String profileUrl, Date timestamp, int group1, int group2, int group3, int group4) {
+                 String address, String comment, Date timestamp, int group1, int group2, int group3, int group4) {
         this.userId = userId;
         this.password = password;
         this.name = name;
@@ -47,7 +49,6 @@ public class Users implements UserDetails {
         this.gender = gender;
         this.address = address;
         this.comment = comment;
-        this.profileUrl = profileUrl;
         this.timestamp = timestamp;
         this.group1 = group1;
         this.group2 = group2;
@@ -168,14 +169,6 @@ public class Users implements UserDetails {
 
     public String getComment() {
         return comment;
-    }
-
-    public void setProfileUrl(String profileUrl) {
-        this.profileUrl = profileUrl;
-    }
-
-    public String getProfileUrl() {
-        return profileUrl;
     }
 
     public void setTimestamp(Date timestamp) {

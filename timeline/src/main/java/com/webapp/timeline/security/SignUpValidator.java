@@ -3,6 +3,7 @@ package com.webapp.timeline.security;
 import com.webapp.timeline.domain.Users;
 import com.webapp.timeline.repository.UsersEntityRepository;
 import com.webapp.timeline.service.result.CommonResult;
+import com.webapp.timeline.service.result.SingleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,33 +26,32 @@ public class SignUpValidator{
     public SignUpValidator(UsersEntityRepository usersEntityRepository){
         this.usersEntityRepository = usersEntityRepository;
     }
+    public CommonResult validateForModify(Users users){
+        CommonResult commonResult= new CommonResult();
+        if(checkIfEmailIsWrongForm(users))
+            commonResult.setMsg("wrong formed email");
+
+        else if(checkIfPasswordIsWrongForm(users))
+            commonResult.setMsg("wrong formed password");
+
+        else if(checkIfGroupOverlap(users))
+            commonResult.setMsg("overlapped group");
+        else if(checkIfObjectModifyOverlap(users))
+            commonResult.setMsg("overlapped object");
+        else{
+            commonResult.setCode(200);
+            commonResult.setSuccess(true);
+            commonResult.setMsg("success");
+        }
+        return commonResult;
+    }
 
     public CommonResult validate(Users users){
-        CommonResult commonResult = new CommonResult();
-        commonResult.setCode(0);
-        commonResult.setSuccess(true);
-        commonResult.setMsg("success");
-
-        if(checkIfObjectOverlap(users)) {
-            commonResult.setCode(-1);
-            commonResult.setSuccess(false);
+        CommonResult commonResult = new SingleResult<>();
+        if(checkIfObjectOverlap(users))
             commonResult.setMsg("overlapped id or phone or email");
-        }
-        else if(checkIfEmailIsWrongForm(users)){
-            commonResult.setCode(-1);
-            commonResult.setSuccess(false);
-            commonResult.setMsg("wrong formed email");
-        }
-        else if(checkIfPasswordIsWrongForm(users)){
-            commonResult.setCode(-1);
-            commonResult.setSuccess(false);
-            commonResult.setMsg("wrong formed password");
-        }
-        else if(checkIfGroupOverlap(users)){
-            commonResult.setCode(-1);
-            commonResult.setSuccess(false);
-            commonResult.setMsg("overlapped group");
-        }
+        else
+            commonResult = validateForModify(users);
         return commonResult;
 
     }
@@ -78,27 +79,31 @@ public class SignUpValidator{
         if(m.find()) returnValue = true;
         return returnValue;
     }
+    private Boolean checkIfObjectModifyOverlap(Users user){
+        Boolean overlappedChecking = false;
+        if(usersEntityRepository.findEmailByExistingEmail(user.getEmail()) != null && usersEntityRepository.findEmailByExistingEmail(user.getEmail()).getId() != user.getId())
+            overlappedChecking = true;
+        else if(usersEntityRepository.findPhoneByExistingPhone(user.getPhone()) != null && usersEntityRepository.findPhoneByExistingPhone(user.getPhone()).getId() != user.getId())
+            overlappedChecking = true;
+
+        return overlappedChecking;
+    }
 
     private Boolean checkIfObjectOverlap(Users user){
-
-
         if(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).isEmpty())
             return false;
         return true;
     }
 
-    public Boolean checkIfGroupOverlap(Users user){
+    private Boolean checkIfGroupOverlap(Users user){
         group.add(user.getGroup1());
         group.add(user.getGroup2());
         group.add(user.getGroup3());
         group.add(user.getGroup4());
 
-        for(int i = 0; i< group.size(); i++){
-            for(int j = 0; j < group.size(); j++){
-                if(i != j && group.get(i) == group.get(j))
-                    return true;
-            }
-        }
+        HashSet<Integer> hashSet = new HashSet<Integer>(group);
+        log.info(Integer.toString(hashSet.size()));
+        if(hashSet.size() != 4) return true;
         return false;
     }
 }

@@ -5,6 +5,10 @@ spring:
       username: tlproject
       password: 1234
       driver-class-name: com.mysql.cj.jdbc.Driver
+  http:
+    multipart:
+    max-file-size: 5MB
+    max-request-size: 20MB
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     properties:
@@ -25,6 +29,9 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+
+
+
 
 
 
