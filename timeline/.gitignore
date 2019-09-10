@@ -1,28 +1,27 @@
-
 HELP.md
-.gradle
+*.gradle
+aws.yml
+jwt.yml
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**
 !**/src/test/**
 
+
 ### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+*.apt_generated
+*.classpath
+*.factorypath
+*.project
+*.settings
+*.springBeans
+*.sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+*.idea
 *.iws
 *.iml
 *.ipr
 out/
-jwt.yml
-aws.yml
 
 ### NetBeans ###
 /nbproject/private/

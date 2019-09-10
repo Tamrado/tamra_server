@@ -4,13 +4,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service // 해당 Class가 Service임을 명시합니다.
+@Service
 public class ResponseService {
 
-    // enum으로 api 요청 결과에 대한 code, message를 정의합니다.
     public enum CommonResponse {
-        SUCCESS(0, "성공하였습니다."),
-        FAIL(-1, "실패하였습니다.");
+        SUCCESS(200, "성공하였습니다."),
+        FAIL(400, "실패하였습니다.");
 
         int code;
         String msg;

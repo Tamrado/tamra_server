@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.webapp.timeline.domain.Users;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -13,6 +15,7 @@ import java.text.SimpleDateFormat;
 
 public class UsersDeserializer extends StdDeserializer<Users> {
 
+    Logger log = LoggerFactory.getLogger(this.getClass());
     public UsersDeserializer() {
         this(null);
     }
@@ -23,6 +26,7 @@ public class UsersDeserializer extends StdDeserializer<Users> {
 
     @Override
     public Users deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
+        log.debug("UsersDeserializer.deserialize ::::");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd");
         JsonNode node = parser.getCodec().readTree(parser);
         Date birthday = null;
@@ -41,7 +45,6 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         int gender = node.get("gender").asInt();
         String address = node.get("address").asText(null);
         String comment = node.get("comment").asText(null);
-        String profileUrl = node.get("profileUrl").asText(null);
         int group1 = node.get("group1").asInt(-1);
         int group2 = node.get("group2").asInt(-1);
         int group3 = node.get("group3").asInt(-1);
@@ -55,7 +58,6 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         if(group4 != -1)
             user.setGroup4(group4);
         user.setAddress(address);
-        user.setProfileUrl(profileUrl);
         user.setPassword(password);
         user.setBirthday(birthday);
         user.setComment(comment);

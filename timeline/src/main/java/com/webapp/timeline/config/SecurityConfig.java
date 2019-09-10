@@ -1,21 +1,24 @@
 package com.webapp.timeline.config;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.webapp.timeline.repository.UserImagesRepository;
 import com.webapp.timeline.repository.UsersEntityRepository;
 import com.webapp.timeline.security.*;
+import com.webapp.timeline.service.membership.UserImageS3Component;
+import com.webapp.timeline.service.membership.UserService;
+import com.webapp.timeline.service.membership.UserSignService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -26,29 +29,34 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private AuthenticationProvider authenticationProvider;
-
+    @Autowired
+    private UsersEntityRepository usersEntityRepository;
+    @Autowired
+    private UserImagesRepository userImagesRepository;
+    @Autowired
+    private CustomPasswordEncoder customPasswordEncoder;
+    @Autowired
+    private AmazonS3Client amazonS3Client;
     @Override
     public void configure(WebSecurity web) throws Exception{
         web.ignoring().antMatchers("/swagger-resources/**","/webjars/**", "/swagger-ui.html","/swagger/**","/v2/api-docs");
     }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        http.authorizeRequests()
-                .antMatchers("/*/signIn","/*/signUp").permitAll()
-                .anyRequest().hasAnyRole("ROLE_USER","ROLE_ADMIN")
-                .and().logout()
-                .logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler())
-                .and().addFilterBefore(new JwtAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class)
-                .csrf().disable()
+        http.csrf().disable()
+                .httpBasic().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .httpBasic().disable()
-                .exceptionHandling()
-                .accessDeniedHandler(accessDeniedHandler())
-                .authenticationEntryPoint(authenticationEntryPoint());
+                .authorizeRequests()
+                .antMatchers(HttpMethod.POST,"/*/member/auth","/*/member","/*/member/image").permitAll()
+                .anyRequest().hasRole("USER")
+                .and()
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
+                .and()
+                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+                .and()
+                .addFilterBefore(author(), UsernamePasswordAuthenticationFilter.class);
     }
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
@@ -80,11 +88,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new CustomAuthenticationEntryPoint("/loginPage?error=e");
     }
-
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
+
+    @Bean
+    public JwtAuthorizationFilter author() throws Exception{
+        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter
+                (new JwtTokenProvider
+                        (new UserSignService
+                                (new UserImageS3Component(amazonS3Client),new SignUpValidator
+                                        (usersEntityRepository),
+                                        usersEntityRepository,
+                                       customPasswordEncoder,
+                                        new UserService(
+                                                customPasswordEncoder,
+                                                usersEntityRepository,
+                                                userImagesRepository))));
+        return jwtAuthorizationFilter;
+    }
+
+
 
 }

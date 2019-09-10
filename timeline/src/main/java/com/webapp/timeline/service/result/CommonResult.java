@@ -1,7 +1,6 @@
 package com.webapp.timeline.service.result;
 
 import io.swagger.annotations.ApiModelProperty;
-import org.springframework.stereotype.Component;
 
 public class CommonResult {
 
@@ -16,7 +15,7 @@ public class CommonResult {
 
     public CommonResult(){
         success = false;
-        code = -1;
+        code = 400;
         msg = null;
     }
     public void setSuccess(boolean success){
