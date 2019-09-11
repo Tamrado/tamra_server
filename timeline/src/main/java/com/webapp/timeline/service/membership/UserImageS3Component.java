@@ -41,12 +41,8 @@ public class UserImageS3Component {
         String uploadImageUrl = putS3(uploadFile, fileName);
         SingleResult<String> singleResult = new SingleResult<>();
         removeNewFile(uploadFile);
-        if(uploadImageUrl != null){
-            singleResult.setData(uploadImageUrl);
-            singleResult.setMsg("success upload");
-            singleResult.setCode(200);
-            singleResult.setSuccess(true);
-        }
+        if(uploadImageUrl != null)
+            singleResult.setSuccessResult(200,"success upload",uploadImageUrl);
         return singleResult;
     }
 

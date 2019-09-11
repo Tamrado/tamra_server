@@ -34,30 +34,25 @@ public class UserService {
 
     }
 
-    public SingleResult<Long> saveUser(Users user) {
-        SingleResult<Long> singleResult = new SingleResult<>();
+    public CommonResult saveUser(Users user) {
+        CommonResult commonResult = new CommonResult();
         try {
             usersEntityRepository.save(user);
             usersEntityRepository.flush();
-            singleResult.setMsg("success saving user");
-            singleResult.setData(user.getMasterId());
-            singleResult.setSuccess(true);
-            singleResult.setCode(200);
+            commonResult.setSuccessResult(200,"success saving user");
         } catch (Exception e) {
-            singleResult.setMsg("fail to save");
+            commonResult.setMsg("fail to save");
         }
-        return singleResult;
+        return commonResult;
     }
 
     public CommonResult confirmCorrectUser(String password) {
         log.error("UserService.confirmCorrectUser");
         Users user = extractUserFromToken();
         CommonResult commonResult = new CommonResult();
-        if (customPasswordEncoder.matches(password, user.getPassword())) {
-            commonResult.setCode(200);
-            commonResult.setSuccess(true);
-            commonResult.setMsg("correct user");
-        } else
+        if (customPasswordEncoder.matches(password, user.getPassword()))
+            commonResult.setSuccessResult(200,"correct user");
+        else
             commonResult.setMsg("wrong user");
         return commonResult;
     }
@@ -76,10 +71,7 @@ public class UserService {
             userImagesRepository.saveAndFlush(userImages);
 
         } catch (Exception e) {
-            singleResult.setCode(400);
-            singleResult.setSuccess(false);
-            singleResult.setData(null);
-            singleResult.setMsg("fail to save userImage");
+            singleResult.setFailResult(400, "fail to save userImage", e.toString());
         }
         if(singleResult.getSuccess()) singleResult.setMsg("success to save userImage");
         return singleResult;

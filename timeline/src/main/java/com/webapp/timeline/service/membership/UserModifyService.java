@@ -22,9 +22,11 @@ public class UserModifyService {
     private SignUpValidator signUpValidator;
     private UserImageS3Component userImageS3Component;
     private UserService userService;
+    private UserSignService userSignService;
     @Autowired
-    public UserModifyService(UserService userService,UserImageS3Component userImageS3Component,SignUpValidator signUpValidator,CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository){
+    public UserModifyService(UserSignService userSignService,UserService userService,UserImageS3Component userImageS3Component,SignUpValidator signUpValidator,CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository){
         this.signUpValidator = signUpValidator;
+        this.userSignService = userSignService;
         this.userImageS3Component = userImageS3Component;
         this.customPasswordEncoder = customPasswordEncoder;
         this.usersEntityRepository = usersEntityRepository;
@@ -33,21 +35,31 @@ public class UserModifyService {
     public CommonResult modifyUser(Users user){
         CommonResult commonResult = signUpValidator.validateForModify(user);
         if(commonResult.getSuccess()) {
-            user.setPassword(customPasswordEncoder.encode(user.getPassword()));
-            usersEntityRepository.updateUser(user.getGroup4(), user.getGroup3(), user.getGroup2(), user.getGroup1(), user.getGender(),user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
-            commonResult.setMsg("update user");
+            if(userSignService.loadUserByUsername(user.getId()) != null) {
+                user.setPassword(customPasswordEncoder.encode(user.getPassword()));
+                usersEntityRepository.updateUser(user.getGroup4(), user.getGroup3(), user.getGroup2(), user.getGroup1(), user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
+                commonResult.setMsg("update user");
+            }
+            else{
+                commonResult.setMsg("no user");
+                commonResult.setCode(405);
+                commonResult.setSuccess(false);
+            }
         }
         return commonResult;
     }
     public CommonResult modifyImage(MultipartFile file){
         CommonResult commonResult = new CommonResult();
         Users user = userService.extractUserFromToken();
-        try {
-            return userImageS3Component.upload(file, user.getId());
-        }
-        catch(IOException e){
-            commonResult.setMsg(e.toString());
-            log.error(e.toString());
+        if(user == null)
+            commonResult.setFailResult(405,"no user");
+        else {
+            try {
+                return userImageS3Component.upload(file, user.getId());
+            } catch (IOException e) {
+                commonResult.setMsg(e.toString());
+                log.error(e.toString());
+            }
         }
         return commonResult;
     }

@@ -36,4 +36,14 @@ public class CommonResult {
     public String getMsg(){
         return msg;
     }
+    public void setFailResult( int code, String msg){
+        this.success = false;
+        this.code = code;
+        this.msg = msg;
+    }
+    public void setSuccessResult(int code, String msg){
+        this.success = true;
+        this.code = code;
+        this.msg = msg;
+    }
 }
