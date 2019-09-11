@@ -30,7 +30,8 @@ public class SignUpValidator{
         CommonResult commonResult= new CommonResult();
         if(checkIfEmailIsWrongForm(users))
             commonResult.setMsg("wrong formed email");
-
+        else if(checkIfPhoneIsWrongForm(users))
+            commonResult.setMsg("wrong formed phone number");
         else if(checkIfPasswordIsWrongForm(users))
             commonResult.setMsg("wrong formed password");
 
@@ -54,6 +55,15 @@ public class SignUpValidator{
             commonResult = validateForModify(users);
         return commonResult;
 
+    }
+    private Boolean checkIfPhoneIsWrongForm(Users user){
+        String regex = "^01(?:0|1|[6-9])-(\\d{3}|\\d{4})-(\\d{4})$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(user.getPhone());
+        if(m.matches())
+            return false;
+        else
+            return true;
     }
     private Boolean checkIfEmailIsWrongForm(Users user){
         String regex = "^[_a-z0-9-]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$";

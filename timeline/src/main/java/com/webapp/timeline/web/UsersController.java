@@ -10,13 +10,10 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 
 @Api(tags = {"1. User"})
@@ -38,7 +35,7 @@ public class UsersController {
     }
     @ApiOperation(value = "회원 가입" , notes = "회원을 추가함")
     @PostMapping(value="/member")
-    public SingleResult<Long> signUp(@ApiParam(value = "회원정보") @RequestBody Users users){
+    public CommonResult signUp(@ApiParam(value = "회원정보") @RequestBody Users users){
         log.debug("signUp");
         return userSignService.validateUser(users);
     }
@@ -53,16 +50,12 @@ public class UsersController {
     @ApiOperation(value = "로그인", notes = "회원인지 아닌지 확인 후 token 발급")
     @PostMapping(value="/member/auth")
     public SingleResult<String> signIn(@RequestBody Map<String,Object> user){
-        log.debug("login");
         return userSignService.findUser((String)user.get("id"),(String)user.get("password"));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value="개인정보 수정",notes = "회원의 개인정보를 수정함")
     @PutMapping(value="/member")
-    public CommonResult modify(@ApiParam(value= "수정하고자 하는 값") @RequestBody Users user){
+    public CommonResult modify(@ApiParam(value= "수정하고자 하는 값") @RequestBody Users user,@RequestHeader("X-AUTH-TOKEN")String token){
         log.error("modify");
         return userModifyService.modifyUser(user);
     }

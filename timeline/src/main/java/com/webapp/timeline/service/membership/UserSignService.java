@@ -1,6 +1,5 @@
 package com.webapp.timeline.service.membership;
 
-import com.webapp.timeline.domain.Profiles;
 import com.webapp.timeline.domain.Users;
 import com.webapp.timeline.repository.UsersEntityRepository;
 import com.webapp.timeline.security.CustomPasswordEncoder;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,30 +40,31 @@ public class UserSignService implements UserDetailsService {
     public UserSignService(){
     }
     @Override
-    public Users loadUserByUsername(String username) throws UsernameNotFoundException {
+    public Users loadUserByUsername(String username) {
         Users user = usersEntityRepository.findIdByExistingId(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("user not found");
-        }
+        log.info("loadUserByUsername");
         return user;
     }
-    public SingleResult<Long> validateUser(Users users){
-        CommonResult commonResult = new SingleResult<>();
-        commonResult = signUpValidator.validate(users);
-        if(!commonResult.getSuccess()) return (SingleResult<Long>) commonResult;
+    public CommonResult validateUser(Users users){
+        CommonResult commonResult = signUpValidator.validate(users);
+        if(!commonResult.getSuccess()) return commonResult;
         return initUserforSignUp(users);
     }
     public SingleResult<String> userImageUpload(MultipartFile multipartFile, String userId) {
         SingleResult<String> singleResult = new SingleResult<>();
         try {
-            singleResult = userImageS3Component.upload(multipartFile, userId);
+            if(loadUserByUsername(userId) == null) {
+                singleResult.setMsg("no user");
+                return singleResult;
+            }
+            else singleResult = userImageS3Component.upload(multipartFile, userId);
         }
         catch(IOException e){
             log.error(e.toString());
         }
         return userService.saveImageURL(singleResult,userId);
     }
-    public SingleResult<Long> initUserforSignUp(Users user){
+    public CommonResult initUserforSignUp(Users user){
         user.setPassword(customPasswordEncoder.encode(user.getPassword()));
         user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
         user.setAuthorities();
@@ -74,16 +73,14 @@ public class UserSignService implements UserDetailsService {
     public SingleResult <String> findUser(String id, String password) {
         Users foundedUser = loadUserByUsername(id);
         SingleResult<String> singleResult = new SingleResult<String>();
-        if(customPasswordEncoder.matches(password, foundedUser.getPassword())) {
+        if(foundedUser == null) singleResult.setMsg("wrong user");
+        else if(customPasswordEncoder.matches(password, foundedUser.getPassword())) {
             jwtTokenProvider = new JwtTokenProvider(new UserSignService());
             String jwt = jwtTokenProvider.createToken(foundedUser.getId());
-            singleResult.setCode(200);
-            singleResult.setSuccess(true);
-            singleResult.setMsg("same user");
-            singleResult.setData(jwt);
+            singleResult.setSuccessResult(200,"same user",jwt);
         }
         else
-            singleResult.setMsg("wrong user");
+            singleResult.setMsg("wrong password");
 
         return singleResult;
     }
