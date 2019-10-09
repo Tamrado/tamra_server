@@ -6,9 +6,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.util.IOUtils;
-
+import com.webapp.timeline.domain.PhotoVO;
 import org.slf4j.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,9 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
 
 @Component("s3Uploader")
 public class S3Uploader {
@@ -26,6 +24,8 @@ public class S3Uploader {
     Logger logger = LoggerFactory.getLogger("om.webapp.timeline.service.posting.S3Uploader");
 
     private final AmazonS3Client amazonS3Client;
+    private List<PhotoVO> imageUrlList;
+    private int urlIndex;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -35,14 +35,20 @@ public class S3Uploader {
         this.amazonS3Client = amazonS3Client;
     }
 
+    public List<PhotoVO> getImageUrlList() {
+        return imageUrlList;
+    }
+
     private PutObjectResult upload(String filePath, String dirName, String fileName) throws IOException {
         return upload(new FileInputStream(filePath), dirName, fileName);
     }
 
     public List<PutObjectResult> upload(MultipartFile[] multipartFiles, String dirName) {
-        if(multipartFiles.length == 0) {
+        if(multipartFiles.length == 0)
             return null;
-        }
+
+        imageUrlList = new ArrayList<>();
+        urlIndex = 0;
         List<PutObjectResult> putObjectResults = new ArrayList<>();
 
         Arrays.stream(multipartFiles).filter(multipartFile ->
@@ -67,13 +73,13 @@ public class S3Uploader {
 
         PutObjectRequest putObjectRequest =
                 new PutObjectRequest(bucket, fileName, specifiedInputStream, objectMetadata)
-                        .withCannedAcl(CannedAccessControlList.PublicReadWrite);
+                .withCannedAcl(CannedAccessControlList.PublicReadWrite);
 
         PutObjectResult putObjectResult =
                 amazonS3Client.putObject(putObjectRequest);
 
         String uploadImageUrl = amazonS3Client.getUrl(bucket, fileName).toString();
-        System.out.println(uploadImageUrl);
+        imageUrlList.add(new PhotoVO(++urlIndex, uploadImageUrl));
 
         try {
             inputStream.close();
@@ -84,3 +90,4 @@ public class S3Uploader {
         return putObjectResult;
     }
 }
+
