@@ -4,6 +4,7 @@ import com.webapp.timeline.repository.UsersEntityRepository;
 import com.webapp.timeline.security.CustomPasswordEncoder;
 import com.webapp.timeline.security.SignUpValidator;
 import com.webapp.timeline.service.result.CommonResult;
+import com.webapp.timeline.service.result.SingleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,18 @@ public class UserModifyService {
             }
         }
         return commonResult;
+    }
+    //로그아웃도 시켜야 한다.
+    public SingleResult modifyIdentify(){
+        SingleResult singleResult = new SingleResult();
+        Users user = userService.extractUserFromToken();
+        if(user == null)
+            singleResult.setFailResult(405,"user no login");
+        else{
+            user.setAuthoritytoInactive();
+            singleResult.setSuccessResult(200,"Succeed in setting the deactivation");
+        }
+        return singleResult;
     }
 
 

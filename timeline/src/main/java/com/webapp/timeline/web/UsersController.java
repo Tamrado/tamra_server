@@ -76,5 +76,13 @@ public class UsersController {
     public CommonResult correctUser(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user){
         return userService.confirmCorrectUser(user.get("password"));
     }
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value="비활성화",notes = "유저가 비활성화 함")
+    @PutMapping(value="/member/id")
+    public SingleResult changetoInactive(){
+        return userModifyService.modifyIdentify();
+    }
 
 }
