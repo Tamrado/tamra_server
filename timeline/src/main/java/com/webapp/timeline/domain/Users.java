@@ -19,10 +19,8 @@ import javax.persistence.*;
 @Table(name = "users")
 @JsonDeserialize(using = UsersDeserializer.class)
 public class Users implements UserDetails {
-    private String userId;
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long masterId;
+    private String userId;
     private String password;
     private String authority;
     private String name;
@@ -75,6 +73,9 @@ public class Users implements UserDetails {
         else
             authority = "ROLE_ADMIN";
     }
+    public void setAuthoritytoInactive(){
+        authority = "ROLE_INACTIVEUSER";
+    }
 
     @Override
     public boolean isAccountNonExpired() {
@@ -102,10 +103,7 @@ public class Users implements UserDetails {
 
     public void setId(String userId){
         this.userId = userId;
-
     }
-
-    public Long getMasterId(){ return masterId; }
 
     public void setPassword(String password) {
         this.password = password;

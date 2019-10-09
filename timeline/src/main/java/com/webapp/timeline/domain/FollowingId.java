@@ -8,12 +8,10 @@ import java.util.Objects;
 public class FollowingId implements Serializable {
 
     private String userId;
-    private Long masterId;
     private String followId;
 
-    public FollowingId(String userId,Long masterId,String followId) {
+    public FollowingId(String userId,String followId) {
         this.userId = userId;
-        this.masterId = masterId;
         this.followId = followId;
     }
 
@@ -23,7 +21,6 @@ public class FollowingId implements Serializable {
         return userId;
     }
 
-    public Long getMasterId(){ return masterId;}
 
     public String getFollowId() {
         return followId;
@@ -40,7 +37,6 @@ public class FollowingId implements Serializable {
         if(object instanceof FollowingId) {
             FollowingId followingId = (FollowingId) object;
             result = (followingId.isEqual(this) &&
-                    this.getMasterId() == followingId.getMasterId() &&
                     this.getFollowId().equals(followingId.getFollowId()) &&
                     this.getuserId().equals(followingId.getuserId()));
         }
@@ -51,7 +47,7 @@ public class FollowingId implements Serializable {
     //hashCode 오버라이딩 하는 법 알아보기
     @Override
     public int hashCode() {
-        return Objects.hash(getuserId(),getMasterId(), getFollowId());
+        return Objects.hash(getuserId(), getFollowId());
     }
 
 }
