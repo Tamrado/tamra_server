@@ -1,25 +1,34 @@
 package com.webapp.timeline.domain;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.webapp.timeline.web.CustomPostDeserializer;
+import com.webapp.timeline.web.CustomPostSerializer;
 
-import java.sql.Timestamp;
-import java.util.List;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.sql.Timestamp;
+
 
 //@DynamicInsert
 //@DynamicUpdate
 @Entity
 @Table(name = "posts")
+@JsonSerialize(using = CustomPostSerializer.class)
+@JsonDeserialize(using = CustomPostDeserializer.class)
 public class Posts {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int postId;
 
-    private long masterId;
-
+    @NotNull
     private String userId;
 
     @NotNull(message="소식을 전달해주세요.")
@@ -27,33 +36,21 @@ public class Posts {
 
     @Convert(converter = ConverterShowLevel.class)
     private String showLevel;
-    
+
+    @NotNull
     private Timestamp lastUpdate;
 
-    @Convert(converter = JpaConverterJson.class)
-    private List<PhotoVO> photoUrl;
-
-    public Posts(int masterId, String userId, String content, String showLevel, Timestamp lastUpdate, List<PhotoVO> photoUrl) {
-        this.masterId = masterId;
+    public Posts(String userId, String content, String showLevel, Timestamp lastUpdate) {
         this.userId = userId;
         this.content = content;
         this.showLevel = showLevel;
         this.lastUpdate = lastUpdate;
-        this.photoUrl = photoUrl;
     }
 
     public Posts() {}
 
     public int getPostId() {
         return postId;
-    }
-
-    public void setMasterId(int masterId) {
-        this.masterId = masterId;
-    }
-
-    public long getMasterId() {
-        return masterId;
     }
 
     public void setUserId(String userId) {
@@ -80,21 +77,61 @@ public class Posts {
         return showLevel;
     }
 
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
+    public void setLastUpdate() {
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        String now = LocalDateTime.now()
+                                .atZone(zoneId)
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        this.lastUpdate = Timestamp.valueOf(now);
+        System.out.println(this.lastUpdate);
     }
 
     public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setPhotoUrl(List<PhotoVO> photoUrl) {
-        this.photoUrl = photoUrl;
+    public static PostsBuilder builder() {
+        return new PostsBuilder();
     }
 
-    public List<PhotoVO> getPhotoUrl() {
-        return photoUrl;
-    }
+    public static class PostsBuilder {
+        private long masterId;
+        private String userId;
+        private String content;
+        private String showLevel;
+        private Timestamp lastUpdate;
 
+        PostsBuilder() {}
+
+        public PostsBuilder masterId(long masterId) {
+            this.masterId = masterId;
+            return this;
+        }
+
+        public PostsBuilder userId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public PostsBuilder content(String content) {
+            this.content = content;
+            return this;
+        }
+
+        public PostsBuilder showLevel(String showLevel) {
+            this.showLevel = showLevel;
+            return this;
+        }
+
+        public PostsBuilder lastUpdate(Timestamp lastUpdate) {
+            this.lastUpdate = lastUpdate;
+            return this;
+        }
+
+        public Posts build() {
+            return new Posts(userId, content, showLevel, lastUpdate);
+        }
+    }
 
 }
