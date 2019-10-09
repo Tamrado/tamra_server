@@ -1,22 +1,22 @@
 package com.webapp.timeline.domain;
 
 public class PhotoVO {
-    private int id;
+    private int photoId;
     private String url;
 
-    public PhotoVO(int id, String url) {
-        this.id = id;
+    public PhotoVO(int photoId, String url) {
+        this.photoId = photoId;
         this.url = url;
     }
 
     public PhotoVO() {}
 
     public void setPhotoId(int photoId) {
-        this.id = photoId;
+        this.photoId = photoId;
     }
 
     public int getPhotoId() {
-        return id;
+        return photoId;
     }
 
     public void setUrl(String url) {
