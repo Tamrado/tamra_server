@@ -3,6 +3,7 @@ package com.webapp.timeline.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.multipart.support.MultipartFilter;
 
@@ -11,7 +12,7 @@ public class MultipartAutoConfig {
     @Bean
     public CommonsMultipartResolver multipartResolver() {
         CommonsMultipartResolver multipart = new CommonsMultipartResolver();
-        multipart.setMaxUploadSize(3 * 1024 * 1024);
+        multipart.setMaxUploadSize(10 * 1024 * 1024);
         return multipart;
     }
 

@@ -1,0 +1,6 @@
+package com.webapp.timeline.membership.security;
+
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
+public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+}
