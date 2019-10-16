@@ -2,18 +2,14 @@ package com.webapp.timeline.sns.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.webapp.timeline.sns.domain.ConverterShowLevel;
-import com.webapp.timeline.web.CustomPostDeserializer;
-import com.webapp.timeline.web.CustomPostSerializer;
+import com.webapp.timeline.sns.web.CustomPostDeserializer;
+import com.webapp.timeline.sns.web.CustomPostSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.sql.Timestamp;
 
 

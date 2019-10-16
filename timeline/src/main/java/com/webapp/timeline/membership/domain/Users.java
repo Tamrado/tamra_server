@@ -1,13 +1,10 @@
 package com.webapp.timeline.membership.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.primitives.UnsignedInts;
-import com.webapp.timeline.web.UsersDeserializer;
-import org.checkerframework.checker.signedness.qual.Unsigned;
+import com.webapp.timeline.membership.web.UsersDeserializer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.util.ArrayList;
