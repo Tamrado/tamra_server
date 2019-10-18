@@ -53,12 +53,17 @@ public class PostController {
                                                 @ApiIgnore BindingResult bindingResult) {
 
         header = new HttpHeaders();
-        bindingErrorsPackage = new BindingErrorsPackage();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        bindingErrorsPackage = new BindingErrorsPackage();
 
         if(post == null) {
                 logger.error("[Null] Cannot upload POSTS with empty object.");
             return new ResponseEntity<>(null, header, HttpStatus.BAD_REQUEST);
+        }
+
+        if(bindingResult.hasErrors()) {
+            bindingErrorsPackage.createErrorDetail(bindingResult);
+            header.add("errors", bindingErrorsPackage.toJson());
         }
 
         post.setUserId(userService.extractUserFromToken().getId());

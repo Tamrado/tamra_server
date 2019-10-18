@@ -1,9 +1,8 @@
-package com.webapp.timeline.service.posting;
+package com.webapp.timeline.sns.service;
 
-import com.webapp.timeline.domain.PhotoVO;
-import com.webapp.timeline.domain.PostImages;
-import com.webapp.timeline.domain.Posts;
-import com.webapp.timeline.service.membership.UserService;
+
+import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.sns.domain.Posts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +18,9 @@ import java.util.*;
 public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
-    private PostImages postImages;
     private JpaRepository<Posts, Integer> postsRepository;
     private S3Uploader s3Uploader;
-    private List<PhotoVO> getUrlMap;
+    private LinkedHashMap<Integer, String> getUrlMap;
     private UserService userService;
 
 
@@ -41,8 +39,7 @@ public class PostServiceImpl implements PostService {
         this.userService = userService;
     }
 
-
-    private List<PhotoVO> manageFileUpload(String dirName, MultipartFile[] multipartFiles) {
+    private LinkedHashMap<Integer, String> manageFileUpload(String dirName, MultipartFile[] multipartFiles) {
 
         if(multipartFiles.length == 0) {
             return null;
@@ -53,35 +50,20 @@ public class PostServiceImpl implements PostService {
         }
 
         s3Uploader.upload(multipartFiles, dirName);
-        getUrlMap = sortByPhotoId(s3Uploader.getImageUrlList());
+        getUrlMap = s3Uploader.getImageUrlMap();
 
+        System.out.println("반환하는 유알엘 : " + getUrlMap);
         return getUrlMap;
     }
 
-    /*
-    * List<PhotoVO> for Json-Type 정렬
-    *
-    * @param list : photoId값 비교할 리스트
-    *
-     */
-    private List<PhotoVO> sortByPhotoId(List<PhotoVO> list) {
-        Collections.sort(list, (o1, o2) -> {
-            if(o1 == null || o2 == null) {
-                return 0;
-            }
-            return o1.getPhotoId() > o2.getPhotoId() ? 1 :
-                    o1.getPhotoId() < o2.getPhotoId() ? -1 : 0;
-        });
-        return list;
-    }
-
     @Override
-    public List<PhotoVO> uploadImages(long postId, MultipartFile[] multipartFiles) {
+    public LinkedHashMap<Integer, String> uploadImages(MultipartFile[] multipartFiles) {
+        logger.info("[PostService] Upload new " + multipartFiles.length + " files to AWS S3 / timeline.");
+
         String dirName = "";
         dirName = this.userService.extractUserFromToken().getEmail();
 
-        postImages = new PostImages(postId, manageFileUpload(dirName, multipartFiles));
-        return null;
+        return manageFileUpload(dirName, multipartFiles);
     }
 
     @Override

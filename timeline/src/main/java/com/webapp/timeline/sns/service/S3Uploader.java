@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.util.IOUtils;
-import com.webapp.timeline.sns.domain.PhotoVO;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +20,10 @@ import java.util.*;
 @Component("s3Uploader")
 public class S3Uploader {
 
-    Logger logger = LoggerFactory.getLogger("om.webapp.timeline.service.posting.S3Uploader");
+    private static final Logger logger = LoggerFactory.getLogger(S3Uploader.class);
 
     private final AmazonS3Client amazonS3Client;
-    private List<PhotoVO> imageUrlList;
+    private LinkedHashMap<Integer, String> imageUrlMap;
     private int urlIndex;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -35,8 +34,8 @@ public class S3Uploader {
         this.amazonS3Client = amazonS3Client;
     }
 
-    public List<PhotoVO> getImageUrlList() {
-        return imageUrlList;
+    public LinkedHashMap<Integer, String> getImageUrlMap() {
+        return this.imageUrlMap;
     }
 
     private PutObjectResult upload(String filePath, String dirName, String fileName) throws IOException {
@@ -47,7 +46,7 @@ public class S3Uploader {
         if(multipartFiles.length == 0)
             return null;
 
-        imageUrlList = new ArrayList<>();
+        imageUrlMap = new LinkedHashMap<>();
         urlIndex = 0;
         List<PutObjectResult> putObjectResults = new ArrayList<>();
 
@@ -79,7 +78,7 @@ public class S3Uploader {
                 amazonS3Client.putObject(putObjectRequest);
 
         String uploadImageUrl = amazonS3Client.getUrl(bucket, fileName).toString();
-        imageUrlList.add(new PhotoVO(++urlIndex, uploadImageUrl));
+        imageUrlMap.put(++urlIndex, uploadImageUrl);
 
         try {
             inputStream.close();
