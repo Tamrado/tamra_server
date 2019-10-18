@@ -1,17 +1,21 @@
 package com.webapp.timeline.config;
 
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.multipart.support.MultipartFilter;
 
+
 @Configuration
 public class MultipartAutoConfig {
-    @Bean
-    public CommonsMultipartResolver multipartResolver() {
+    @Bean(name = "multipartResolver")
+    public MultipartResolver multipartResolver() {
         CommonsMultipartResolver multipart = new CommonsMultipartResolver();
-        multipart.setMaxUploadSize(3 * 1024 * 1024);
+        multipart.setMaxUploadSizePerFile(10 * 1024 * 1024);
+        multipart.setDefaultEncoding("utf-8");
         return multipart;
     }
 
@@ -22,4 +26,5 @@ public class MultipartAutoConfig {
         multipartFilter.setMultipartResolverBeanName("multipartResolver");
         return multipartFilter;
     }
+
 }

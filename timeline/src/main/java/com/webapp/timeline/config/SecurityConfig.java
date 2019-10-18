@@ -2,12 +2,12 @@ package com.webapp.timeline.config;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.webapp.timeline.repository.UserImagesRepository;
-import com.webapp.timeline.repository.UsersEntityRepository;
-import com.webapp.timeline.security.*;
-import com.webapp.timeline.service.membership.UserImageS3Component;
-import com.webapp.timeline.service.membership.UserService;
-import com.webapp.timeline.service.membership.UserSignService;
+import com.webapp.timeline.membership.repository.UserImagesRepository;
+import com.webapp.timeline.membership.repository.UsersEntityRepository;
+import com.webapp.timeline.membership.security.*;
+import com.webapp.timeline.membership.service.UserImageS3Component;
+import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.UserSignService;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
