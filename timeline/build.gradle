@@ -43,6 +43,7 @@ dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.602'
     compile fileTree(dir: 'ext_libs', include: ['*.jar'])
 
+
 }
 
 dependencyManagement {

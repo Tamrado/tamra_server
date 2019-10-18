@@ -1,6 +1,7 @@
 package com.webapp.timeline.web;
 
 import com.webapp.timeline.domain.Users;
+import com.webapp.timeline.security.SignUpValidator;
 import com.webapp.timeline.service.membership.UserModifyService;
 import com.webapp.timeline.service.membership.UserService;
 import com.webapp.timeline.service.result.CommonResult;
@@ -33,6 +34,11 @@ public class UsersController {
     public UsersController(){
 
     }
+    /*@ApiOperation(value = "회원가입 시 이메일 확인", notes = "존재하는 이메일인지 알려줌")
+    @GetMapping(value="/member/email")
+    public CommonResult checkEmailExists(@ApiParam(value = "이메일") @RequestParam String email){
+        return SignUpValidator.
+    }*/
     @ApiOperation(value = "회원 가입" , notes = "회원을 추가함")
     @PostMapping(value="/member")
     public CommonResult signUp(@ApiParam(value = "회원정보") @RequestBody Users users){
@@ -59,29 +65,22 @@ public class UsersController {
         log.error("modify");
         return userModifyService.modifyUser(user);
     }
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
+
     @ApiOperation(value="개인정보 수정(사진)",notes = "회원의 개인정보를 수정함(사진)")
     @PostMapping(value="/member/image/id")
-    public CommonResult modifyImage(@RequestParam(value ="file",required=false) MultipartFile file) throws IOException{
+    public CommonResult modifyImage(@RequestParam(value ="file",required=false) MultipartFile file,@RequestHeader("X-AUTH-TOKEN")String token) throws IOException{
         return userModifyService.modifyImage(file);
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value="유저 확인", notes = "올바른 유저인지 확인")
     @PostMapping(value="/auth")
-    public CommonResult correctUser(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user){
+    public CommonResult correctUser(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,@RequestHeader("X-AUTH-TOKEN")String token){
         return userService.confirmCorrectUser(user.get("password"));
     }
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
+
     @ApiOperation(value="비활성화",notes = "유저가 비활성화 함")
     @PutMapping(value="/member/id")
-    public SingleResult changetoInactive(){
+    public SingleResult changetoInactive(@RequestHeader("X-AUTH-TOKEN")String token){
         return userModifyService.modifyIdentify();
     }
 

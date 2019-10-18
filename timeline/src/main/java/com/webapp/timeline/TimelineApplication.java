@@ -1,14 +1,9 @@
 package com.webapp.timeline;
 
-import com.webapp.timeline.security.JwtTokenProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
 
 @EntityScan(basePackages = {"com.webapp.timeline.domain"})
 @EnableJpaRepositories(basePackages = {"com.webapp.timeline.repository"})
