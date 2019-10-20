@@ -6,12 +6,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,7 +34,6 @@ public class JwtTokenProvider {
         this.secret = secret;
     }
     final long tokenValidMilisecond = 1000L *60*60;
-    final long refreshtokenValidMilisecond = 1000L *60*60*366;
     private UserSignService userSignService;
     @Autowired
     public JwtTokenProvider(UserSignService userSignService) {
@@ -49,11 +47,9 @@ public class JwtTokenProvider {
 
     public String createToken(String userId){
         log.debug("JwtTokenProvider.createToken ::::");
-        JSONObject jws = new JSONObject();
-        String accessToken,refreshToken;
+        String accessToken;
         Claims claims;
-        String jwsString = null;
-        Date expiration,exp;
+        Date expiration;
         claims = Jwts.claims().setSubject(userId);
         expiration = new Date(System.currentTimeMillis() + tokenValidMilisecond);
         accessToken = Jwts.builder()
@@ -63,23 +59,8 @@ public class JwtTokenProvider {
                 .setIssuedAt(new java.sql.Date(System.currentTimeMillis()))
                 .setExpiration(expiration)
                 .compact();
-        exp = new Date(System.currentTimeMillis() + refreshtokenValidMilisecond);
-        refreshToken = Jwts.builder()
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .setHeaderParam("typ","JWT")
-                .setClaims(claims)
-                .setIssuedAt(new java.sql.Date(System.currentTimeMillis()))
-                .setExpiration(exp)
-                .compact();
-        try {
-            jws.put("accessToken", accessToken);
-            jws.put("refreshToken", refreshToken);
-            jwsString = String.format("{\"accessToken\":\"%s\",\"refreshToken\":\"%s\"}",jws.get("accessToken"),jws.get("refreshToken"));
-        }
-        catch(JSONException e){
-            log.error(e.toString());
-        }
-        return jwsString;
+
+        return accessToken;
     }
     public String extractUserIdFromToken(String token) {
         log.info("JwtTokenProvider.extractUserIdFromToken ::::");

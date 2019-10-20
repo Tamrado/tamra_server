@@ -28,10 +28,6 @@ public class Users implements UserDetails {
     private String address;
     private String comment;
     private Date timestamp;
-    private int group1;
-    private int group2;
-    private int group3;
-    private int group4;
 
     public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, Date timestamp, int group1, int group2, int group3, int group4) {
@@ -45,10 +41,7 @@ public class Users implements UserDetails {
         this.address = address;
         this.comment = comment;
         this.timestamp = timestamp;
-        this.group1 = group1;
-        this.group2 = group2;
-        this.group3 = group3;
-        this.group4 = group4;
+
     }
 
     public Users() {}
@@ -174,36 +167,5 @@ public class Users implements UserDetails {
         return timestamp;
     }
 
-    public void setGroup1(int group1) {
-        this.group1 = group1;
-    }
-
-    public int getGroup1() {
-        return group1;
-    }
-
-    public void setGroup2(int group2) {
-        this.group2 = group2;
-    }
-
-    public int getGroup2() {
-        return group2;
-    }
-
-    public void setGroup3(int group3) {
-        this.group3 = group3;
-    }
-
-    public int getGroup3() {
-        return group3;
-    }
-
-    public void setGroup4(int group4) {
-        this.group4 = group4;
-    }
-
-    public int getGroup4() {
-        return group4;
-    }
 
 }

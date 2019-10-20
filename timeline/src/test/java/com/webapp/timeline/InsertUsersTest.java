@@ -31,9 +31,6 @@ public class InsertUsersTest {
     @Transactional
     @Rollback(false)
     public void insertUsers(){
-        Users users = new Users("dgds",passwordEncoder.encode("ggdage"),"dgsdag","010-6355-4342","gdsgsdgdsga@naver.com",
-                java.sql.Date.valueOf("2019-01-06"),0,"dsgsdag","dga","dgdsg",java.sql.Date.valueOf("2019-01-06"),1,2,3,4);
-        users.setAuthorities();
     }
 
     @Test

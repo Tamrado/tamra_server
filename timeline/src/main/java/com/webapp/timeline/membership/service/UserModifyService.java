@@ -40,7 +40,7 @@ public class UserModifyService {
         if(commonResult.getSuccess()) {
             if(userSignService.loadUserByUsername(user.getId()) != null) {
                 user.setPassword(customPasswordEncoder.encode(user.getPassword()));
-                usersEntityRepository.updateUser(user.getGroup4(), user.getGroup3(), user.getGroup2(), user.getGroup1(), user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
+                usersEntityRepository.updateUser( user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
                 commonResult.setMsg("update user");
             }
             else{

@@ -1,14 +1,11 @@
 package com.webapp.timeline;
 
-
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-
 
 @EntityScan(basePackages = {"com.webapp.timeline"})
 @EnableJpaRepositories(basePackages = {"com.webapp.timeline.membership.repository", "com.webapp.timeline.sns.repository"})

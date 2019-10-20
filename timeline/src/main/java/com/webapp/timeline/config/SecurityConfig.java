@@ -25,6 +25,10 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -39,24 +43,42 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AmazonS3Client amazonS3Client;
     @Override
     public void configure(WebSecurity web) throws Exception{
-        web.ignoring().antMatchers("/swagger-resources/**","/webjars/**", "/swagger-ui.html","/swagger/**","/v2/api-docs");
+        web.ignoring().antMatchers("/swagger-resources/**","/webjars/**", "/swagger-ui.html","/swagger/**","/v2/api-docs"
+                );
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .httpBasic().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/*/member/auth","/*/member","/*/member/image").permitAll()
-                .anyRequest().hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/*/member/*").permitAll()
+                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                .anyRequest().permitAll()
+                .and()
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
+                .csrf().disable()
+                .httpBasic().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
                 .and()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 .and()
                 .addFilterBefore(author(), UsernamePasswordAuthenticationFilter.class);
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
