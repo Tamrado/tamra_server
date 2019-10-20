@@ -1,22 +1,12 @@
 package com.webapp.timeline.membership.web;
 
-<<<<<<< HEAD:timeline/src/main/java/com/webapp/timeline/web/UsersController.java
-import com.webapp.timeline.domain.Users;
-import com.webapp.timeline.security.SignUpValidator;
-import com.webapp.timeline.service.membership.UserModifyService;
-import com.webapp.timeline.service.membership.UserService;
-import com.webapp.timeline.service.result.CommonResult;
-import com.webapp.timeline.service.membership.UserSignService;
-import com.webapp.timeline.service.result.SingleResult;
-=======
-
 import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.membership.security.SignUpValidator;
 import com.webapp.timeline.membership.service.UserModifyService;
 import com.webapp.timeline.membership.service.UserService;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.result.CommonResult;
 import com.webapp.timeline.membership.service.result.SingleResult;
->>>>>>> 66f457a52e352658787696e9564e19e13c376b24:timeline/src/main/java/com/webapp/timeline/membership/web/UsersController.java
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
 @Api(tags = {"1. User"})
 @RequestMapping(value = "/api")
+@CrossOrigin(origins = {"http://localhost:3000"})
 @RestController
 public class UsersController {
     Logger log = LoggerFactory.getLogger(this.getClass());
@@ -44,11 +37,6 @@ public class UsersController {
     public UsersController(){
 
     }
-    /*@ApiOperation(value = "회원가입 시 이메일 확인", notes = "존재하는 이메일인지 알려줌")
-    @GetMapping(value="/member/email")
-    public CommonResult checkEmailExists(@ApiParam(value = "이메일") @RequestParam String email){
-        return SignUpValidator.
-    }*/
     @ApiOperation(value = "회원 가입" , notes = "회원을 추가함")
     @PostMapping(value="/member")
     public CommonResult signUp(@ApiParam(value = "회원정보") @RequestBody Users users){
@@ -65,8 +53,15 @@ public class UsersController {
 
     @ApiOperation(value = "로그인", notes = "회원인지 아닌지 확인 후 token 발급")
     @PostMapping(value="/member/auth")
-    public SingleResult<String> signIn(@RequestBody Map<String,Object> user){
-        return userSignService.findUser((String)user.get("id"),(String)user.get("password"));
+    public SingleResult<String> signIn(@RequestBody Map<String,Object> user, HttpServletResponse response){
+        SingleResult <String> singleResult = userSignService.findUser((String)user.get("id"),(String)user.get("password"));
+        if(singleResult.getData() != null) {
+            Cookie cookie = new Cookie("accesstoken", singleResult.getData());
+            cookie.setMaxAge(1000 * 60 * 60);
+            response.addCookie(cookie);
+            response.setStatus(200);
+        }
+        return singleResult;
     }
 
     @ApiOperation(value="개인정보 수정",notes = "회원의 개인정보를 수정함")

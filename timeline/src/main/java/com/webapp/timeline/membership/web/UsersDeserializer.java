@@ -38,28 +38,19 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         String email = node.get("email").asText();
         String birthdayStr = node.get("birthday").asText(null);
         try {
-            birthday = new Date(format.parse(birthdayStr).getTime());
+            if(birthdayStr != null) {
+                birthday = new Date(format.parse(birthdayStr).getTime());
+                user.setBirthday(birthday);
+            }
         } catch (Exception e) {
             throw new IOException(e);
         }
         int gender = node.get("gender").asInt();
         String address = node.get("address").asText(null);
         String comment = node.get("comment").asText(null);
-        int group1 = node.get("group1").asInt(-1);
-        int group2 = node.get("group2").asInt(-1);
-        int group3 = node.get("group3").asInt(-1);
-        int group4 = node.get("group4").asInt(-1);
-        if(group1 != -1)
-            user.setGroup1(group1);
-        if(group2 != -1)
-            user.setGroup2(group2);
-        if(group3 != -1)
-            user.setGroup3(group3);
-        if(group4 != -1)
-            user.setGroup4(group4);
+
         user.setAddress(address);
         user.setPassword(password);
-        user.setBirthday(birthday);
         user.setComment(comment);
         user.setEmail(email);
         user.setGender(gender);

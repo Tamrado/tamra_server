@@ -35,8 +35,6 @@ public class SignUpValidator{
         else if(checkIfPasswordIsWrongForm(users))
             commonResult.setMsg("wrong formed password");
 
-        else if(checkIfGroupOverlap(users))
-            commonResult.setMsg("overlapped group");
         else if(checkIfObjectModifyOverlap(users))
             commonResult.setMsg("overlapped object");
         else{
@@ -104,16 +102,19 @@ public class SignUpValidator{
             return false;
         return true;
     }
-
-    private Boolean checkIfGroupOverlap(Users user){
-        group.add(user.getGroup1());
-        group.add(user.getGroup2());
-        group.add(user.getGroup3());
-        group.add(user.getGroup4());
-
-        HashSet<Integer> hashSet = new HashSet<Integer>(group);
-        log.info(Integer.toString(hashSet.size()));
-        if(hashSet.size() != 4) return true;
+    public Boolean checkIdExists(String id){
+        if(usersEntityRepository.findIdByExistingId(id) != null)
+            return true;
+        return false;
+    }
+    public Boolean checkEmailExists(String email){
+        if(usersEntityRepository.findEmailByExistingEmail(email) != null)
+            return true;
+        return false;
+    }
+    public Boolean checkPhoneExists(String phone){
+        if(usersEntityRepository.findPhoneByExistingPhone(phone)!= null)
+            return true;
         return false;
     }
 }
