@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class ValidateController {
     private ValidateService validateService;
-    public ValidateController(){
 
+    public ValidateController(){
     }
     @Autowired
     public ValidateController(ValidateService validateService){

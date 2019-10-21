@@ -11,7 +11,7 @@ import java.util.List;
 
 
 @Repository
-public interface UsersEntityRepository extends JpaRepository<Users,Long> {
+public interface UsersEntityRepository extends JpaRepository<Users,String> {
 
     @Query(value = "select u from Users u where u.userId = :userId")
     Users findIdByExistingId(@Param("userId") String userId);
