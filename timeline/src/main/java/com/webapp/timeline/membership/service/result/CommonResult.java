@@ -18,6 +18,11 @@ public class CommonResult {
         code = 400;
         msg = null;
     }
+    public CommonResult(boolean success, int code, String msg){
+        this.success = success;
+        this.code = code;
+        this.msg = msg;
+    }
     public void setSuccess(boolean success){
         this.success = success;
     }

@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@Configurable
 public class SignUpValidator{
     private UsersEntityRepository usersEntityRepository;
     Logger log = LoggerFactory.getLogger(this.getClass());
@@ -26,8 +25,8 @@ public class SignUpValidator{
     public SignUpValidator(UsersEntityRepository usersEntityRepository){
         this.usersEntityRepository = usersEntityRepository;
     }
-    public CommonResult validateForModify(Users users){
-        CommonResult commonResult= new CommonResult();
+    public SingleResult<String> validateForModify(Users users){
+        SingleResult<String> commonResult= new SingleResult<String>();
         if(checkIfEmailIsWrongForm(users))
             commonResult.setMsg("wrong formed email");
         else if(checkIfPhoneIsWrongForm(users))
@@ -45,8 +44,8 @@ public class SignUpValidator{
         return commonResult;
     }
 
-    public CommonResult validate(Users users){
-        CommonResult commonResult = new SingleResult<>();
+    public SingleResult<String> validate(Users users){
+        SingleResult<String> commonResult = new SingleResult<>();
         if(checkIfObjectOverlap(users))
             commonResult.setMsg("overlapped id or phone or email");
         else

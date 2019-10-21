@@ -19,6 +19,7 @@ import org.springframework.util.ObjectUtils;
 import org.thymeleaf.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
@@ -33,7 +34,7 @@ public class JwtTokenProvider {
     public void setSecret(String secret){
         this.secret = secret;
     }
-    final long tokenValidMilisecond = 1000L *60*60;
+    final long tokenValidMilisecond = 1000L *60*60*24;
     private UserSignService userSignService;
     @Autowired
     public JwtTokenProvider(UserSignService userSignService) {
@@ -74,10 +75,19 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest req){
         log.info("JwtTokenProvider.resolveToken ::::");
-        log.info(req.getHeader("X-AUTH-TOKEN"));
-        return req.getHeader("X-AUTH-TOKEN");
+        if(req.getCookies() == null)
+            return null;
+        return req.getCookies()[0].getValue();
     }
-
+    public Date getExpirationToken(String jwtToken){
+        try{
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(jwtToken);
+            return claims.getBody().getExpiration();
+        }
+        catch(Exception e){
+            return new Date();
+        }
+    }
     public boolean validateExpirationToken(String jwtToken) {
         log.info("JwtTokenProvider.validateExpirationToken ::::");
         try {

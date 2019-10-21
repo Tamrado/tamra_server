@@ -7,6 +7,10 @@ public class SingleResult<T> extends CommonResult {
         super();
         data = null;
     }
+    public SingleResult(boolean success, int code, String msg){
+        super(success,code,msg);
+        data = null;
+    }
     public T getData() {
         return data;
     }

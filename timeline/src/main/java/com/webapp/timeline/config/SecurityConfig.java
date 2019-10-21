@@ -33,6 +33,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Autowired
     private UsersEntityRepository usersEntityRepository;
     @Autowired
@@ -41,6 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private CustomPasswordEncoder customPasswordEncoder;
     @Autowired
     private AmazonS3Client amazonS3Client;
+
     @Override
     public void configure(WebSecurity web) throws Exception{
         web.ignoring().antMatchers("/swagger-resources/**","/webjars/**", "/swagger-ui.html","/swagger/**","/v2/api-docs"
@@ -60,7 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .httpBasic().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
                 .and()
@@ -118,17 +120,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public JwtAuthorizationFilter author() throws Exception{
-        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter
-                (new JwtTokenProvider
-                        (new UserSignService
-                                (new UserImageS3Component(amazonS3Client),new SignUpValidator
-                                        (usersEntityRepository),
-                                        usersEntityRepository,
-                                       customPasswordEncoder,
-                                        new UserService(
-                                                customPasswordEncoder,
-                                                usersEntityRepository,
-                                                userImagesRepository))));
+        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(
+                new JwtTokenProvider(new UserSignService
+                        (new UserImageS3Component(amazonS3Client)
+                                ,new SignUpValidator(usersEntityRepository),
+                                usersEntityRepository,
+                                customPasswordEncoder,
+                                new UserService(
+                                        customPasswordEncoder,
+                                        userImagesRepository,
+                                        usersEntityRepository))));
         return jwtAuthorizationFilter;
     }
 
