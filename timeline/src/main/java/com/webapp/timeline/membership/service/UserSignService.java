@@ -5,7 +5,8 @@ import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.JwtTokenProvider;
 import com.webapp.timeline.membership.security.SignUpValidator;
-import com.webapp.timeline.membership.service.result.SingleResult;
+import com.webapp.timeline.membership.service.result.LoggedInfo;
+import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 @Transactional
 @Configurable
@@ -45,62 +48,62 @@ public class UserSignService implements UserDetailsService {
         log.info("loadUserByUsername");
         return user;
     }
-    public SingleResult<String> validateUser(Users users){
-        SingleResult<String> singleResult = signUpValidator.validate(users);
-        if(!singleResult.getSuccess()) return singleResult;
-        return initUserforSignUp(users);
+    public ValidationInfo validateUser(Users users, HttpServletResponse response){
+        ValidationInfo validationInfo = signUpValidator.validate(users,response);
+        log.error(validationInfo.getIssue());
+        if(validationInfo.getIssue() != null) return validationInfo;
+
+        return initUserforSignUp(users,response);
     }
-    public SingleResult<String> userImageUpload(MultipartFile multipartFile, String userId) {
-        SingleResult<String> singleResult = new SingleResult<>();
+    public void userImageUpload(MultipartFile multipartFile, String userId, HttpServletResponse response) {
         try {
+            response.setStatus(200);
             if(loadUserByUsername(userId) == null) {
-                singleResult.setMsg("no user");
-                return singleResult;
+                log.error(userId);
+                response.setStatus(404);
             }
-            else singleResult = userImageS3Component.upload(multipartFile, userId);
+            else
+            userService.saveImageURL(userId,response,userImageS3Component.upload(multipartFile, userId,response));
         }
         catch(IOException e){
-            log.error(e.toString());
+            response.setStatus(400);
         }
-        return userService.saveImageURL(singleResult,userId);
+
     }
-    public SingleResult<String> initUserforSignUp(Users user){
+    public ValidationInfo initUserforSignUp(Users user,HttpServletResponse response){
         user.setPassword(customPasswordEncoder.encode(user.getPassword()));
         user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
         user.setAuthorities();
-        return saveUser(user);
-    }
-    public SingleResult <String> findUser(String id, String password) {
-        Users foundedUser = loadUserByUsername(id);
-        SingleResult<String> singleResult = new SingleResult<String>();
-        if(foundedUser == null) singleResult.setMsg("wrong user");
-        else if(customPasswordEncoder.matches(password, foundedUser.getPassword()))
-            singleResult.setSuccessResult(200,"same user");
-        else
-            singleResult.setMsg("wrong password");
+        return saveUser(user,response);
 
-        return putToken(singleResult,foundedUser.getId());
     }
-
-    private SingleResult<String> putToken(SingleResult<String> singleResult,String id){
-        if(id != null && singleResult.getSuccess()) {
-            jwtTokenProvider = new JwtTokenProvider(new UserSignService());
-            singleResult.setData(jwtTokenProvider.createToken(id));
+    public Boolean findUser(Map<String,Object> user, HttpServletResponse response) {
+        Users foundedUser = loadUserByUsername(user.get("id").toString());
+        if(foundedUser == null){
+            response.setStatus(404);
+            return false;
         }
-        else
-            singleResult.setFailResult(404, "fail");
-        return singleResult;
+        if(customPasswordEncoder.matches(user.get("password").toString(), foundedUser.getPassword()))
+            return true;
+
+        response.setStatus(400);
+        return false;
     }
-    public SingleResult<String> saveUser(Users user) {
-        SingleResult<String> singleResult = new SingleResult<String>();
+
+    private String putToken(String id,HttpServletResponse response){
+        jwtTokenProvider = new JwtTokenProvider(new UserSignService());
+        return jwtTokenProvider.createToken(id);
+    }
+
+    public ValidationInfo saveUser(Users user,HttpServletResponse response) {
         try {
             usersEntityRepository.save(user);
             usersEntityRepository.flush();
-            singleResult.setSuccessResult(200,"success save");
+            response.setStatus(200);
         } catch (Exception e) {
-            singleResult.setMsg("fail to save");
+            response.setStatus(400);
         }
-        return putToken(singleResult,user.getId());
+        return null;
     }
 
 }

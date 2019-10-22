@@ -5,14 +5,15 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.SignUpValidator;
-import com.webapp.timeline.membership.service.result.CommonResult;
-import com.webapp.timeline.membership.service.result.SingleResult;
+import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 
@@ -26,57 +27,57 @@ public class UserModifyService {
     private UserImageS3Component userImageS3Component;
     private UserService userService;
     private UserSignService userSignService;
+    private TokenService tokenService;
     @Autowired
-    public UserModifyService(UserSignService userSignService,UserService userService,UserImageS3Component userImageS3Component,SignUpValidator signUpValidator,CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository){
+    public UserModifyService(UserSignService userSignService,UserService userService,UserImageS3Component userImageS3Component,SignUpValidator signUpValidator,CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository,TokenService tokenService){
         this.signUpValidator = signUpValidator;
         this.userSignService = userSignService;
         this.userImageS3Component = userImageS3Component;
         this.customPasswordEncoder = customPasswordEncoder;
         this.usersEntityRepository = usersEntityRepository;
+        this.tokenService = tokenService;
         this.userService = userService;
     }
-    public CommonResult modifyUser(Users user){
-        CommonResult commonResult = signUpValidator.validateForModify(user);
-        if(commonResult.getSuccess()) {
+    public ValidationInfo modifyUser(Users user, HttpServletResponse response){
+        ValidationInfo validationInfo = signUpValidator.validateForModify(user,response);
+        if(validationInfo.getIssue() == null) {
             if(userSignService.loadUserByUsername(user.getId()) != null) {
                 user.setPassword(customPasswordEncoder.encode(user.getPassword()));
                 usersEntityRepository.updateUser( user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
-                commonResult.setMsg("update user");
             }
             else{
-                commonResult.setMsg("no user");
-                commonResult.setCode(405);
-                commonResult.setSuccess(false);
+                response.setStatus(404);
+                validationInfo.setIssue("noUser");
+                validationInfo.setObjectName("user");
             }
         }
-        return commonResult;
+        return validationInfo;
     }
-    public CommonResult modifyImage(MultipartFile file){
-        CommonResult commonResult = new CommonResult();
+    public void modifyImage(MultipartFile file, HttpServletResponse response){
         Users user = userService.extractUserFromToken();
-        if(user == null)
-            commonResult.setFailResult(405,"no user");
+        if(user == null) {
+            response.setStatus(404);
+            return;
+        }
         else {
             try {
-                return userImageS3Component.upload(file, user.getId());
+                userImageS3Component.upload(file, user.getId(),response);
             } catch (IOException e) {
-                commonResult.setMsg(e.toString());
-                log.error(e.toString());
+                response.setStatus(404);
             }
         }
-        return commonResult;
     }
     //로그아웃도 시켜야 한다.
-    public SingleResult modifyIdentify(){
-        SingleResult singleResult = new SingleResult();
+    public void modifyIdentify(HttpServletRequest request, HttpServletResponse response){
         Users user = userService.extractUserFromToken();
-        if(user == null)
-            singleResult.setFailResult(405,"user no login");
+        if(user == null) {
+            response.setStatus(404);
+        }
         else{
             user.setAuthoritytoInactive();
-            singleResult.setSuccessResult(200,"Succeed in setting the deactivation");
+            tokenService.removeCookie(request,response);
+            response.setStatus(200);
         }
-        return singleResult;
     }
 
 

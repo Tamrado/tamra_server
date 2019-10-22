@@ -1,9 +1,11 @@
 package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.membership.security.SignUpValidator;
-import com.webapp.timeline.membership.service.result.CommonResult;
+import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Service
 public class ValidateService {
@@ -15,23 +17,32 @@ public class ValidateService {
         this.signUpValidator = signUpValidator;
     }
 
-    public CommonResult checkId(String id){
-        CommonResult commonResult = new CommonResult();
-        if(!signUpValidator.checkIdExists(id))
-            commonResult.setSuccessResult(200,"");
-        return commonResult;
+    public ValidationInfo checkId(String id, HttpServletResponse response){
+        ValidationInfo validationInfo = new ValidationInfo();
+        response.setStatus(200);
+        if(signUpValidator.checkIdExists(id)) {
+            validationInfo.setIssue("exist");
+            validationInfo.setObjectName("id");
+        }
+        return validationInfo;
     }
-    public CommonResult checkEmail(String email){
-        CommonResult commonResult = new CommonResult();
-        if(!signUpValidator.checkEmailExists(email))
-            commonResult.setSuccessResult(200,"");
-        return commonResult;
+    public ValidationInfo checkEmail(String email,HttpServletResponse response){
+        ValidationInfo validationInfo = new ValidationInfo();
+        response.setStatus(200);
+        if(signUpValidator.checkEmailExists(email)) {
+            validationInfo.setIssue("exist");
+            validationInfo.setObjectName("email");
+        }
+        return validationInfo;
     }
-    public CommonResult checkPhone(String phone){
-        CommonResult commonResult = new CommonResult();
-        if(!signUpValidator.checkPhoneExists(phone))
-            commonResult.setSuccessResult(200,"");
-        return commonResult;
+    public ValidationInfo checkPhone(String phone,HttpServletResponse response){
+        ValidationInfo validationInfo = new ValidationInfo();
+        response.setStatus(200);
+        if(!signUpValidator.checkPhoneExists(phone)) {
+            validationInfo.setIssue("exist");
+            validationInfo.setObjectName("phone");
+        }
+        return validationInfo;
     }
 
 }

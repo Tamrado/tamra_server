@@ -1,33 +1,33 @@
 package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.membership.security.JwtTokenProvider;
-import com.webapp.timeline.membership.service.result.CommonResult;
-import com.webapp.timeline.membership.service.result.SingleResult;
-import net.bytebuddy.description.field.FieldDescription;
+import com.webapp.timeline.membership.service.result.LoggedInfo;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.util.calendar.BaseCalendar;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
+import java.util.Map;
 
 @Service
 public class TokenService {
     Logger log = LoggerFactory.getLogger(this.getClass());
     private JwtTokenProvider jwtTokenProvider;
+    private UserService userService;
+    private UserSignService userSignService;
     @Autowired
-    public TokenService(JwtTokenProvider jwtTokenProvider){
+    public TokenService(JwtTokenProvider jwtTokenProvider,UserService userService, UserSignService userSignService){
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userService = userService;
+        this.userSignService = userSignService;
     }
     public TokenService(){
 
     }
-    public CommonResult removeCookie(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
-        CommonResult commonResult = new CommonResult();
+    public void removeCookie(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
         Cookie[] cookies = httpServletRequest.getCookies();
         try {
             if (cookies != null) {
@@ -35,29 +35,45 @@ public class TokenService {
                     cookies[i].setMaxAge(0); // 유효시간을 0으로 설정
                     httpServletResponse.addCookie(cookies[i]); // 응답 헤더에 추가
                 }
-                commonResult.setSuccessResult(200,"success");
+                httpServletResponse.setStatus(200);
             }
-        }catch(Exception e){
-            commonResult.setFailResult(404,"fail");
+        }catch(Exception e) {
+            httpServletResponse.setStatus(404);
         }
-        return commonResult;
     }
-    public SingleResult<String> addCookie(HttpServletResponse response,SingleResult<String> singleResult){
-        Cookie cookie = new Cookie("accesstoken", singleResult.getData());
+    public LoggedInfo addCookie(HttpServletResponse response,String userId){
+        Cookie cookie = new Cookie("accesstoken", jwtTokenProvider.createToken(userId));
         cookie.setMaxAge( 60 * 60*24);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         response.addCookie(cookie);
-        return singleResult;
+        return userService.setLoggedInfo(response,userId);
     }
-    public CommonResult checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
-        CommonResult commonResult = new CommonResult();
+    public LoggedInfo findUserAndAddCookie(HttpServletResponse response, Map<String,Object> user){
+        if(userSignService.findUser(user,response))
+            return addCookie(response,user.get("id").toString());
+        else return null;
+    }
+    public String sendIdInCookie(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) {
+        Cookie[] cookies = httpServletRequest.getCookies();
+        httpServletResponse.setStatus(404);
+        if (cookies != null) {
+            for (int i = 0; i < cookies.length; i++) {
+                if (cookies[i].getName().equals("accesstoken") && jwtTokenProvider.getExpirationToken(cookies[i].getValue()).getTime() - System.currentTimeMillis() > 0) {
+                        String id = jwtTokenProvider.extractUserIdFromToken(cookies[i].getValue());
+                        httpServletResponse.setStatus(200);
+                        return id;
+                }
+            }
+        }
+        return null;
+    }
+    public void checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
         Cookie[] cookies = httpServletRequest.getCookies();
         httpServletResponse.setStatus(404);
         if(cookies != null) {
             for (int i = 0; i < cookies.length; i++) {
                 if (cookies[i].getName().equals("accesstoken")) {
-                    log.info(Long.toString(System.currentTimeMillis() - jwtTokenProvider.getExpirationToken(cookies[i].getValue()).getTime()));
                     if (jwtTokenProvider.getExpirationToken(cookies[i].getValue()).getTime() - System.currentTimeMillis() > 60 * 60 * 6) {
                         String id = jwtTokenProvider.extractUserIdFromToken(cookies[i].getValue());
                         cookies[i].setMaxAge(0);
@@ -68,12 +84,16 @@ public class TokenService {
                         cookie.setPath("/");
                         httpServletResponse.addCookie(cookie);
                         httpServletResponse.setStatus(200);
-                        commonResult.setSuccessResult(200, "success");
-                        return commonResult;
                     }
                 }
             }
         }
-        return commonResult;
+    }
+    public LoggedInfo sendInfo(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
+        String id = sendIdInCookie(httpServletRequest,httpServletResponse);
+        if(httpServletResponse.getStatus() != 404)
+            return userService.setLoggedInfo(httpServletResponse, id);
+
+        else return null;
     }
 }
