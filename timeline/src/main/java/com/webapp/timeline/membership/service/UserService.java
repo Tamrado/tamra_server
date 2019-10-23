@@ -38,14 +38,16 @@ public class UserService {
 
     }
 
-    public void confirmCorrectUser(String password,HttpServletResponse response) {
+    public Users confirmCorrectUser(String password,HttpServletResponse response) {
         log.error("UserService.confirmCorrectUser");
         response.setStatus(404);
         Users user = extractUserFromToken();
-        if (customPasswordEncoder.matches(password, user.getPassword()))
+        if (customPasswordEncoder.matches(password, user.getPassword())) {
             response.setStatus(200);
-        else
-            response.setStatus(400);
+            return user;
+        }
+        response.setStatus(400);
+        return null;
     }
 
     public Users extractUserFromToken() {

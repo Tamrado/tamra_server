@@ -32,7 +32,10 @@ public class TokenService {
         try {
             if (cookies != null) {
                 for (int i = 0; i < cookies.length; i++) {
-                    cookies[i].setMaxAge(0); // 유효시간을 0으로 설정
+                    log.error("쿠키 구워");
+                    cookies[i].setMaxAge(0);// 유효시간을 0으로 설정
+                    cookies[i].setHttpOnly(true);
+                    cookies[i].setPath("/");
                     httpServletResponse.addCookie(cookies[i]); // 응답 헤더에 추가
                 }
                 httpServletResponse.setStatus(200);

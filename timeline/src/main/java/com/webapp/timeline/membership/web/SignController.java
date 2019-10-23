@@ -21,7 +21,6 @@ import java.util.Map;
 
 @Api(tags = {"1. Sign"})
 @RequestMapping(value = "/api")
-@CrossOrigin(origins = {"http://localhost:3000"})
 @RestController
 public class SignController {
     Logger log = LoggerFactory.getLogger(this.getClass());
