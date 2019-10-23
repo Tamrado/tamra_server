@@ -2,16 +2,14 @@ package com.webapp.timeline.membership.security;
 
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
-import com.webapp.timeline.membership.service.result.CommonResult;
-import com.webapp.timeline.membership.service.result.SingleResult;
+import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,38 +17,49 @@ import java.util.regex.Pattern;
 public class SignUpValidator{
     private UsersEntityRepository usersEntityRepository;
     Logger log = LoggerFactory.getLogger(this.getClass());
-    private ArrayList<Integer> group = new ArrayList<>();
 
     @Autowired
     public SignUpValidator(UsersEntityRepository usersEntityRepository){
         this.usersEntityRepository = usersEntityRepository;
     }
-    public SingleResult<String> validateForModify(Users users){
-        SingleResult<String> commonResult= new SingleResult<String>();
-        if(checkIfEmailIsWrongForm(users))
-            commonResult.setMsg("wrong formed email");
-        else if(checkIfPhoneIsWrongForm(users))
-            commonResult.setMsg("wrong formed phone number");
-        else if(checkIfPasswordIsWrongForm(users))
-            commonResult.setMsg("wrong formed password");
-
-        else if(checkIfObjectModifyOverlap(users))
-            commonResult.setMsg("overlapped object");
-        else{
-            commonResult.setCode(200);
-            commonResult.setSuccess(true);
-            commonResult.setMsg("success");
+    public ValidationInfo validateForModify(Users users, HttpServletResponse response){
+        ValidationInfo validationInfo = new ValidationInfo();
+        response.setStatus(200);
+        if(checkIfEmailIsWrongForm(users)){
+            response.setStatus(400);
+            validationInfo.setObjectName("email");
+            validationInfo.setIssue("form");
+            return validationInfo;
         }
-        return commonResult;
+        if(checkIfPhoneIsWrongForm(users)){
+            response.setStatus(400);
+            validationInfo.setIssue("form");
+            validationInfo.setObjectName("phone");
+            return validationInfo;
+        }
+        if(checkIfPasswordIsWrongForm(users)) {
+            response.setStatus(400);
+            validationInfo.setIssue("form");
+            validationInfo.setObjectName("password");
+            return validationInfo;
+        }
+        if(checkIfObjectModifyOverlap(users)) {
+            response.setStatus(400);
+            validationInfo.setIssue("exist");
+            return validationInfo;
+        }
+        return validationInfo;
     }
 
-    public SingleResult<String> validate(Users users){
-        SingleResult<String> commonResult = new SingleResult<>();
-        if(checkIfObjectOverlap(users))
-            commonResult.setMsg("overlapped id or phone or email");
-        else
-            commonResult = validateForModify(users);
-        return commonResult;
+    public ValidationInfo validate(Users users, HttpServletResponse response){
+        ValidationInfo validationInfo = new ValidationInfo();
+        response.setStatus(200);
+        if(checkIfObjectOverlap(users)){
+            response.setStatus(400);
+            validationInfo.setIssue("exist");
+            return validationInfo;
+        }
+        return validateForModify(users,response);
 
     }
     private Boolean checkIfPhoneIsWrongForm(Users user){
