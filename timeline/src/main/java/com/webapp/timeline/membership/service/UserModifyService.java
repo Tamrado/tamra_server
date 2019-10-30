@@ -53,8 +53,8 @@ public class UserModifyService {
         }
         return validationInfo;
     }
-    public void modifyImage(MultipartFile file, HttpServletResponse response){
-        Users user = userService.extractUserFromToken();
+    public void modifyImage(HttpServletRequest req,MultipartFile file, HttpServletResponse response){
+        Users user = userSignService.extractUserFromToken(req);
         if(user == null) {
             response.setStatus(404);
             return;
@@ -69,7 +69,7 @@ public class UserModifyService {
     }
     //로그아웃도 시켜야 한다.
     public void modifyIdentify(HttpServletRequest request, HttpServletResponse response){
-        Users user = userService.extractUserFromToken();
+        Users user = userSignService.extractUserFromToken(request);
         if(user == null) {
             response.setStatus(404);
         }

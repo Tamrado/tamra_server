@@ -66,18 +66,22 @@ public class JwtTokenProvider {
     public String extractUserIdFromToken(String token) {
         log.info("JwtTokenProvider.extractUserIdFromToken ::::");
         try {
-            log.info(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject());
             return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
             return null;
         }
     }
 
-    public String resolveToken(HttpServletRequest req){
+    public String resolveToken(HttpServletRequest httpServletRequest){
         log.info("JwtTokenProvider.resolveToken ::::");
-        if(req.getCookies() == null)
-            return null;
-        return req.getCookies()[0].getValue();
+        Cookie[] cookies = httpServletRequest.getCookies();
+        if (cookies != null) {
+            for (int i = 0; i < cookies.length; i++) {
+                if (cookies[i].getName().equals("accesstoken") && getExpirationToken(cookies[i].getValue()).getTime() - System.currentTimeMillis() > 0)
+                    return cookies[i].getValue();
+            }
+        }
+        return null;
     }
     public Date getExpirationToken(String jwtToken){
         try{

@@ -31,13 +31,13 @@ public class UserImageS3Component {
     private String bucket;
 
     public String upload(MultipartFile multipartFile, String userName, HttpServletResponse response) throws IOException {
-        if(multipartFile == null) response.setStatus(404);
-        else {
+        response.setStatus(200);
+        if(multipartFile != null) {
             File uploadFile = convert(multipartFile,response)
                     .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File로 전환이 실패했습니다."));
             return upload(uploadFile, userName,response);
         }
-        return null;
+        else return "https://timelines3bucket.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
     }
 
     private String upload(File uploadFile, String userName, HttpServletResponse response) {

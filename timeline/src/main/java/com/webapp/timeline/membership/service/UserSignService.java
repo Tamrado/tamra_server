@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
@@ -48,6 +49,27 @@ public class UserSignService implements UserDetailsService {
         log.info("loadUserByUsername");
         return user;
     }
+
+    public Users extractUserFromToken(HttpServletRequest httpServletRequest){
+        jwtTokenProvider = new JwtTokenProvider(new UserSignService());
+        String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
+        log.error(username);
+        Users user = loadUserByUsername(username);
+        return user;
+    }
+    public Users confirmCorrectUser(HttpServletRequest httpServletRequest ,String password, HttpServletResponse response) {
+        log.error("UserService.confirmCorrectUser");
+        response.setStatus(404);
+        Users user = extractUserFromToken(httpServletRequest);
+        log.error(Boolean.toString(customPasswordEncoder.matches(password, user.getPassword())));
+        if (customPasswordEncoder.matches(password, user.getPassword())) {
+            response.setStatus(200);
+            return user;
+        }
+        response.setStatus(400);
+        return null;
+    }
+
     public ValidationInfo validateUser(Users users, HttpServletResponse response){
         ValidationInfo validationInfo = signUpValidator.validate(users,response);
         log.error(validationInfo.getIssue());
@@ -88,11 +110,6 @@ public class UserSignService implements UserDetailsService {
 
         response.setStatus(400);
         return false;
-    }
-
-    private String putToken(String id,HttpServletResponse response){
-        jwtTokenProvider = new JwtTokenProvider(new UserSignService());
-        return jwtTokenProvider.createToken(id);
     }
 
     public ValidationInfo saveUser(Users user,HttpServletResponse response) {

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -38,10 +39,7 @@ public class PostFileUploadController {
 
     @ApiOperation(value="post 이미지 업로드", notes="최대 10개까지 업로드 가능")
     @PostMapping(value="/upload/images", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
-    public ResponseEntity filesUpload(MultipartFile[] files) {
+    public ResponseEntity filesUpload(HttpServletRequest httpServletRequest, MultipartFile[] files) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -51,7 +49,7 @@ public class PostFileUploadController {
         }
 
         try {
-            return new ResponseEntity<>(postServiceImpl.uploadImages(files), header, HttpStatus.CREATED);
+            return new ResponseEntity<>(postServiceImpl.uploadImages(httpServletRequest,files), header, HttpStatus.CREATED);
 
         } catch(Exception e) {
             logger.error("[PostFileUploadController] ERROR : " + String.valueOf(e.getCause()));
