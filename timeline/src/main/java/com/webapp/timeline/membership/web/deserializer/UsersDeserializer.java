@@ -1,4 +1,4 @@
-package com.webapp.timeline.membership.web;
+package com.webapp.timeline.membership.web.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

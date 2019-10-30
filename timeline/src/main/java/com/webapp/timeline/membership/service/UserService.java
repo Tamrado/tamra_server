@@ -38,23 +38,6 @@ public class UserService {
 
     }
 
-    public Users confirmCorrectUser(String password,HttpServletResponse response) {
-        log.error("UserService.confirmCorrectUser");
-        response.setStatus(404);
-        Users user = extractUserFromToken();
-        if (customPasswordEncoder.matches(password, user.getPassword())) {
-            response.setStatus(200);
-            return user;
-        }
-        response.setStatus(400);
-        return null;
-    }
-
-    public Users extractUserFromToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Users correctUser = (Users) authentication.getPrincipal();
-        return correctUser;
-    }
 
     public void saveImageURL(String userId, HttpServletResponse response,String url) {
         Profiles userImages = new Profiles();
@@ -72,7 +55,6 @@ public class UserService {
             Profiles profiles = userImagesRepository.findImageURLById(userId);
             if(profiles != null) {
                 LoggedInfo loggedInfo = new LoggedInfo(userId, profiles.getprofileURL());
-                log.error(loggedInfo.toString());
                 return loggedInfo;
             }
             else{

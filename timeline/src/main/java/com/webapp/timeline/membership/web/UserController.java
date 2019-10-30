@@ -4,6 +4,7 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserModifyService;
 import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.result.LoggedInfo;
 import com.webapp.timeline.membership.service.result.ValidationInfo;
 import io.swagger.annotations.Api;
@@ -29,22 +30,22 @@ public class UserController {
     Logger log = LoggerFactory.getLogger(this.getClass());
     private TokenService tokenService;
     private UserModifyService userModifyService;
-    private UserService userService;
+    private UserSignService userSignService;
 
     @Autowired
-    public UserController(UserService userService, UserModifyService userModifyService, TokenService tokenService){
+    public UserController(UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
         this.userModifyService = userModifyService;
         this.tokenService = tokenService;
-        this.userService = userService;
+        this.userSignService = userSignService;
     }
 
     public UserController(){}
 
     @ApiOperation(value = "새로 고침 시 유저인지 확인 후 유저 정보 전달",notes = "쿠키 내 accesstoken에서 userid 로 확인 후 유저 정보 전달")
     @GetMapping(value="/member/info")
-    public LoggedInfo checkUserAndSendProfile(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
+    public LoggedInfo checkUserAndSendProfile(@RequestParam String id,HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
         log.error("info");
-        return tokenService.sendInfo(httpServletRequest,httpServletResponse);
+        return tokenService.sendInfo(id,httpServletRequest,httpServletResponse);
     }
     @ApiOperation(value="accesstoken 확인", notes="accesstoken 확인 후 있으면 갱신")
     @GetMapping(value="/member/auth/token/id")
@@ -60,14 +61,14 @@ public class UserController {
 
     @ApiOperation(value="개인정보 수정(사진)",notes = "회원의 개인정보를 수정함(사진)")
     @PostMapping(value="/member/image/id")
-    public void modifyImage(@RequestParam(value ="file",required=false) MultipartFile file,HttpServletResponse httpServletResponse) throws IOException {
-        userModifyService.modifyImage(file,httpServletResponse);
+    public void modifyImage(@RequestParam(value ="file",required=false) MultipartFile file,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws IOException {
+        userModifyService.modifyImage(httpServletRequest,file,httpServletResponse);
     }
 
     @ApiOperation(value="유저 확인", notes = "비밀번호 확인으로 올바른 유저인지 확인 후 정보 보냄")
-    @GetMapping(value="/auth")
-    public Users checkCorrectUserAndPostInfo(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,HttpServletResponse httpServletResponse){
-        return userService.confirmCorrectUser(user.get("password"),httpServletResponse);
+    @PostMapping(value="/auth")
+    public Users checkCorrectUserAndPostInfo(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
+        return userSignService.confirmCorrectUser(httpServletRequest,user.get("password"),httpServletResponse);
     }
 
     @ApiOperation(value="비활성화",notes = "유저가 비활성화 함")

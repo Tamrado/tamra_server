@@ -32,11 +32,12 @@ public class TokenService {
         try {
             if (cookies != null) {
                 for (int i = 0; i < cookies.length; i++) {
-                    log.error("쿠키 구워");
-                    cookies[i].setMaxAge(0);// 유효시간을 0으로 설정
-                    cookies[i].setHttpOnly(true);
-                    cookies[i].setPath("/");
-                    httpServletResponse.addCookie(cookies[i]); // 응답 헤더에 추가
+                    if (cookies[i].getName().equals("accesstoken")) {
+                        cookies[i].setMaxAge(0);// 유효시간을 0으로 설정
+                        cookies[i].setHttpOnly(true);
+                        cookies[i].setPath("/");
+                        httpServletResponse.addCookie(cookies[i]); // 응답 헤더에 추가
+                    }
                 }
                 httpServletResponse.setStatus(200);
             }
@@ -92,11 +93,11 @@ public class TokenService {
             }
         }
     }
-    public LoggedInfo sendInfo(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
+    public LoggedInfo sendInfo(String userId,HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
         String id = sendIdInCookie(httpServletRequest,httpServletResponse);
-        if(httpServletResponse.getStatus() != 404)
+        log.error(userId);
+        if(httpServletResponse.getStatus() != 404 && id.equals(userId))
             return userService.setLoggedInfo(httpServletResponse, id);
-
         else return null;
     }
 }

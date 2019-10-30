@@ -1,7 +1,9 @@
 package com.webapp.timeline.sns.service;
 
 
+import com.amazonaws.services.xray.model.Http;
 import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.sns.domain.Posts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.*;
 
@@ -21,7 +24,7 @@ public class PostServiceImpl implements PostService {
     private JpaRepository<Posts, Integer> postsRepository;
     private S3Uploader s3Uploader;
     private LinkedHashMap<Integer, String> getUrlMap;
-    private UserService userService;
+    private UserSignService userSignService;
 
 
     @Autowired
@@ -35,8 +38,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserService(UserSignService userSignService) {
+        this.userSignService = userSignService;
     }
 
     private LinkedHashMap<Integer, String> manageFileUpload(String dirName, MultipartFile[] multipartFiles) {
@@ -57,11 +60,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public LinkedHashMap<Integer, String> uploadImages(MultipartFile[] multipartFiles) {
+    public LinkedHashMap<Integer, String> uploadImages(HttpServletRequest httpServletRequest, MultipartFile[] multipartFiles) {
         logger.info("[PostService] Upload new " + multipartFiles.length + " files to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userService.extractUserFromToken().getEmail();
+        dirName = this.userSignService.extractUserFromToken(httpServletRequest).getEmail();
 
         return manageFileUpload(dirName, multipartFiles);
     }

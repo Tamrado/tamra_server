@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.web;
 
 
 import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.PostService;
 import io.swagger.annotations.Api;
@@ -18,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 
@@ -27,7 +30,7 @@ import javax.validation.Valid;
 public class PostController {
 
     private PostService postServiceImpl;
-    private UserService userService;
+    private UserSignService userSignService;
     private HttpHeaders header;
     private BindingErrorsPackage bindingErrorsPackage;
     private final static Logger logger = LoggerFactory.getLogger("com.webapp.timeline.web.PostController");
@@ -39,18 +42,15 @@ public class PostController {
     }
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserService(UserSignService userSignService) {
+        this.userSignService = userSignService;
     }
 
 
     @ApiOperation(value="글쓰기", notes="새 글 쓰기")
     @PostMapping(value="/upload", consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "X-AUTH-TOKEN", value = "로그인 성공 후 access_token", required = true, dataType = "String", paramType = "header")
-    })
     public ResponseEntity<Posts> create(@Valid @RequestBody Posts post,
-                                                @ApiIgnore BindingResult bindingResult) {
+                                        @ApiIgnore BindingResult bindingResult, HttpServletRequest httpServletRequest) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -66,7 +66,7 @@ public class PostController {
             header.add("errors", bindingErrorsPackage.toJson());
         }
 
-        post.setUserId(userService.extractUserFromToken().getId());
+        post.setUserId(userSignService.extractUserFromToken(httpServletRequest).getId());
         postServiceImpl.createPost(post);
 
         return new ResponseEntity<Posts>(post, header, HttpStatus.CREATED);

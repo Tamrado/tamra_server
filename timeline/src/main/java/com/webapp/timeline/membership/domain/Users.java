@@ -1,7 +1,9 @@
 package com.webapp.timeline.membership.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.webapp.timeline.membership.web.UsersDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.webapp.timeline.membership.web.deserializer.UsersDeserializer;
+import com.webapp.timeline.membership.web.serializer.UsersSerializer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +17,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "users")
 @JsonDeserialize(using = UsersDeserializer.class)
+@JsonSerialize(using = UsersSerializer.class)
 public class Users implements UserDetails {
     @Id
     private String userId;
