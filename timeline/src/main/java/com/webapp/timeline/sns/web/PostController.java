@@ -1,7 +1,5 @@
 package com.webapp.timeline.sns.web;
 
-
-import com.webapp.timeline.membership.service.UserService;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.PostService;
@@ -42,7 +40,7 @@ public class PostController {
     }
 
     @Autowired
-    public void setUserService(UserSignService userSignService) {
+    public void setUserSignService(UserSignService userSignService) {
         this.userSignService = userSignService;
     }
 
@@ -50,7 +48,8 @@ public class PostController {
     @ApiOperation(value="글쓰기", notes="새 글 쓰기")
     @PostMapping(value="/upload", consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Posts> create(@Valid @RequestBody Posts post,
-                                        @ApiIgnore BindingResult bindingResult, HttpServletRequest httpServletRequest) {
+                                        @ApiIgnore HttpServletRequest httpServletRequest,
+                                        @ApiIgnore BindingResult bindingResult) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);

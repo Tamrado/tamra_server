@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.webapp.timeline.config.SuperS3Uploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +19,23 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Component
-public class UserImageS3Component {
+public class UserImageS3Component extends SuperS3Uploader {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
-    private AmazonS3Client amazonS3Client;
 
-    @Autowired
-    public UserImageS3Component(AmazonS3Client amazonS3Client){
-        this.amazonS3Client = amazonS3Client;
-    }
     @Value("${cloud.aws.bucket}")
     private String bucket;
+
+    public UserImageS3Component(AmazonS3Client amazonS3Client) {
+        super(amazonS3Client);
+    }
 
     public String upload(MultipartFile multipartFile, String userName, HttpServletResponse response) throws IOException {
         response.setStatus(200);
         if(multipartFile != null) {
-            File uploadFile = convert(multipartFile,response)
+            File uploadFile = super.convert(multipartFile)
                     .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File로 전환이 실패했습니다."));
-            return upload(uploadFile, userName,response);
+            return upload(uploadFile, userName, response);
         }
         else return "https://timelines3bucket.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
     }
@@ -44,36 +44,11 @@ public class UserImageS3Component {
         response.setStatus(404);
         if(userName == null) return null;
         String fileName = "userImage/" + userName;
-        String uploadImageUrl = putS3(uploadFile, fileName,response);
-        removeNewFile(uploadFile,response);
+        String uploadImageUrl = super.putS3(uploadFile, fileName);
+        super.removeNewFile(uploadFile);
         if(uploadImageUrl != null)
             response.setStatus(200);
         return uploadImageUrl;
-    }
-
-    private String putS3(File uploadFile, String fileName, HttpServletResponse response) {
-        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile).withCannedAcl(CannedAccessControlList.PublicRead));
-        return amazonS3Client.getUrl(bucket, fileName).toString();
-    }
-
-    private void removeNewFile(File targetFile, HttpServletResponse response) {
-        if (targetFile.delete()) {
-            log.info("파일이 삭제되었습니다.");
-        } else {
-            log.info("파일이 삭제되지 못했습니다.");
-        }
-    }
-
-    private Optional<File> convert(MultipartFile file, HttpServletResponse response) throws IOException {
-        File convertFile = new File(file.getOriginalFilename());
-        if(convertFile.createNewFile()) {
-            try (FileOutputStream fos = new FileOutputStream(convertFile)) {
-                fos.write(file.getBytes());
-            }
-            return Optional.of(convertFile);
-        }
-
-        return Optional.empty();
     }
 
     // 파일 삭제
