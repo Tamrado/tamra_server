@@ -27,7 +27,7 @@ public class SuperS3Uploader {
         this.amazonS3Client = amazonS3Client;
     }
 
-    @Value("${cloud.aws.bucket}")
+    @Value("${cloud.aws.s3.bucket}")
     protected String bucket;
 
     protected String putS3(File uploadFile, String fileName) {
