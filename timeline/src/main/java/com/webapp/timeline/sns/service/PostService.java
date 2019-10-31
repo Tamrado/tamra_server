@@ -12,7 +12,7 @@ import java.util.List;
 public interface PostService {
     Posts createPost(Posts post);
 
-    LinkedHashMap<Integer, String> uploadImages(HttpServletRequest httpServletRequest, MultipartFile[] multipartFiles);
+    String uploadImages(HttpServletRequest request, MultipartFile multipartFile);
 
     Posts updatePost(Posts post);
 

@@ -1,8 +1,6 @@
 package com.webapp.timeline.sns.service;
 
 
-import com.amazonaws.services.xray.model.Http;
-import com.webapp.timeline.membership.service.UserService;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.sns.domain.Posts;
 import org.slf4j.Logger;
@@ -14,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.*;
 
 @Service("postServiceImpl")
@@ -22,7 +21,7 @@ public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
     private JpaRepository<Posts, Integer> postsRepository;
-    private S3Uploader s3Uploader;
+    private PostImageS3Component postImageS3Component;
     private LinkedHashMap<Integer, String> getUrlMap;
     private UserSignService userSignService;
 
@@ -33,40 +32,34 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setFileUploader(S3Uploader s3Uploader) {
-        this.s3Uploader = s3Uploader;
+    public void setFileUploader(PostImageS3Component postImageS3Component) {
+        this.postImageS3Component = postImageS3Component;
     }
 
     @Autowired
-    public void setUserService(UserSignService userSignService) {
+    public void setUserSignService(UserSignService userSignService) {
         this.userSignService = userSignService;
     }
 
-    private LinkedHashMap<Integer, String> manageFileUpload(String dirName, MultipartFile[] multipartFiles) {
-
-        if(multipartFiles.length == 0) {
-            return null;
-        }
-        else if(multipartFiles.length > 10) {
-            multipartFiles = Arrays.stream(multipartFiles, 0, 10)
-                                    .toArray(MultipartFile[]::new);
-        }
-
-        s3Uploader.upload(multipartFiles, dirName);
-        getUrlMap = s3Uploader.getImageUrlMap();
-
-        System.out.println("반환하는 유알엘 : " + getUrlMap);
-        return getUrlMap;
-    }
-
     @Override
-    public LinkedHashMap<Integer, String> uploadImages(HttpServletRequest httpServletRequest, MultipartFile[] multipartFiles) {
-        logger.info("[PostService] Upload new " + multipartFiles.length + " files to AWS S3 / timeline.");
+    public String uploadImages(HttpServletRequest request, MultipartFile multipartFile) {
+        logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(httpServletRequest).getEmail();
+        dirName = this.userSignService.extractUserFromToken(request).getEmail();
 
-        return manageFileUpload(dirName, multipartFiles);
+        try {
+            return this.postImageS3Component.upload(multipartFile, dirName);
+        }
+        catch (IOException one_more_try) {
+
+            try {
+                return this.postImageS3Component.upload(multipartFile, dirName);
+            }
+            catch(IOException exception) {
+                return null;
+            }
+        }
     }
 
     @Override
