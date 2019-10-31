@@ -23,7 +23,7 @@ public class UserImageS3Component extends SuperS3Uploader {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${cloud.aws.bucket}")
+    @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
     public UserImageS3Component(AmazonS3Client amazonS3Client) {
