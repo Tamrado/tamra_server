@@ -17,6 +17,26 @@ public class BindingError {
         this.code = code;
     }
 
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public String getFieldValue() {
+        return fieldValue;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
     static class BindingErrorBuilder {
         private String objectName = "";
         private String fieldName = "";

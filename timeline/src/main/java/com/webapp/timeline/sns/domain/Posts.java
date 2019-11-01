@@ -25,7 +25,6 @@ public class Posts {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int postId;
 
-    @NotNull
     private String userId;
 
     @NotNull(message="소식을 전달해주세요.")

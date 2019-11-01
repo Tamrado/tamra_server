@@ -13,11 +13,11 @@ import java.util.List;
 public interface PostService {
     Posts createPost(Posts post);
 
-    String uploadImages(HttpServletRequest request, HttpServletResponse response, MultipartFile multipartFile);
+    String uploadImages(MultipartFile multipartFile, HttpServletRequest request, HttpServletResponse response);
 
     Posts updatePost(Posts post);
 
-    void deletePost(Posts post);
+    Posts deletePost(long postId, String userId);
 
     /*
     public List<Posts> listAllPosts(int postId);

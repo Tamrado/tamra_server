@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 
-@Api(tags = {"3. Post: Files Upload"})
+@Api(tags = {"3-1. Post: Files Upload"})
 @RestController
 @RequestMapping(value="/post")
 public class PostFileUploadController {
@@ -42,14 +42,15 @@ public class PostFileUploadController {
 
     @ApiOperation(value="post 이미지 업로드")
     @PostMapping(value="/upload/images", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity filesUpload(@ApiIgnore HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+    public ResponseEntity filesUpload(@ApiIgnore HttpServletRequest httpServletRequest,
+                                      @ApiIgnore HttpServletResponse httpServletResponse,
                                       @RequestParam("file") MultipartFile file) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(postServiceImpl.uploadImages(httpServletRequest,httpServletResponse,file), header, HttpStatus.CREATED);
+            return new ResponseEntity<>(postServiceImpl.uploadImages(file, httpServletRequest, httpServletResponse), header, HttpStatus.CREATED);
 
         } catch(Exception e) {
             logger.error("[PostFileUploadController] ERROR : " + String.valueOf(e.getCause()));
