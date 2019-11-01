@@ -3,6 +3,7 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
@@ -43,11 +45,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public String uploadImages(HttpServletRequest request, HttpServletResponse response,MultipartFile multipartFile) {
+    public String uploadImages(MultipartFile multipartFile,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
         logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(request,response).getEmail();
+        dirName = this.userSignService.extractUserFromToken(request, response).getEmail();
 
         try {
             return this.postImageS3Component.upload(multipartFile, dirName);
@@ -71,25 +75,24 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Posts updatePost(Posts post) {
-        return postsRepository.save(post);
+        //update content, showlevel
+        return null;
     }
 
     @Override
-    public void deletePost(Posts post) {
-        postsRepository.delete(post);
+    public Posts deletePost(long postId, String userId) {
+        Posts post = postsRepository.findById((int)postId)
+                                    .orElseThrow(EntityNotFoundException::new);
+
+        if(userId.equals(post.getUserId())) {
+            postsRepository.deleteById((int)postId);
+            // 사진 지우기 through postsImagesRepository
+            return post;
+        }
+        else {
+            throw new UnauthorizedUserException("UNAUTHORIZED USER-ID");
+        }
     }
-/*
-    @Override
-    public List<Posts> listAllPosts(int postId) {
 
-    }
-
-    @Override
-    public Posts getPostById(Posts posts) {
-
-    }
-
-
-     */
 
 }

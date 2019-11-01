@@ -42,18 +42,15 @@ public class BindingErrorsPackage {
         }
     }
 
-    public void createCustomErrorDetail(BindingResult bindingResult) {
-        for(FieldError error : bindingResult.getFieldErrors()) {
-
-            addBindingErrors(new BindingError
-                    .BindingErrorBuilder()
-                    .objectName(error.getObjectName())
-                    .fieldName(error.getField())
-                    .fieldValue(error.getRejectedValue().toString())
-                    .message(error.getDefaultMessage()) //이거 내가 customizing : toast 블로그
-                    .code(error.getCode())
-                    .build());
-        }
+    public void createCustomErrorDetail(BindingError bindingError) {
+        addBindingErrors(new BindingError
+                .BindingErrorBuilder()
+                .objectName("")
+                .fieldName(bindingError.getFieldName())
+                .fieldValue(bindingError.getFieldValue())
+                .message(bindingError.getMessage())
+                .code(bindingError.getCode())
+                .build());
     }
 
     public String toJson() {
