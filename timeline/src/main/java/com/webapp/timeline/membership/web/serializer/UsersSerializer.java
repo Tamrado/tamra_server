@@ -25,7 +25,7 @@ public class UsersSerializer extends StdSerializer<Users> {
     public void serialize(Users user, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         Format format = new SimpleDateFormat("yyyy-mm-dd");
         jgen.writeStartObject();
-        jgen.writeStringField("userId",user.getId());
+        jgen.writeStringField("id",user.getId());
         jgen.writeStringField("email",user.getEmail());
         jgen.writeStringField("name",user.getUsername());
         jgen.writeStringField("phone",user.getPhone());

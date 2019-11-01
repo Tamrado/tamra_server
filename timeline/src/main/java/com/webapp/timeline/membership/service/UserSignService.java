@@ -50,24 +50,29 @@ public class UserSignService implements UserDetailsService {
         return user;
     }
 
-    public Users extractUserFromToken(HttpServletRequest httpServletRequest){
+    public Users extractUserFromToken(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
         jwtTokenProvider = new JwtTokenProvider(new UserSignService());
-        String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
-        log.error(username);
-        Users user = loadUserByUsername(username);
-        return user;
-    }
-    public Users confirmCorrectUser(HttpServletRequest httpServletRequest ,String password, HttpServletResponse response) {
-        log.error("UserService.confirmCorrectUser");
-        response.setStatus(404);
-        Users user = extractUserFromToken(httpServletRequest);
-        log.error(Boolean.toString(customPasswordEncoder.matches(password, user.getPassword())));
-        if (customPasswordEncoder.matches(password, user.getPassword())) {
-            response.setStatus(200);
+        try {
+            httpServletResponse.setStatus(200);
+            String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
+            log.error(username);
+            Users user = loadUserByUsername(username);
             return user;
         }
-        response.setStatus(400);
+        catch(Exception e){
+            httpServletResponse.setStatus(400);
+        }
         return null;
+    }
+    public void confirmCorrectUser(HttpServletRequest httpServletRequest ,String password, HttpServletResponse response) {
+        log.error("UserService.confirmCorrectUser");
+        response.setStatus(404);
+        Users user = extractUserFromToken(httpServletRequest,response);
+        log.error(Boolean.toString(customPasswordEncoder.matches(password, user.getPassword())));
+        if (customPasswordEncoder.matches(password, user.getPassword()))
+            response.setStatus(200);
+        else
+        response.setStatus(400);
     }
 
     public ValidationInfo validateUser(Users users, HttpServletResponse response){

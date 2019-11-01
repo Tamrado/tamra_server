@@ -5,6 +5,7 @@ import com.webapp.timeline.sns.domain.Posts;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public interface PostService {
     Posts createPost(Posts post);
 
-    String uploadImages(HttpServletRequest request, MultipartFile multipartFile);
+    String uploadImages(HttpServletRequest request, HttpServletResponse response, MultipartFile multipartFile);
 
     Posts updatePost(Posts post);
 

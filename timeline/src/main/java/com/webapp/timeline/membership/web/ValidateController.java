@@ -29,12 +29,12 @@ public class ValidateController {
     }
     @ApiOperation(value = "회원가입 시 이메일 확인", notes = "존재하는 이메일인지 알려줌")
     @GetMapping(value="/member/email")
-    public ValidationInfo validateEmailExists(@RequestParam String email,HttpServletResponse response){
-        return validateService.checkEmail(email,response);
+    public ValidationInfo validateEmailExists(@RequestParam String email,@RequestParam String id,HttpServletResponse response){
+        return validateService.checkEmail(email,id,response);
     }
     @ApiOperation(value = "회원가입 시 핸드폰 번호 확인", notes = "존재하는 핸드폰 번호인지 알려줌")
     @GetMapping(value="/member/phone")
-    public ValidationInfo validatePhoneExists (@RequestParam String phone,HttpServletResponse response){
-        return validateService.checkPhone(phone,response);
+    public ValidationInfo validatePhoneExists (@RequestParam String phone,@RequestParam String id,HttpServletResponse response){
+        return validateService.checkPhone(phone,id,response);
     }
 }

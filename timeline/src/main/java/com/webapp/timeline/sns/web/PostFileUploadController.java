@@ -19,6 +19,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -41,14 +42,14 @@ public class PostFileUploadController {
 
     @ApiOperation(value="post 이미지 업로드")
     @PostMapping(value="/upload/images", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity filesUpload(@ApiIgnore HttpServletRequest httpServletRequest,
+    public ResponseEntity filesUpload(@ApiIgnore HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                       @RequestParam("file") MultipartFile file) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(postServiceImpl.uploadImages(httpServletRequest, file), header, HttpStatus.CREATED);
+            return new ResponseEntity<>(postServiceImpl.uploadImages(httpServletRequest,httpServletResponse,file), header, HttpStatus.CREATED);
 
         } catch(Exception e) {
             logger.error("[PostFileUploadController] ERROR : " + String.valueOf(e.getCause()));
