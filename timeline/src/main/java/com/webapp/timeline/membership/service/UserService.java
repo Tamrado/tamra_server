@@ -38,7 +38,6 @@ public class UserService {
 
     }
 
-
     public void saveImageURL(String userId, HttpServletResponse response,String url) {
         Profiles userImages = new Profiles();
         userImages.setId(userId);

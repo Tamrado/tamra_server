@@ -27,6 +27,7 @@ public class SignUpValidator{
         response.setStatus(200);
         if(checkIfEmailIsWrongForm(users)){
             response.setStatus(400);
+
             validationInfo.setObjectName("email");
             validationInfo.setIssue("form");
             return validationInfo;
@@ -97,9 +98,10 @@ public class SignUpValidator{
     }
     private Boolean checkIfObjectModifyOverlap(Users user){
         Boolean overlappedChecking = false;
-        if(usersEntityRepository.findEmailByExistingEmail(user.getEmail()) != null && usersEntityRepository.findEmailByExistingEmail(user.getEmail()).getId() != user.getId())
+        log.info(user.getId());
+        if(usersEntityRepository.findEmailByExistingEmail(user.getEmail()) != null && !usersEntityRepository.findEmailByExistingEmail(user.getEmail()).getId().equals(user.getId()) )
             overlappedChecking = true;
-        else if(usersEntityRepository.findPhoneByExistingPhone(user.getPhone()) != null && usersEntityRepository.findPhoneByExistingPhone(user.getPhone()).getId() != user.getId())
+        else if(usersEntityRepository.findPhoneByExistingPhone(user.getPhone()) != null && !usersEntityRepository.findPhoneByExistingPhone(user.getPhone()).getId().equals(user.getId()))
             overlappedChecking = true;
 
         return overlappedChecking;
@@ -115,13 +117,14 @@ public class SignUpValidator{
             return true;
         return false;
     }
-    public Boolean checkEmailExists(String email){
-        if(usersEntityRepository.findEmailByExistingEmail(email) != null)
+    public Boolean checkEmailExists(boolean mode,String email,String id){
+        if (usersEntityRepository.findEmailByExistingEmail(email) != null &&(mode || (!mode && !usersEntityRepository.findEmailByExistingEmail(email).getId().equals(id))))
             return true;
         return false;
+
     }
-    public Boolean checkPhoneExists(String phone){
-        if(usersEntityRepository.findPhoneByExistingPhone(phone)!= null)
+    public Boolean checkPhoneExists(boolean mode,String phone,String id){
+        if(usersEntityRepository.findPhoneByExistingPhone(phone)!= null &&(mode || (!mode && !usersEntityRepository.findPhoneByExistingPhone(phone).getId().equals(id))))
             return true;
         return false;
     }

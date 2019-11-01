@@ -47,6 +47,11 @@ public class UserController {
         log.error("info");
         return tokenService.sendInfo(id,httpServletRequest,httpServletResponse);
     }
+    @ApiOperation(value = "유저인지 확인 후 유저 수정 정보 전달",notes = "쿠키 내 accesstoken에서 userId 뽑고 유저 정보 전달")
+    @GetMapping(value="/member/user")
+    public Users checkUserAndSendUser(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
+        return userSignService.extractUserFromToken(httpServletRequest,httpServletResponse);
+    }
     @ApiOperation(value="accesstoken 확인", notes="accesstoken 확인 후 있으면 갱신")
     @GetMapping(value="/member/auth/token/id")
     public void checkAccessToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse){
@@ -61,14 +66,14 @@ public class UserController {
 
     @ApiOperation(value="개인정보 수정(사진)",notes = "회원의 개인정보를 수정함(사진)")
     @PostMapping(value="/member/image/id")
-    public void modifyImage(@RequestParam(value ="file",required=false) MultipartFile file,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws IOException {
-        userModifyService.modifyImage(httpServletRequest,file,httpServletResponse);
+    public LoggedInfo modifyImage(@RequestParam(value ="file",required=false) MultipartFile file,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws IOException {
+        return userModifyService.modifyImage(httpServletRequest,file,httpServletResponse);
     }
 
-    @ApiOperation(value="유저 확인", notes = "비밀번호 확인으로 올바른 유저인지 확인 후 정보 보냄")
+    @ApiOperation(value="유저 확인", notes = "비밀번호 확인으로 올바른 유저인지 확인")
     @PostMapping(value="/auth")
-    public Users checkCorrectUserAndPostInfo(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
-        return userSignService.confirmCorrectUser(httpServletRequest,user.get("password"),httpServletResponse);
+    public void checkCorrectUserAndPostInfo(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse){
+        userSignService.confirmCorrectUser(httpServletRequest,user.get("password"),httpServletResponse);
     }
 
     @ApiOperation(value="비활성화",notes = "유저가 비활성화 함")

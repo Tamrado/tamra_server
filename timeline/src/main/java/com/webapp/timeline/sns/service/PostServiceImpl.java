@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
@@ -42,11 +43,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public String uploadImages(HttpServletRequest request, MultipartFile multipartFile) {
+    public String uploadImages(HttpServletRequest request, HttpServletResponse response,MultipartFile multipartFile) {
         logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(request).getEmail();
+        dirName = this.userSignService.extractUserFromToken(request,response).getEmail();
 
         try {
             return this.postImageS3Component.upload(multipartFile, dirName);

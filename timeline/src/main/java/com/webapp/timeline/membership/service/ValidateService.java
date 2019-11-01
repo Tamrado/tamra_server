@@ -30,26 +30,24 @@ public class ValidateService {
         }
         return validationInfo;
     }
-    public ValidationInfo checkEmail(String email,HttpServletResponse response){
+    public ValidationInfo checkEmail(String email,String id,HttpServletResponse response){
         ValidationInfo validationInfo = new ValidationInfo();
         response.setStatus(200);
-        if(signUpValidator.checkEmailExists(email)) {
+        if ((id != "null" && signUpValidator.checkEmailExists(false, email, id)) || (id == "null" && signUpValidator.checkEmailExists(true, email, null))) {
             validationInfo.setIssue("exist");
             response.setStatus(400);
             validationInfo.setObjectName("email");
         }
         return validationInfo;
     }
-    public ValidationInfo checkPhone(String phone,HttpServletResponse response){
+    public ValidationInfo checkPhone(String phone,String id,HttpServletResponse response){
         ValidationInfo validationInfo = new ValidationInfo();
         response.setStatus(200);
-        log.error(phone);
-        if(signUpValidator.checkPhoneExists(phone)) {
+        if((id != "null" && signUpValidator.checkPhoneExists(false, phone, id)) || (id == "null" && signUpValidator.checkPhoneExists(true, phone, null))) {
             validationInfo.setIssue("exist");
             response.setStatus(400);
             validationInfo.setObjectName("phone");
         }
         return validationInfo;
     }
-
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 
@@ -48,7 +49,7 @@ public class PostController {
     @ApiOperation(value="글쓰기", notes="새 글 쓰기")
     @PostMapping(value="/upload", consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Posts> create(@Valid @RequestBody Posts post,
-                                        @ApiIgnore HttpServletRequest httpServletRequest,
+                                        @ApiIgnore HttpServletRequest httpServletRequest, HttpServletResponse response,
                                         @ApiIgnore BindingResult bindingResult) {
 
         header = new HttpHeaders();
@@ -65,7 +66,7 @@ public class PostController {
             header.add("errors", bindingErrorsPackage.toJson());
         }
 
-        post.setUserId(userSignService.extractUserFromToken(httpServletRequest).getId());
+        post.setUserId(userSignService.extractUserFromToken(httpServletRequest,response).getId());
         postServiceImpl.createPost(post);
 
         return new ResponseEntity<Posts>(post, header, HttpStatus.CREATED);

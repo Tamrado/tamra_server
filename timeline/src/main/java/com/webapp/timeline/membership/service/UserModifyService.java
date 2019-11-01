@@ -5,6 +5,7 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.SignUpValidator;
+import com.webapp.timeline.membership.service.result.LoggedInfo;
 import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,23 +54,25 @@ public class UserModifyService {
         }
         return validationInfo;
     }
-    public void modifyImage(HttpServletRequest req,MultipartFile file, HttpServletResponse response){
-        Users user = userSignService.extractUserFromToken(req);
+    public LoggedInfo modifyImage(HttpServletRequest req, MultipartFile file, HttpServletResponse response){
+        Users user = userSignService.extractUserFromToken(req,response);
         if(user == null) {
             response.setStatus(404);
-            return;
+            return null;
         }
         else {
             try {
                 userImageS3Component.upload(file, user.getId(),response);
+                return userService.setLoggedInfo(response,user.getId());
             } catch (IOException e) {
                 response.setStatus(404);
             }
         }
+        return null;
     }
     //로그아웃도 시켜야 한다.
     public void modifyIdentify(HttpServletRequest request, HttpServletResponse response){
-        Users user = userSignService.extractUserFromToken(request);
+        Users user = userSignService.extractUserFromToken(request,response);
         if(user == null) {
             response.setStatus(404);
         }
