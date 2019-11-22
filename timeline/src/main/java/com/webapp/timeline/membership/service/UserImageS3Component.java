@@ -31,7 +31,7 @@ public class UserImageS3Component extends SuperS3Uploader {
     }
 
     public String upload(MultipartFile multipartFile, String userName, HttpServletResponse response) throws IOException {
-        response.setStatus(200);
+        response.setStatus(404);
         if(multipartFile != null) {
             File uploadFile = super.convert(multipartFile)
                     .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File로 전환이 실패했습니다."));
@@ -41,7 +41,6 @@ public class UserImageS3Component extends SuperS3Uploader {
     }
 
     private String upload(File uploadFile, String userName, HttpServletResponse response) {
-        response.setStatus(404);
         if(userName == null) return null;
         String fileName = "userImage/" + userName;
         String uploadImageUrl = super.putS3(uploadFile, fileName);
@@ -49,18 +48,6 @@ public class UserImageS3Component extends SuperS3Uploader {
         if(uploadImageUrl != null)
             response.setStatus(200);
         return uploadImageUrl;
-    }
-
-    // 파일 삭제
-    public void fileDelete(String userName, HttpServletResponse response) {
-        String fileName = "userImage/" + userName;
-        String imgName = (fileName).replace(File.separatorChar, '/');
-        try {
-            amazonS3Client.deleteObject(bucket, imgName);
-        }
-        catch(AmazonS3Exception e) {
-            log.error(e.toString());
-        }
     }
 
 }

@@ -33,7 +33,7 @@ public class Users implements UserDetails {
     private Date timestamp;
 
     public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
-                 String address, String comment, Date timestamp, int group1, int group2, int group3, int group4) {
+                 String address, String comment, Date timestamp) {
         this.userId = userId;
         this.password = password;
         this.name = name;
