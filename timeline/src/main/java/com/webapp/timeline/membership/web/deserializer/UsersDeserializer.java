@@ -27,7 +27,7 @@ public class UsersDeserializer extends StdDeserializer<Users> {
     @Override
     public Users deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
         log.debug("UsersDeserializer.deserialize ::::");
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         JsonNode node = parser.getCodec().readTree(parser);
         Date birthday = null;
         Users user = new Users();
