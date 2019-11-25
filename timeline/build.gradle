@@ -42,7 +42,6 @@ dependencies {
     compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.602'
     compile fileTree(dir: 'ext_libs', include: ['*.jar'])
-    annotationProcessor 'org.projectlombok:lombok'
 }
 
 dependencyManagement {
