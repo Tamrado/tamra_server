@@ -1,7 +1,8 @@
 package com.webapp.timeline.membership.security;
 
+import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.membership.domain.Users;
-import com.webapp.timeline.membership.service.UserSignService;
+import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -35,9 +36,9 @@ public class JwtTokenProvider {
         this.secret = secret;
     }
     final long tokenValidMilisecond = 1000L *60*60*24;
-    private UserSignService userSignService;
+    private UserSignServiceImpl userSignService;
     @Autowired
-    public JwtTokenProvider(UserSignService userSignService) {
+    public JwtTokenProvider(UserSignServiceImpl userSignService) {
         this.userSignService = userSignService;
     }
     public JwtTokenProvider(){}
@@ -46,14 +47,12 @@ public class JwtTokenProvider {
         secret = Base64.getEncoder().encodeToString(secret.getBytes());
     }
 
-    public String createToken(String userId){
+    public String createToken(String userId) throws RuntimeException{
         log.debug("JwtTokenProvider.createToken ::::");
-        String accessToken;
-        Claims claims;
-        Date expiration;
-        claims = Jwts.claims().setSubject(userId);
-        expiration = new Date(System.currentTimeMillis() + tokenValidMilisecond);
-        accessToken = Jwts.builder()
+        if(userId == null) throw new NoInformationException();
+        Claims claims = Jwts.claims().setSubject(userId);
+        Date expiration = new Date(System.currentTimeMillis() + tokenValidMilisecond);
+        String accessToken = Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .setHeaderParam("typ","JWT")
                 .setClaims(claims)
@@ -63,12 +62,12 @@ public class JwtTokenProvider {
 
         return accessToken;
     }
-    public String extractUserIdFromToken(String token) {
+    public String extractUserIdFromToken(String token) throws RuntimeException {
         log.info("JwtTokenProvider.extractUserIdFromToken ::::");
         try {
             return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
-            return null;
+            throw new NoInformationException();
         }
     }
 

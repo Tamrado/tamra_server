@@ -2,8 +2,8 @@ package com.webapp.timeline.membership.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.webapp.timeline.membership.web.deserializer.UsersDeserializer;
-import com.webapp.timeline.membership.web.serializer.UsersSerializer;
+import com.webapp.timeline.membership.domain.deserializer.UsersDeserializer;
+import com.webapp.timeline.membership.domain.serializer.UsersSerializer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -57,7 +57,10 @@ public class Users implements UserDetails {
         return auth;
     }
 
-    public void setAuthorities(){
+    public String getAuthority(){
+        return authority;
+    }
+    public void setAuthority(){
        String pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
        Boolean result = Pattern.matches(pattern,this.getId());
         if(result)

@@ -1,12 +1,10 @@
 package com.webapp.timeline.sns.web;
 
-import com.webapp.timeline.membership.service.UserSignService;
+import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.PostService;
 import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,7 @@ import java.util.Collections;
 public class PostController {
 
     private PostService postServiceImpl;
-    private UserSignService userSignService;
+    private UserSignServiceImpl userSignService;
     private HttpHeaders header;
     private BindingErrorsPackage bindingErrorsPackage;
     private final static Logger logger = LoggerFactory.getLogger("com.webapp.timeline.web.PostController");
@@ -44,7 +42,7 @@ public class PostController {
     }
 
     @Autowired
-    public void setUserSignService(UserSignService userSignService) {
+    public void setUserSignService(UserSignServiceImpl userSignService) {
         this.userSignService = userSignService;
     }
 
@@ -70,7 +68,7 @@ public class PostController {
             header.add("errors", bindingErrorsPackage.toJson());
         }
 
-        post.setUserId(userSignService.extractUserFromToken(httpServletRequest, httpServletResponse).getId());
+        post.setUserId(userSignService.extractUserFromToken(httpServletRequest).getId());
         post = postServiceImpl.createPost(post);
 
         return new ResponseEntity<Posts>(post, header, HttpStatus.CREATED);
@@ -89,7 +87,7 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            userId = this.userSignService.extractUserFromToken(httpServletRequest, httpServletResponse).getId();
+            userId = this.userSignService.extractUserFromToken(httpServletRequest).getId();
             return new ResponseEntity<Posts>(this.postServiceImpl.deletePost(postId, userId), header, HttpStatus.OK);
         }
         catch(EntityNotFoundException e1) {
