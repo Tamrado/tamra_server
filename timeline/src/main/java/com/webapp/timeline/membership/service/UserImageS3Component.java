@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.webapp.timeline.config.SuperS3Uploader;
+import com.webapp.timeline.exception.NoInformationException;
+import com.webapp.timeline.exception.WrongCodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,23 +32,20 @@ public class UserImageS3Component extends SuperS3Uploader {
         super(amazonS3Client);
     }
 
-    public String upload(MultipartFile multipartFile, String userName, HttpServletResponse response) throws IOException {
-        response.setStatus(404);
+    public String upload(MultipartFile multipartFile, String userName) throws IOException {
         if(multipartFile != null) {
             File uploadFile = super.convert(multipartFile)
                     .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File로 전환이 실패했습니다."));
-            return upload(uploadFile, userName, response);
+            return upload(uploadFile, userName);
         }
         else return "https://timelines3bucket.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
     }
 
-    private String upload(File uploadFile, String userName, HttpServletResponse response) {
+    private String upload(File uploadFile, String userName){
         if(userName == null) return null;
         String fileName = "userImage/" + userName;
         String uploadImageUrl = super.putS3(uploadFile, fileName);
         super.removeNewFile(uploadFile);
-        if(uploadImageUrl != null)
-            response.setStatus(200);
         return uploadImageUrl;
     }
 
