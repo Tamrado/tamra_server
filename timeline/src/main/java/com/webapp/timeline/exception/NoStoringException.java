@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 //409
 @ResponseStatus(HttpStatus.CONFLICT)
 public class NoStoringException extends RuntimeException{
-    public NoStoringException(){ super();}
 
+    public NoStoringException() {
+        super();
+    }
 }
