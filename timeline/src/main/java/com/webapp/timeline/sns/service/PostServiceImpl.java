@@ -26,7 +26,7 @@ public class PostServiceImpl implements PostService {
     private JpaRepository<Posts, Integer> postsRepository;
     private PostImageS3Component postImageS3Component;
     private LinkedHashMap<Integer, String> getUrlMap;
-    private UserSignServiceImpl userSignService;
+    private UserSignServiceImpl userSignServiceImpl;
 
 
     @Autowired
@@ -40,18 +40,17 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setUserSignService(UserSignServiceImpl userSignService) {
-        this.userSignService = userSignService;
+    public void setUserSignService(UserSignServiceImpl userSignServiceImpl) {
+        this.userSignServiceImpl = userSignServiceImpl;
     }
 
     @Override
     public String uploadImages(MultipartFile multipartFile,
-                               HttpServletRequest request,
-                               HttpServletResponse response) {
+                               HttpServletRequest request) {
         logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(request).getEmail();
+        dirName = this.userSignServiceImpl.extractUserFromToken(request).getEmail();
 
         try {
             return this.postImageS3Component.upload(multipartFile, dirName);

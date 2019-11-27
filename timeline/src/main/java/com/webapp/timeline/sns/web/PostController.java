@@ -30,10 +30,10 @@ import java.util.Collections;
 public class PostController {
 
     private PostService postServiceImpl;
-    private UserSignServiceImpl userSignService;
+    private UserSignServiceImpl userSignServiceImpl;
     private HttpHeaders header;
     private BindingErrorsPackage bindingErrorsPackage;
-    private final static Logger logger = LoggerFactory.getLogger("com.webapp.timeline.web.PostController");
+    private final static Logger logger = LoggerFactory.getLogger(PostController.class);
 
 
     @Autowired
@@ -42,8 +42,8 @@ public class PostController {
     }
 
     @Autowired
-    public void setUserSignService(UserSignServiceImpl userSignService) {
-        this.userSignService = userSignService;
+    public void setUserSignService(UserSignServiceImpl userSignServiceImpl) {
+        this.userSignServiceImpl = userSignServiceImpl;
     }
 
 
@@ -51,7 +51,6 @@ public class PostController {
     @PostMapping(value="/upload", consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Posts> create(@Valid @RequestBody Posts post,
                                         @ApiIgnore HttpServletRequest httpServletRequest,
-                                        @ApiIgnore HttpServletResponse httpServletResponse,
                                         @ApiIgnore BindingResult bindingResult) {
 
         header = new HttpHeaders();
@@ -68,7 +67,7 @@ public class PostController {
             header.add("errors", bindingErrorsPackage.toJson());
         }
 
-        post.setUserId(userSignService.extractUserFromToken(httpServletRequest).getId());
+        post.setUserId(userSignServiceImpl.extractUserFromToken(httpServletRequest).getId());
         post = postServiceImpl.createPost(post);
 
         return new ResponseEntity<Posts>(post, header, HttpStatus.CREATED);
@@ -77,8 +76,7 @@ public class PostController {
     @ApiOperation(value="글 삭제", notes="자신이 쓴 글이 맞다면 글 삭제")
     @DeleteMapping(value="/delete/{postId}")
     public ResponseEntity delete(@PathVariable("postId") long postId,
-                                        @ApiIgnore HttpServletRequest httpServletRequest,
-                                        @ApiIgnore HttpServletResponse httpServletResponse) {
+                                        @ApiIgnore HttpServletRequest httpServletRequest) {
 
         String userId = "";
         BindingError bindingCustomError;
@@ -87,7 +85,7 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            userId = this.userSignService.extractUserFromToken(httpServletRequest).getId();
+            userId = this.userSignServiceImpl.extractUserFromToken(httpServletRequest).getId();
             return new ResponseEntity<Posts>(this.postServiceImpl.deletePost(postId, userId), header, HttpStatus.OK);
         }
         catch(EntityNotFoundException e1) {
