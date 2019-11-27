@@ -1,5 +1,7 @@
 package com.webapp.timeline.membership.security;
 
+import com.webapp.timeline.exception.NoMatchPointException;
+import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.result.ValidationInfo;
@@ -22,46 +24,26 @@ public class SignUpValidator{
     public SignUpValidator(UsersEntityRepository usersEntityRepository){
         this.usersEntityRepository = usersEntityRepository;
     }
-    public ValidationInfo validateForModify(Users users, HttpServletResponse response){
-        ValidationInfo validationInfo = new ValidationInfo();
-        response.setStatus(200);
-        if(checkIfEmailIsWrongForm(users)){
-            response.setStatus(400);
+    public void validateForModify(Users users) throws RuntimeException{
 
-            validationInfo.setObjectName("email");
-            validationInfo.setIssue("form");
-            return validationInfo;
-        }
-        if(checkIfPhoneIsWrongForm(users)){
-            response.setStatus(400);
-            validationInfo.setIssue("form");
-            validationInfo.setObjectName("phone");
-            return validationInfo;
-        }
-        if(checkIfPasswordIsWrongForm(users)) {
-            response.setStatus(400);
-            validationInfo.setIssue("form");
-            validationInfo.setObjectName("password");
-            return validationInfo;
-        }
-        if(checkIfObjectModifyOverlap(users)) {
-            response.setStatus(400);
-            validationInfo.setIssue("exist");
-            return validationInfo;
-        }
-        return validationInfo;
+        if(checkIfEmailIsWrongForm(users))
+            throw new NoMatchPointException();
+
+        if(checkIfPhoneIsWrongForm(users))
+            throw new NoMatchPointException();
+
+        if(checkIfPasswordIsWrongForm(users))
+            throw new NoMatchPointException();
+
+        if(checkIfObjectModifyOverlap(users))
+            throw new NoStoringException();
+
     }
 
-    public ValidationInfo validate(Users users, HttpServletResponse response){
-        ValidationInfo validationInfo = new ValidationInfo();
-        response.setStatus(200);
-        if(checkIfObjectOverlap(users)){
-            response.setStatus(400);
-            validationInfo.setIssue("exist");
-            return validationInfo;
-        }
-        return validateForModify(users,response);
-
+    public void validate(Users users) throws RuntimeException{
+        if(checkIfObjectOverlap(users))
+            throw new NoMatchPointException();
+        validateForModify(users);
     }
     private Boolean checkIfPhoneIsWrongForm(Users user){
         String regex = "^01(?:0|1|[6-9])-(\\d{3}|\\d{4})-(\\d{4})$";

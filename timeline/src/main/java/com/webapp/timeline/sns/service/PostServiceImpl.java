@@ -1,7 +1,7 @@
 package com.webapp.timeline.sns.service;
 
 
-import com.webapp.timeline.membership.service.UserSignService;
+import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class PostServiceImpl implements PostService {
     private JpaRepository<Posts, Integer> postsRepository;
     private PostImageS3Component postImageS3Component;
     private LinkedHashMap<Integer, String> getUrlMap;
-    private UserSignService userSignService;
+    private UserSignServiceImpl userSignService;
 
 
     @Autowired
@@ -40,7 +40,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setUserSignService(UserSignService userSignService) {
+    public void setUserSignService(UserSignServiceImpl userSignService) {
         this.userSignService = userSignService;
     }
 
@@ -51,7 +51,7 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(request, response).getEmail();
+        dirName = this.userSignService.extractUserFromToken(request).getEmail();
 
         try {
             return this.postImageS3Component.upload(multipartFile, dirName);

@@ -1,14 +1,12 @@
 package com.webapp.timeline.config;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.*;
 import com.webapp.timeline.membership.service.UserImageS3Component;
-import com.webapp.timeline.membership.service.UserService;
-import com.webapp.timeline.membership.service.UserSignService;
-import org.checkerframework.checker.units.qual.A;
+import com.webapp.timeline.membership.service.UserServiceImpl;
+import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -124,15 +122,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public JwtAuthorizationFilter author() throws Exception{
         JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(
-                new JwtTokenProvider(new UserSignService
-                        (new UserImageS3Component(amazonS3Client)
-                                ,new SignUpValidator(usersEntityRepository),
+                new JwtTokenProvider(new UserSignServiceImpl
+                        (new SignUpValidator(usersEntityRepository),
                                 usersEntityRepository,
-                                customPasswordEncoder,
-                                new UserService(
-                                        customPasswordEncoder,
-                                        userImagesRepository,
-                                        usersEntityRepository))));
+                                customPasswordEncoder)));
         return jwtAuthorizationFilter;
     }
 
