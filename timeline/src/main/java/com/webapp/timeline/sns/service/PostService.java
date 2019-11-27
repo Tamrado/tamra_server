@@ -13,7 +13,7 @@ import java.util.List;
 public interface PostService {
     Posts createPost(Posts post);
 
-    String uploadImages(MultipartFile multipartFile, HttpServletRequest request, HttpServletResponse response);
+    String uploadImages(MultipartFile multipartFile, HttpServletRequest request);
 
     Posts updatePost(Posts post);
 
