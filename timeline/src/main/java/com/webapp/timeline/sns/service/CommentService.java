@@ -7,5 +7,5 @@ import javax.servlet.http.HttpServletRequest;
 public interface CommentService {
     Comments registerComment(long postId, String content, HttpServletRequest request);
 
-    Comments deleteComment(long commentId);
+    Comments removeComment(long commentId, HttpServletRequest request);
 }

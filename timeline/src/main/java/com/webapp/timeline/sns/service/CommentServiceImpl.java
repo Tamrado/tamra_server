@@ -1,5 +1,9 @@
 package com.webapp.timeline.sns.service;
 
+import com.webapp.timeline.exception.InternalServerException;
+import com.webapp.timeline.exception.NoInformationException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
+import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.repository.CommentsRepository;
@@ -7,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -21,7 +24,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentsRepository commentsRepository;
     private UserSignServiceImpl userSignServiceImpl;
     private static final int NEW_COMMENT_CHECK = 0;
-    private static final int DELETED_COMMENT_CHECK = 1;
+    private static final int REMOVED_COMMENT_CHECK = 1;
 
     @Autowired
     public void setCommentsRepository(CommentsRepository commentsRepository) {
@@ -38,7 +41,8 @@ public class CommentServiceImpl implements CommentService {
         logger.info("[CommentService] register comment.");
         String author;
 
-        author = this.userSignServiceImpl.extractUserFromToken(request).getId();
+        author = this.userSignServiceImpl.extractUserFromToken(request)
+                                        .getId();
         Comments comment = makeObjectForComment(postId, content, author);
 
         return commentsRepository.save(comment);
@@ -61,7 +65,37 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comments deleteComment(long commentId) {
-        return null;
+    public Comments removeComment(long commentId, HttpServletRequest request) {
+        logger.info("[CommentService] remove comment.");
+        String author;
+
+        author = this.userSignServiceImpl.extractUserFromToken(request)
+                                        .getId();
+        Comments comment = this.commentsRepository.findById(commentId)
+                                                .orElseThrow(NoInformationException::new);
+
+        if(author.equals(comment.getAuthor())) {
+            comment.setDeleted(REMOVED_COMMENT_CHECK);
+
+            return tryQueryAndTakeAction(comment);
+        }
+        else
+            throw new UnauthorizedUserException();
+    }
+
+    private Comments tryQueryAndTakeAction(Comments comment) {
+        int affectedRow;
+
+        affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
+
+        if(affectedRow == 1) {
+            return comment;
+        }
+        else if(affectedRow == 0) {
+            throw new WrongCodeException();
+        }
+        else {
+            throw new InternalServerException();
+        }
     }
 }
