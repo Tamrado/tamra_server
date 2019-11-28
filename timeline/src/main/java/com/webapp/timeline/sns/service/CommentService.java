@@ -5,7 +5,7 @@ import com.webapp.timeline.sns.domain.Comments;
 import javax.servlet.http.HttpServletRequest;
 
 public interface CommentService {
-    Comments registerComment(long postId, String content, HttpServletRequest request);
+    Comments registerComment(long postId, Comments comment, HttpServletRequest request);
 
     Comments removeComment(long commentId, HttpServletRequest request);
 }

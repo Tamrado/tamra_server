@@ -1,12 +1,19 @@
 package com.webapp.timeline.sns.domain;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.webapp.timeline.sns.web.CustomCommentDeserializer;
+import com.webapp.timeline.sns.web.CustomCommentSerializer;
+
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
+
 
 @Entity
 @Table(name = "comments")
+@JsonSerialize(using = CustomCommentSerializer.class)
+@JsonDeserialize(using = CustomCommentDeserializer.class)
 public class Comments {
 
     @Id
@@ -28,7 +35,7 @@ public class Comments {
     @Column(name = "deleted")
     private int deleted;
 
-    Comments() {
+    public Comments() {
     }
 
     Comments(Builder builder) {
@@ -45,6 +52,14 @@ public class Comments {
 
     public String getAuthor() {
         return this.author;
+    }
+
+    public void setContent() {
+        this.content = content;
+    }
+
+    public String getContent() {
+        return this.content;
     }
 
     public void setDeleted(int deleted) {

@@ -1,9 +1,6 @@
 package com.webapp.timeline.sns.service;
 
-import com.webapp.timeline.exception.InternalServerException;
-import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.exception.UnauthorizedUserException;
-import com.webapp.timeline.exception.WrongCodeException;
+import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.repository.CommentsRepository;
@@ -23,6 +20,7 @@ public class CommentServiceImpl implements CommentService {
     private static final Logger logger = LoggerFactory.getLogger(CommentServiceImpl.class);
     private CommentsRepository commentsRepository;
     private UserSignServiceImpl userSignServiceImpl;
+    private static final int MAXIMUM_CONTENT_LENGTH = 300;
     private static final int NEW_COMMENT_CHECK = 0;
     private static final int REMOVED_COMMENT_CHECK = 1;
 
@@ -37,15 +35,25 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comments registerComment(long postId, String content, HttpServletRequest request) {
+    public Comments registerComment(long postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
         String author;
+        String content;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getId();
-        Comments comment = makeObjectForComment(postId, content, author);
+        content = comment.getContent();
 
-        return commentsRepository.save(comment);
+        if(content.length() == 0) {
+            throw new BadRequestException();
+        }
+        else if(content.length() > MAXIMUM_CONTENT_LENGTH) {
+            throw new NoMatchPointException();
+        }
+
+        Comments newComment = makeObjectForComment(postId, content, author);
+
+        return commentsRepository.save(newComment);
     }
 
     private Comments makeObjectForComment(long postId, String content, String author) {
