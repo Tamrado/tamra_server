@@ -1,6 +1,7 @@
 package com.webapp.timeline.sns.web;
 
 
+import com.webapp.timeline.exception.InternalServerException;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.sns.service.CommentServiceImpl;
@@ -85,6 +86,12 @@ public class CommentController {
             logger.error("[CommentController] This user is NOT authorized to delete.");
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        catch(InternalServerException internal_server_error) {
+            logger.error("[CommentController] Transaction error/ Internal server error.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
