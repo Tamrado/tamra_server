@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
 
 @Api(tags = {"4. Post-Comment"})
 @RestController
@@ -37,7 +37,7 @@ public class CommentController {
                 notes = "response : 200 -> 성공 | 400 -> 댓글 내용이 없을 때 | 411 -> 댓글 내용 글자수 300자 초과 시")
     @PostMapping(value = "/{postId}/comment/register")
     public ResponseEntity register(@PathVariable("postId") long postId,
-                                   Comments comment,
+                                   @RequestBody Comments comment,
                                    @ApiIgnore HttpServletRequest request) {
 
         logger.info("[CommentController] Register comment.");
@@ -67,7 +67,7 @@ public class CommentController {
                                 "| 404 -> 들어온 commentId에 해당하는 comment가 없을 때 " +
                                 "| 422 -> 삭제가 반영되지 않을 때 (아직 댓글 남아있음)" +
                                 "| 500 -> 트랜젝션 오류(front에서는 삭제되지 않았다고 사용자에게 공지)")
-    @DeleteMapping(value = "/comment/{commentId}/remove")
+    @PutMapping(value = "/comment/{commentId}/remove")
     public ResponseEntity remove(@PathVariable("commentId") long commentId,
                                  @ApiIgnore HttpServletRequest request) {
 
