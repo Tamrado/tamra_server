@@ -90,7 +90,59 @@ public class CommentController {
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[CommentController] There is 0 affected row.");
 
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        catch(InternalServerException internal_server_error) {
+            logger.error("[CommentController] Transaction error/ Internal server error.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "댓글 수정하기 (request : 글 Id, 댓글 내용)",
+                notes = "response : 200 -> 수정 (내용/ 시간) 성공 " +
+                                "| 400 -> 수정이 불가능한 댓글 (이미 삭제됐는데 db 반영 안돼서 남아있을 경우)" +
+                                "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
+                                "| 404 -> 들어온 commentId에 해당하는 comment가 없을 때 " +
+                                "| 422 -> 수정이 반영되지 않을 때" +
+                                "| 500 -> 트랜젝션 오류(front에서는 수정되지 않았다고 사용자에게 공지)")
+    @PutMapping(value = "/comment/{commentId}/edit")
+    public ResponseEntity edit(@PathVariable("commentId") long commentId,
+                               @RequestBody Comments comment,
+                               @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[CommentController] Edit comment.");
+
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.commentService.editComment(commentId, comment, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException already_deleted_comment) {
+            logger.error("[CommentController] This is already DELETED comment. Can not edit it.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(NoInformationException no_comment_by_postId) {
+            logger.error("[CommentController] There is NO COMMENT found by the commentId : " + commentId);
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(UnauthorizedUserException unauthorized_user) {
+            logger.error("[CommentController] This user is NOT authorized to edit comment.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[CommentController] There is 0 affected row.");
+
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
         catch(InternalServerException internal_server_error) {
             logger.error("[CommentController] Transaction error/ Internal server error.");
 
