@@ -3,7 +3,7 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.*;
@@ -89,7 +88,7 @@ public class PostServiceImpl implements PostService {
             return post;
         }
         else {
-            throw new UnauthorizedUserException("UNAUTHORIZED USER-ID");
+            throw new UnauthorizedUserException();
         }
     }
 
