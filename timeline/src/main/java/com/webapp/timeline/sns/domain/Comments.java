@@ -39,6 +39,22 @@ public class Comments {
         this.deleted = builder.deleted;
     }
 
+    public long getCommentId() {
+        return this.commentId;
+    }
+
+    public String getAuthor() {
+        return this.author;
+    }
+
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
+    }
+
+    public int getDeleted() {
+        return this.deleted;
+    }
+
     public static class Builder {
         private long postId;
         private String author;
