@@ -8,4 +8,6 @@ public interface CommentService {
     Comments registerComment(long postId, Comments comment, HttpServletRequest request);
 
     Comments removeComment(long commentId, HttpServletRequest request);
+
+    Comments editComment(long commentId, Comments comment, HttpServletRequest request);
 }

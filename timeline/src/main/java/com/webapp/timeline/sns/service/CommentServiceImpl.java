@@ -24,6 +24,7 @@ public class CommentServiceImpl implements CommentService {
     private static final int NEW_COMMENT_CHECK = 0;
     private static final int REMOVED_COMMENT_CHECK = 1;
 
+
     @Autowired
     public void setCommentsRepository(CommentsRepository commentsRepository) {
         this.commentsRepository = commentsRepository;
@@ -58,16 +59,11 @@ public class CommentServiceImpl implements CommentService {
 
     private Comments makeObjectForComment(long postId, String content, String author) {
 
-        ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        String now = LocalDateTime.now()
-                .atZone(zoneId)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
         return new Comments.Builder()
                             .postId(postId)
                             .author(author)
                             .content(content)
-                            .lastUpdate(Timestamp.valueOf(now))
+                            .lastUpdate(whatIsTimestampOfNow())
                             .deleted(NEW_COMMENT_CHECK)
                             .build();
     }
@@ -76,6 +72,7 @@ public class CommentServiceImpl implements CommentService {
     public Comments removeComment(long commentId, HttpServletRequest request) {
         logger.info("[CommentService] remove comment.");
         String author;
+        int affectedRow;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getId();
@@ -85,17 +82,50 @@ public class CommentServiceImpl implements CommentService {
         if(author.equals(comment.getAuthor())) {
             comment.setDeleted(REMOVED_COMMENT_CHECK);
 
-            return tryQueryAndTakeAction(comment);
+            affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
+
+            return takeActionByQuery(comment, affectedRow);
         }
         else
             throw new UnauthorizedUserException();
     }
 
-    private Comments tryQueryAndTakeAction(Comments comment) {
+    @Override
+    public Comments editComment(long commentId, Comments comment, HttpServletRequest request) {
+        logger.info("[CommentService] edit comment.");
+        String author;
         int affectedRow;
 
-        affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
+        author = this.userSignServiceImpl.extractUserFromToken(request)
+                                        .getId();
+        Comments existedComment = this.commentsRepository.findById(commentId)
+                                                        .orElseThrow(NoInformationException::new);
+        if(existedComment.getDeleted() == 1) {
+            throw new BadRequestException();
+        }
 
+        if(author.equals(existedComment.getAuthor())) {
+            existedComment.setContent(comment.getContent());
+            existedComment.setLastUpdate(whatIsTimestampOfNow());
+
+            affectedRow = this.commentsRepository.editCommentByCommentId(existedComment);
+
+            return takeActionByQuery(existedComment, affectedRow);
+        }
+        else
+            throw new UnauthorizedUserException();
+    }
+
+    private Timestamp whatIsTimestampOfNow() {
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        String now = LocalDateTime.now()
+                .atZone(zoneId)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        return Timestamp.valueOf(now);
+    }
+
+    private Comments takeActionByQuery(Comments comment, int affectedRow) {
         if(affectedRow == 1) {
             return comment;
         }
