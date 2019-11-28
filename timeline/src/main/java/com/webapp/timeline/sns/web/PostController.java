@@ -3,7 +3,7 @@ package com.webapp.timeline.sns.web;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.PostService;
-import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -19,7 +19,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Collections;
 
