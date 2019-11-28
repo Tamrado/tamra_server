@@ -1,9 +1,8 @@
 package com.webapp.timeline.sns.web;
 
 
-import com.webapp.timeline.exception.InternalServerException;
-import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.exception.UnauthorizedUserException;
+import com.webapp.timeline.exception.*;
+import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.service.CommentServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -25,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping(value = "/post")
 public class CommentController {
     private static final Logger logger = LoggerFactory.getLogger(CommentController.class);
-    private static final int MAXIMUM_CONTENT_LENGTH = 300;
+
     private CommentServiceImpl commentService;
     private HttpHeaders header;
 
@@ -38,7 +37,7 @@ public class CommentController {
                 notes = "response : 200 -> 성공 | 400 -> 댓글 내용이 없을 때 | 411 -> 댓글 내용 글자수 300자 초과 시")
     @PostMapping(value = "/{postId}/comment/register")
     public ResponseEntity register(@PathVariable("postId") long postId,
-                                   String content,
+                                   Comments comment,
                                    @ApiIgnore HttpServletRequest request) {
 
         logger.info("[CommentController] Register comment.");
@@ -46,16 +45,20 @@ public class CommentController {
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
-        if(content == null || content.length() == 0) {
+        try {
+            return new ResponseEntity<>
+                    (this.commentService.registerComment(postId, comment, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException no_content) {
+            logger.error("[CommentController] There is NO CONTENT in this comment.");
+
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        catch(NoMatchPointException over_300_characters) {
+            logger.error("[CommentController] Comment can NOT save over 300-character content.");
 
-        else if(content.length() > MAXIMUM_CONTENT_LENGTH) {
             return new ResponseEntity<>(HttpStatus.LENGTH_REQUIRED);
         }
-
-        return new ResponseEntity<>
-                (this.commentService.registerComment(postId, content, request), header, HttpStatus.OK);
     }
 
     @ApiOperation(value = "댓글 삭제하기 (request : 글 Id)",
