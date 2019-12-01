@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.web;
+package com.webapp.timeline.sns.web.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,16 +23,15 @@ public class CustomPostDeserializer extends StdDeserializer<Posts> {
     @Override
     public Posts deserialize(JsonParser parser, DeserializationContext context)
                                             throws JsonProcessingException, IOException {
-        Posts posts = new Posts();
+
         JsonNode node = parser.getCodec().readTree(parser);
 
         String content = node.get("content").asText(null);
         String showLevel = node.get("showLevel").asText("public");
 
-        posts.setContent(content);
-        posts.setShowLevel(showLevel);
-        posts.setLastUpdate();
-
-        return posts;
+        return new Posts.Builder()
+                        .content(content)
+                        .showLevel(showLevel)
+                        .build();
     }
 }
