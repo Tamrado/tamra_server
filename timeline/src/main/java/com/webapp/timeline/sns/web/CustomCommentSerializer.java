@@ -20,7 +20,9 @@ public class CustomCommentSerializer extends StdSerializer<Comments> {
     @Override
     public void serialize(Comments comment, JsonGenerator generator, SerializerProvider provider) throws IOException {
         generator.writeStartObject();
+        generator.writeStringField("author", comment.getAuthor());
         generator.writeStringField("content", comment.getContent());
+        generator.writeStringField("lastUpdate", comment.getLastUpdate().toString());
         generator.writeEndObject();
     }
 }

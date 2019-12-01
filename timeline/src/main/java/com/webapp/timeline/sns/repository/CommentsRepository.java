@@ -1,6 +1,8 @@
 package com.webapp.timeline.sns.repository;
 
 import com.webapp.timeline.sns.domain.Comments;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +28,9 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
                     "WHERE item.commentId = :#{#comment.commentId}",
             nativeQuery = false)
     Integer editCommentByCommentId(@Param("comment") Comments comment);
+
+    @Transactional
+    @Query(value = "SELECT list FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId",
+            nativeQuery = false)
+    Page<Comments> listValidCommentsByPostId(Pageable pageable, @Param("postId") long postId);
 }
