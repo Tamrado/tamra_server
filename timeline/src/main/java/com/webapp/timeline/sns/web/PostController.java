@@ -1,8 +1,6 @@
 package com.webapp.timeline.sns.web;
 
-import com.webapp.timeline.exception.BadRequestException;
-import com.webapp.timeline.exception.NoMatchPointException;
-import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
@@ -38,18 +36,18 @@ public class PostController {
 
 
     @ApiOperation(value = "글쓰기 (request : 글 내용, show-level)",
-                notes="response : 200 -> 성공 " +
+                notes="response : 201 -> 성공 " +
                                 "| 400 -> 글 내용이 없을 때 " +
                                 "| 411 -> 글 내용 글자수 255글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-    public ResponseEntity create(@Valid @RequestBody Posts post,
-                                        @ApiIgnore HttpServletRequest request) {
+    public ResponseEntity create(@RequestBody Posts post,
+                                 @ApiIgnore HttpServletRequest request) {
 
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.OK);
+            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
         }
         catch(BadRequestException no_content) {
             logger.error("[PostController] There is NO CONTENT in this post.");
@@ -62,6 +60,39 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.LENGTH_REQUIRED);
         }
     }
-    
+
+    @ApiOperation(value = "글 삭제하기 (request : 글 Id)",
+                notes = "response : 200 -> 성공 " +
+                                "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
+                                "| 404 -> 해당 post를 찾을 수 없음 " +
+                                "| 422 -> 삭제가 반영되지 않았을 때 (아직 글 남아있음)")
+    @PutMapping(value = "/{postId}/delete")
+    public ResponseEntity delete(@PathVariable("postId") int postId,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] delete post.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>(this.postServiceImpl.deletePost(postId, request), header, HttpStatus.OK);
+        }
+        catch(UnauthorizedUserException unauthorized_user) {
+            logger.error("[PostController] This user is NOT authorized to delete.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] CanNOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[PostController] There is 0 affected row.");
+
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
 }
 

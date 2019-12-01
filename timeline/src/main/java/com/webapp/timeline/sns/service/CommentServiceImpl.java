@@ -3,6 +3,7 @@ package com.webapp.timeline.sns.service;
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
+import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
@@ -28,6 +29,7 @@ public class CommentServiceImpl implements CommentService {
     private static final int MAXIMUM_CONTENT_LENGTH = 300;
     private static final int NEW_COMMENT_CHECK = 0;
     private static final int REMOVED_COMMENT_CHECK = 1;
+    private static final int DELETED_POST = 1;
 
     @Autowired
     public void setPostsRepository(PostsRepository postsRepository) {
@@ -45,8 +47,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void checkIfPostDeleted(long postId) {
-        this.postsRepository.findById((int) postId)
-                            .orElseThrow(NoInformationException::new);
+        Posts post = this.postsRepository.findById((int) postId)
+                                        .orElseThrow(NoInformationException::new);
+        if(post.getDeleted() == DELETED_POST) {
+            throw new NoInformationException();
+        }
     }
 
     @Override

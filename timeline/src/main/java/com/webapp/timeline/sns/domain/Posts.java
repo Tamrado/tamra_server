@@ -32,6 +32,9 @@ public class Posts {
     @Column(name = "lastUpdate", nullable = false)
     private Timestamp lastUpdate;
 
+    @Column(name = "deleted")
+    private int deleted;
+
     public Posts() {
     }
 
@@ -63,12 +66,21 @@ public class Posts {
         return this.lastUpdate;
     }
 
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
+    }
+
+    public int getDeleted() {
+        return this.deleted;
+    }
+
     public static class Builder {
         private int postId;
         private String author;
         private String content;
         private String showLevel;
         private Timestamp lastUpdate;
+        private int deleted;
 
         public Builder author(String author) {
             this.author = author;
@@ -87,6 +99,11 @@ public class Posts {
 
         public Builder lastUpdate(Timestamp lastUpdate) {
             this.lastUpdate = lastUpdate;
+            return this;
+        }
+
+        public Builder deleted(int deleted) {
+            this.deleted = deleted;
             return this;
         }
 
