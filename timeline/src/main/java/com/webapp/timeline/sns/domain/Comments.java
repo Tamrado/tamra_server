@@ -3,8 +3,8 @@ package com.webapp.timeline.sns.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.webapp.timeline.sns.web.CustomCommentDeserializer;
-import com.webapp.timeline.sns.web.CustomCommentSerializer;
+import com.webapp.timeline.sns.web.json.CustomCommentDeserializer;
+import com.webapp.timeline.sns.web.json.CustomCommentSerializer;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

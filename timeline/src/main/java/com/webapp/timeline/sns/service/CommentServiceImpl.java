@@ -5,6 +5,7 @@ import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
+import com.webapp.timeline.sns.service.interfaces.CommentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
