@@ -8,6 +8,8 @@ import com.webapp.timeline.sns.repository.PostsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
@@ -154,4 +156,11 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    @Override
+    public Page<Comments> listAllCommentsByPostId(Pageable pageable, long postId) {
+        logger.info("[CommentService] list comments.");
+
+        checkIfPostDeleted(postId);
+        return this.commentsRepository.listValidCommentsByPostId(pageable, postId);
+    }
 }

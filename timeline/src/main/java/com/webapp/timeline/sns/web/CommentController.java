@@ -3,6 +3,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Comments;
+import com.webapp.timeline.sns.model.CustomPageRequest;
 import com.webapp.timeline.sns.service.CommentServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -155,6 +156,29 @@ public class CommentController {
             logger.error("[CommentController] Transaction error/ Internal server error.");
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "게시글 내의 댓글 목록 보기 (request : 글 Id, paging 정보 (ASC로 요청하기))",
+                notes = "response : 200 -> 목록 보기 성공 " +
+                                "| 404 -> 해당 글이 이미 지워졌을 때 / 없을 때")
+    @GetMapping(value = "/{postId}/comment/list")
+    public ResponseEntity list(@PathVariable("postId") long postId,
+                               CustomPageRequest pageRequest) {
+
+        logger.info("[CommentController] List comments by postId.");
+
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.commentService.listAllCommentsByPostId(pageRequest.of("commentId"), postId), header, HttpStatus.OK);
+        }
+        catch(NoInformationException deleted_post) {
+            logger.error("[CommentController] The Post already deleted : " + postId);
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }
