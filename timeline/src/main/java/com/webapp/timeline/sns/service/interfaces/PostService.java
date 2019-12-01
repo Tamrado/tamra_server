@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.service;
+package com.webapp.timeline.sns.service.interfaces;
 
 
 import com.webapp.timeline.sns.domain.Posts;
@@ -11,7 +11,7 @@ import java.util.List;
 
 
 public interface PostService {
-    Posts createPost(Posts post);
+    Posts createPost(Posts post, HttpServletRequest request);
 
     String uploadImages(MultipartFile multipartFile, HttpServletRequest request);
 

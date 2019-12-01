@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.web;
+package com.webapp.timeline.sns.web.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

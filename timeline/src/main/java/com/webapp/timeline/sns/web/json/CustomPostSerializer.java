@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.web;
+package com.webapp.timeline.sns.web.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -21,7 +21,10 @@ public class CustomPostSerializer extends StdSerializer<Posts> {
     public void serialize(Posts posts, JsonGenerator generator, SerializerProvider provider) throws IOException {
         generator.writeStartObject();
 
+        generator.writeNumberField("postId", posts.getPostId());
+        generator.writeStringField("author", posts.getAuthor());
         generator.writeStringField("content", posts.getContent());
+        generator.writeStringField("lastUpdate", posts.getLastUpdate().toString());
         generator.writeStringField("showLevel", posts.getShowLevel());
 
         generator.writeEndObject();

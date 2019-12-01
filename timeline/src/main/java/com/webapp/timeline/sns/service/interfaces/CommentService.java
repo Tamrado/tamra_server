@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.service;
+package com.webapp.timeline.sns.service.interfaces;
 
 import com.webapp.timeline.sns.domain.Comments;
 import org.springframework.data.domain.Page;
