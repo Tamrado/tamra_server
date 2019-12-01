@@ -1,23 +1,17 @@
 package com.webapp.timeline.sns.service;
 
 
-import com.webapp.timeline.exception.BadRequestException;
-import com.webapp.timeline.exception.NoMatchPointException;
+import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.exception.UnauthorizedUserException;
+import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -26,18 +20,19 @@ import java.time.format.DateTimeFormatter;
 
 
 @Service("postServiceImpl")
-@Transactional
 public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
-    private JpaRepository<Posts, Integer> postsRepository;
+    private PostsRepository postsRepository;
     private PostImageS3Component postImageS3Component;
     private UserSignServiceImpl userSignServiceImpl;
     private static final int MAXIMUM_CONTENT_LENGTH = 255;
+    private static final int NEW_POST_CHECK = 0;
+    private static final int DELETED_POST_CHECK = 1;
 
 
     @Autowired
-    public void setPostsRepository(JpaRepository<Posts, Integer> postsRepository) {
+    public void setPostsRepository(PostsRepository postsRepository) {
         this.postsRepository = postsRepository;
     }
 
@@ -107,30 +102,36 @@ public class PostServiceImpl implements PostService {
                         .content(post.getContent())
                         .lastUpdate(whatIsTimestampOfNow())
                         .showLevel(post.getShowLevel())
+                        .deleted(NEW_POST_CHECK)
                         .build();
     }
 
+    //Todo : 배치에서 post, postsImages, Comments 에서 다 삭제처리하기
     @Override
-    public Posts updatePost(Posts post) {
-        //update content, showlevel
-        return null;
+    public Posts deletePost(int postId, HttpServletRequest request) {
+        logger.info("[PostService] delete Post.");
+
+        Posts post = this.postsRepository.findById(postId)
+                                        .orElseThrow(NoInformationException::new);
+        String author = this.userSignServiceImpl.extractUserFromToken(request).getId();
+
+        if(author.equals(post.getAuthor())) {
+            post.setDeleted(DELETED_POST_CHECK);
+            int affectedRow = this.postsRepository.markDeleteByPostId(post);
+
+            return takeActionByQuery(post, affectedRow);
+        }
+        else {
+            throw new UnauthorizedUserException();
+        }
     }
 
-    @Override
-    public Posts deletePost(long postId, String userId) {
-//        Posts post = postsRepository.findById((int)postId)
-//                                    .orElseThrow(EntityNotFoundException::new);
-//
-//        if(userId.equals(post.getUserId())) {
-//            postsRepository.deleteById((int)postId);
-//            // 사진 지우기 through postsImagesRepository
-//            return post;
-//        }
-//        else {
-//            throw new UnauthorizedUserException();
-//        }
-        return null;
-    }
+    private Posts takeActionByQuery(Posts post, int affectedRow) {
+        if(affectedRow == 0) {
+            throw new WrongCodeException();
+        }
 
+        return post;
+    }
 
 }
