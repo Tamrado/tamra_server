@@ -50,6 +50,10 @@ public class Comments {
         return this.commentId;
     }
 
+    public long getPostId() {
+        return this.postId;
+    }
+
     public String getAuthor() {
         return this.author;
     }

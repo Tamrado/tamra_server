@@ -4,6 +4,7 @@ import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.repository.CommentsRepository;
+import com.webapp.timeline.sns.repository.PostsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,17 @@ import java.time.format.DateTimeFormatter;
 public class CommentServiceImpl implements CommentService {
 
     private static final Logger logger = LoggerFactory.getLogger(CommentServiceImpl.class);
+    private PostsRepository postsRepository;
     private CommentsRepository commentsRepository;
     private UserSignServiceImpl userSignServiceImpl;
     private static final int MAXIMUM_CONTENT_LENGTH = 300;
     private static final int NEW_COMMENT_CHECK = 0;
     private static final int REMOVED_COMMENT_CHECK = 1;
 
+    @Autowired
+    public void setPostsRepository(PostsRepository postsRepository) {
+        this.postsRepository = postsRepository;
+    }
 
     @Autowired
     public void setCommentsRepository(CommentsRepository commentsRepository) {
@@ -35,11 +41,18 @@ public class CommentServiceImpl implements CommentService {
         this.userSignServiceImpl = userSignServiceImpl;
     }
 
+    private void checkIfPostDeleted(long postId) {
+        this.postsRepository.findById((int) postId)
+                            .orElseThrow(NoInformationException::new);
+    }
+
     @Override
     public Comments registerComment(long postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
         String author;
         String content;
+
+        checkIfPostDeleted(postId);
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getId();
@@ -79,6 +92,8 @@ public class CommentServiceImpl implements CommentService {
         Comments comment = this.commentsRepository.findById(commentId)
                                                 .orElseThrow(NoInformationException::new);
 
+        checkIfPostDeleted(comment.getPostId());
+
         if(author.equals(comment.getAuthor())) {
             comment.setDeleted(REMOVED_COMMENT_CHECK);
 
@@ -100,7 +115,9 @@ public class CommentServiceImpl implements CommentService {
                                         .getId();
         Comments existedComment = this.commentsRepository.findById(commentId)
                                                         .orElseThrow(NoInformationException::new);
-        if(existedComment.getDeleted() == 1) {
+        checkIfPostDeleted(existedComment.getPostId());
+
+        if(existedComment.getDeleted() == REMOVED_COMMENT_CHECK) {
             throw new BadRequestException();
         }
 
@@ -136,4 +153,5 @@ public class CommentServiceImpl implements CommentService {
             throw new InternalServerException();
         }
     }
+
 }
