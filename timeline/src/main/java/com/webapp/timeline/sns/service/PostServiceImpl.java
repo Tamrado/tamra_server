@@ -29,6 +29,7 @@ public class PostServiceImpl implements PostService {
     private static final int MAXIMUM_CONTENT_LENGTH = 255;
     private static final int NEW_POST_CHECK = 0;
     private static final int DELETED_POST_CHECK = 1;
+    private static final String PRIVATE = "private";
 
 
     @Autowired
@@ -174,5 +175,25 @@ public class PostServiceImpl implements PostService {
 
             throw new BadRequestException();
         }
+    }
+
+    @Override
+    public Posts getOnePostByPostId(int postId, HttpServletRequest request) {
+        logger.info("[PostService] get one post by post-id.");
+
+        Posts post = checkIfPostDeleted(postId);
+        String author = post.getAuthor();
+        String loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
+                                                    .getId();
+        String showLevel = post.getShowLevel();
+
+        if(! author.equals(loggedIn)) {
+            //Todo : following-level 글 처리
+
+            if(showLevel.equals(PRIVATE)) {
+                throw new BadRequestException();
+            }
+        }
+        return post;
     }
 }
