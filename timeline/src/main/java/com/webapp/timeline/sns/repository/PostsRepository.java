@@ -18,4 +18,12 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
                     "WHERE p.postId = :#{#post.postId}",
             nativeQuery = false)
     Integer markDeleteByPostId(@Param("post") Posts post);
+
+    @Transactional
+    @Modifying(clearAutomatically = true)
+    @Query(value = "UPDATE Posts p " +
+                "SET p.content = :#{#post.content}, p.showLevel = :#{#post.showLevel}, p.lastUpdate = :#{#post.lastUpdate} " +
+                "WHERE p.postId = :#{#post.postId}",
+            nativeQuery = false)
+    Integer updatePostByPostId(@Param("post") Posts post);
 }

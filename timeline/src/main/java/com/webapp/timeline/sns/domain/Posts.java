@@ -54,12 +54,24 @@ public class Posts {
         return this.author;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public String getContent() {
         return this.content;
     }
 
+    public void setShowLevel(String showLevel) {
+        this.showLevel = showLevel;
+    }
+
     public String getShowLevel() {
         return this.showLevel;
+    }
+
+    public void setLastUpdate(Timestamp lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     public Timestamp getLastUpdate() {

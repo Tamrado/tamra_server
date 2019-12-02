@@ -12,4 +12,5 @@ public interface PostService {
 
     Posts deletePost(int postId, HttpServletRequest request);
 
+    Posts updatePost(int postId, Posts post, HttpServletRequest request);
 }

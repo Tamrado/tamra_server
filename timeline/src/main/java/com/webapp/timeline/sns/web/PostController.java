@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 
 @Api(tags = {"3. Post"})
@@ -37,8 +36,7 @@ public class PostController {
 
     @ApiOperation(value = "글쓰기 (request : 글 내용, show-level)",
                 notes="response : 201 -> 성공 " +
-                                "| 400 -> 글 내용이 없을 때 " +
-                                "| 411 -> 글 내용 글자수 255글자 초과 시")
+                                "| 500 -> 글 내용 글자수가 0이거나 255글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity create(@RequestBody Posts post,
                                  @ApiIgnore HttpServletRequest request) {
@@ -49,22 +47,17 @@ public class PostController {
         try {
             return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
         }
-        catch(BadRequestException no_content) {
-            logger.error("[PostController] There is NO CONTENT in this post.");
+        catch(InternalServerException too_long_or_short_content) {
+            logger.error("[PostController] The content is empty or too long.");
 
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        catch(NoMatchPointException over_255_characters) {
-            logger.error("[PostController] Post can NOT save over 300-character content.");
-
-            return new ResponseEntity<>(HttpStatus.LENGTH_REQUIRED);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @ApiOperation(value = "글 삭제하기 (request : 글 Id)",
                 notes = "response : 200 -> 성공 " +
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
-                                "| 404 -> 해당 post를 찾을 수 없음 " +
+                                "| 404 -> 해당 post를 찾을 수 없음(이미 지워짐) " +
                                 "| 422 -> 삭제가 반영되지 않았을 때 (아직 글 남아있음)")
     @PutMapping(value = "/{postId}/delete")
     public ResponseEntity delete(@PathVariable("postId") int postId,
@@ -75,7 +68,8 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(this.postServiceImpl.deletePost(postId, request), header, HttpStatus.OK);
+            return new ResponseEntity<>
+                    (this.postServiceImpl.deletePost(postId, request), header, HttpStatus.OK);
         }
         catch(UnauthorizedUserException unauthorized_user) {
             logger.error("[PostController] This user is NOT authorized to delete.");
@@ -94,5 +88,51 @@ public class PostController {
         }
     }
 
+    @ApiOperation(value = "글 수정하기 (request : 글 Id, 글 내용/ show-level)",
+                notes = "response : 200 -> 성공 " +
+                                "| 400 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
+                                "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
+                                "| 404 -> 해당 post가 이미 지워짐 " +
+                                "| 422 -> 삭제가 반영되지 않았을 때 " +
+                                "| 500 -> 수정한 글 내용이 0글자 or 255글자 초과일 때")
+    @PutMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    public ResponseEntity update(@PathVariable("postId") int postId,
+                                 @RequestBody Posts post,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] update post.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.updatePost(postId, post, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException no_change) {
+            logger.warn("[PostController] There is NO CHANGE to update.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(UnauthorizedUserException unauthorized_user) {
+            logger.error("[PostController] This user is NOT authorized to delete.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] Can NOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[PostController] There is 0 affected row.");
+
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        catch(InternalServerException too_long_or_short_content) {
+            logger.error("[PostController] The content is empty or too long.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 
