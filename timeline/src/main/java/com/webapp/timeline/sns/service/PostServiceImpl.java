@@ -55,6 +55,30 @@ public class PostServiceImpl implements PostService {
         return Timestamp.valueOf(now);
     }
 
+    private Posts takeActionByQuery(Posts post, int affectedRow) {
+        if(affectedRow == 0) {
+            throw new WrongCodeException();
+        }
+
+        return post;
+    }
+
+    private Posts checkIfPostDeleted(int postId) {
+        Posts post = this.postsRepository.findById(postId)
+                                        .orElseThrow(NoInformationException::new);
+        if(post.getDeleted() == DELETED_POST_CHECK) {
+            throw new NoInformationException();
+        }
+
+        return post;
+    }
+
+    private void checkContentLength(String content) {
+        if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
+            throw new InternalServerException();
+        }
+    }
+
     @Override
     public String uploadImages(MultipartFile multipartFile,
                                HttpServletRequest request) {
@@ -83,15 +107,8 @@ public class PostServiceImpl implements PostService {
 
         String author = this.userSignServiceImpl.extractUserFromToken(request)
                                                 .getId();
-        String content = post.getContent();
 
-        if(content.length() == 0) {
-            throw new BadRequestException();
-        }
-        else if(content.length() > MAXIMUM_CONTENT_LENGTH) {
-            throw new NoMatchPointException();
-        }
-
+        checkContentLength(post.getContent());
         return postsRepository.save(makeObjectForPost(post, author));
     }
 
@@ -111,9 +128,9 @@ public class PostServiceImpl implements PostService {
     public Posts deletePost(int postId, HttpServletRequest request) {
         logger.info("[PostService] delete Post.");
 
-        Posts post = this.postsRepository.findById(postId)
-                                        .orElseThrow(NoInformationException::new);
-        String author = this.userSignServiceImpl.extractUserFromToken(request).getId();
+        Posts post = checkIfPostDeleted(postId);
+        String author = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
 
         if(author.equals(post.getAuthor())) {
             post.setDeleted(DELETED_POST_CHECK);
@@ -126,12 +143,36 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private Posts takeActionByQuery(Posts post, int affectedRow) {
-        if(affectedRow == 0) {
-            throw new WrongCodeException();
-        }
+    @Override
+    public Posts updatePost(int postId, Posts post, HttpServletRequest request) {
+        logger.info("[PostService] update Post.");
 
-        return post;
+        Posts existedPost = checkIfPostDeleted(postId);
+        String author = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
+
+        if(author.equals(existedPost.getAuthor())) {
+            isUpdateExecuted(existedPost, post);
+            checkContentLength(post.getContent());
+
+            existedPost.setContent(post.getContent());
+            existedPost.setShowLevel(post.getShowLevel());
+            existedPost.setLastUpdate(whatIsTimestampOfNow());
+
+            int affectedRow = this.postsRepository.updatePostByPostId(existedPost);
+            return takeActionByQuery(existedPost, affectedRow);
+        }
+        else {
+            throw new UnauthorizedUserException();
+        }
     }
 
+    private void isUpdateExecuted(Posts existed, Posts updated) {
+
+        if(existed.getContent().equals(updated.getContent())
+            && existed.getShowLevel().equals(updated.getShowLevel())) {
+
+            throw new BadRequestException();
+        }
+    }
 }
