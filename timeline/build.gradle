@@ -44,9 +44,3 @@ dependencies {
     compile fileTree(dir: 'ext_libs', include: ['*.jar'])
     annotationProcessor 'org.projectlombok:lombok'
 }
-
-dependencyManagement {
-    imports {
-        mavenBom 'org.springframework.cloud:spring-cloud-aws:2.1.2.RELEASE'
-    }
-}

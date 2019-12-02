@@ -1,10 +1,4 @@
 spring:
-  datasource:
-    localdb:
-      jdbc-url: jdbc:mysql://localhost:3306/user?useSSL=false&useUnicode=yes&characterEncoding=utf-8&serverTimezone=UTC
-      username: tlproject
-      password: 1234
-      driver-class-name: com.mysql.cj.jdbc.Driver
   http:
     multipart:
     max-file-size: 5MB
