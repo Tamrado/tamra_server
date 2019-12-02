@@ -27,7 +27,6 @@ public class PostController {
     private PostService postServiceImpl;
     private HttpHeaders header;
 
-
     @Autowired
     public void setPostService(PostService postServiceImpl) {
         this.postServiceImpl = postServiceImpl;
@@ -134,5 +133,34 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @ApiOperation(value = "1개 글 상세보기 (request : 글 Id)",
+                notes = "response : 200 -> 성공 " +
+                                "| 400 -> Private 글인데 본인(log-in된 Id) 글이 아닐 때 " +
+                                "| 404 -> 해당 post가 이미 지워짐")
+    @GetMapping(value = "/{postId}/detail", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    public ResponseEntity detail(@PathVariable("postId") int postId,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] get one post by post-id. ");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.getOnePostByPostId(postId, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException access_denied) {
+            logger.error("[PostController] CANNOT access post because of FOLLOWERS or PRIVATE show level.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] Can NOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }
 
