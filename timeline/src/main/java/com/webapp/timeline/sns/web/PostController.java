@@ -1,9 +1,8 @@
 package com.webapp.timeline.sns.web;
 
-import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.service.PostService;
-import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
+import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -13,15 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.util.Collections;
 
 
 @Api(tags = {"3. Post"})
@@ -29,11 +23,9 @@ import java.util.Collections;
 @RequestMapping(value="/post")
 public class PostController {
 
+    private final static Logger logger = LoggerFactory.getLogger(PostController.class);
     private PostService postServiceImpl;
-    private UserSignServiceImpl userSignService;
     private HttpHeaders header;
-    private BindingErrorsPackage bindingErrorsPackage;
-    private final static Logger logger = LoggerFactory.getLogger("com.webapp.timeline.web.PostController");
 
 
     @Autowired
@@ -41,85 +33,106 @@ public class PostController {
         this.postServiceImpl = postServiceImpl;
     }
 
-    @Autowired
-    public void setUserSignService(UserSignServiceImpl userSignService) {
-        this.userSignService = userSignService;
-    }
 
+    @ApiOperation(value = "글쓰기 (request : 글 내용, show-level)",
+                notes="response : 201 -> 성공 " +
+                                "| 500 -> 글 내용 글자수가 0이거나 255글자 초과 시")
+    @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    public ResponseEntity create(@RequestBody Posts post,
+                                 @ApiIgnore HttpServletRequest request) {
 
-    @ApiOperation(value="글쓰기", notes="새 글 쓰기")
-    @PostMapping(value="/upload", consumes={MediaType.APPLICATION_JSON_UTF8_VALUE}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Posts> create(@Valid @RequestBody Posts post,
-                                        @ApiIgnore HttpServletRequest httpServletRequest,
-                                        @ApiIgnore HttpServletResponse httpServletResponse,
-                                        @ApiIgnore BindingResult bindingResult) {
-
-        header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
-        bindingErrorsPackage = new BindingErrorsPackage();
-
-        if(post == null) {
-                logger.error("[Null] Cannot upload POSTS with empty object.");
-            return new ResponseEntity<>(null, header, HttpStatus.BAD_REQUEST);
-        }
-
-        if(bindingResult.hasErrors()) {
-            bindingErrorsPackage.createErrorDetail(bindingResult);
-            header.add("errors", bindingErrorsPackage.toJson());
-        }
-
-        post.setUserId(userSignService.extractUserFromToken(httpServletRequest).getId());
-        post = postServiceImpl.createPost(post);
-
-        return new ResponseEntity<Posts>(post, header, HttpStatus.CREATED);
-    }
-
-    @ApiOperation(value="글 삭제", notes="자신이 쓴 글이 맞다면 글 삭제")
-    @DeleteMapping(value="/delete/{postId}")
-    public ResponseEntity delete(@PathVariable("postId") long postId,
-                                        @ApiIgnore HttpServletRequest httpServletRequest,
-                                        @ApiIgnore HttpServletResponse httpServletResponse) {
-
-        String userId = "";
-        BindingError bindingCustomError;
-        BindingErrorsPackage bindingErrorsPackage = new BindingErrorsPackage();
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            userId = this.userSignService.extractUserFromToken(httpServletRequest).getId();
-            return new ResponseEntity<Posts>(this.postServiceImpl.deletePost(postId, userId), header, HttpStatus.OK);
+            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
         }
-        catch(EntityNotFoundException e1) {
-            bindingCustomError = new BindingError
-                                    .BindingErrorBuilder()
-                                    .fieldName("postId")
-                                    .fieldValue(String.valueOf(postId))
-                                    .message("ENTITY NOT FOUND EXCEPTION")
-                                    .code(String.valueOf(404))
-                                    .build();
+        catch(InternalServerException too_long_or_short_content) {
+            logger.error("[PostController] The content is empty or too long.");
 
-            bindingErrorsPackage.createCustomErrorDetail(bindingCustomError);
-            header.add("notfound-error", bindingErrorsPackage.toJson());
-            return new ResponseEntity<>(Collections.singletonMap("error", "NOTFOUND ERROR"), header, HttpStatus.NOT_FOUND);
-        }
-        catch(UnauthorizedUserException e2) {
-            bindingCustomError = new BindingError
-                                    .BindingErrorBuilder()
-                                    .fieldName("userId")
-                                    .fieldValue(userId)
-                                    .message("USER NOT AUTHORIZED EXCEPTION")
-                                    .code(String.valueOf(401))
-                                    .build();
-
-            bindingErrorsPackage.createCustomErrorDetail(bindingCustomError);
-            header.add("unauthorized-error", bindingErrorsPackage.toJson());
-            return new ResponseEntity<>(Collections.singletonMap("error", "UNAUTHORIZED ERROR"), header, HttpStatus.UNAUTHORIZED);
-        }
-        catch(Exception e3) {
-            return new ResponseEntity<>(Collections.singletonMap("error", "INTERNAL SERVER ERROR"), header, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @ApiOperation(value = "글 삭제하기 (request : 글 Id)",
+                notes = "response : 200 -> 성공 " +
+                                "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
+                                "| 404 -> 해당 post를 찾을 수 없음(이미 지워짐) " +
+                                "| 422 -> 삭제가 반영되지 않았을 때 (아직 글 남아있음)")
+    @PutMapping(value = "/{postId}/delete")
+    public ResponseEntity delete(@PathVariable("postId") int postId,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] delete post.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.deletePost(postId, request), header, HttpStatus.OK);
+        }
+        catch(UnauthorizedUserException unauthorized_user) {
+            logger.error("[PostController] This user is NOT authorized to delete.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] CanNOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[PostController] There is 0 affected row.");
+
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @ApiOperation(value = "글 수정하기 (request : 글 Id, 글 내용/ show-level)",
+                notes = "response : 200 -> 성공 " +
+                                "| 400 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
+                                "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
+                                "| 404 -> 해당 post가 이미 지워짐 " +
+                                "| 422 -> 삭제가 반영되지 않았을 때 " +
+                                "| 500 -> 수정한 글 내용이 0글자 or 255글자 초과일 때")
+    @PutMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    public ResponseEntity update(@PathVariable("postId") int postId,
+                                 @RequestBody Posts post,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] update post.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.updatePost(postId, post, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException no_change) {
+            logger.warn("[PostController] There is NO CHANGE to update.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(UnauthorizedUserException unauthorized_user) {
+            logger.error("[PostController] This user is NOT authorized to delete.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] Can NOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(WrongCodeException no_affected_row) {
+            logger.error("[PostController] There is 0 affected row.");
+
+            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        catch(InternalServerException too_long_or_short_content) {
+            logger.error("[PostController] The content is empty or too long.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 

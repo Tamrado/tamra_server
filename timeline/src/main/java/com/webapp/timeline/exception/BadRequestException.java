@@ -3,11 +3,11 @@ package com.webapp.timeline.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-//422
-@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-public class WrongCodeException extends RuntimeException{
+//400
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class BadRequestException extends RuntimeException {
 
-    public WrongCodeException() {
+    public BadRequestException() {
         super();
     }
 }

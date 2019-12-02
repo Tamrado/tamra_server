@@ -1,36 +1,38 @@
 package com.webapp.timeline.sns.service;
 
 
+import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.service.exception.UnauthorizedUserException;
+import com.webapp.timeline.sns.repository.PostsRepository;
+import com.webapp.timeline.sns.service.interfaces.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.*;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 
 @Service("postServiceImpl")
-@Transactional
 public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
-    private JpaRepository<Posts, Integer> postsRepository;
+    private PostsRepository postsRepository;
     private PostImageS3Component postImageS3Component;
-    private LinkedHashMap<Integer, String> getUrlMap;
-    private UserSignServiceImpl userSignService;
+    private UserSignServiceImpl userSignServiceImpl;
+    private static final int MAXIMUM_CONTENT_LENGTH = 255;
+    private static final int NEW_POST_CHECK = 0;
+    private static final int DELETED_POST_CHECK = 1;
 
 
     @Autowired
-    public void setPostsRepository(JpaRepository<Posts, Integer> postsRepository) {
+    public void setPostsRepository(PostsRepository postsRepository) {
         this.postsRepository = postsRepository;
     }
 
@@ -40,18 +42,50 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setUserSignService(UserSignServiceImpl userSignService) {
-        this.userSignService = userSignService;
+    public void setUserSignService(UserSignServiceImpl userSignServiceImpl) {
+        this.userSignServiceImpl = userSignServiceImpl;
+    }
+
+    private Timestamp whatIsTimestampOfNow() {
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        String now = LocalDateTime.now()
+                .atZone(zoneId)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        return Timestamp.valueOf(now);
+    }
+
+    private Posts takeActionByQuery(Posts post, int affectedRow) {
+        if(affectedRow == 0) {
+            throw new WrongCodeException();
+        }
+
+        return post;
+    }
+
+    private Posts checkIfPostDeleted(int postId) {
+        Posts post = this.postsRepository.findById(postId)
+                                        .orElseThrow(NoInformationException::new);
+        if(post.getDeleted() == DELETED_POST_CHECK) {
+            throw new NoInformationException();
+        }
+
+        return post;
+    }
+
+    private void checkContentLength(String content) {
+        if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
+            throw new InternalServerException();
+        }
     }
 
     @Override
     public String uploadImages(MultipartFile multipartFile,
-                               HttpServletRequest request,
-                               HttpServletResponse response) {
+                               HttpServletRequest request) {
         logger.info("[PostService] Upload new file to AWS S3 / timeline.");
 
         String dirName = "";
-        dirName = this.userSignService.extractUserFromToken(request).getEmail();
+        dirName = this.userSignServiceImpl.extractUserFromToken(request).getEmail();
 
         try {
             return this.postImageS3Component.upload(multipartFile, dirName);
@@ -68,31 +102,77 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Posts createPost(Posts post) {
+    public Posts createPost(Posts post, HttpServletRequest request) {
+        logger.info("[PostService] create Post.");
 
-        return postsRepository.save(post);
+        String author = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
+
+        checkContentLength(post.getContent());
+        return postsRepository.save(makeObjectForPost(post, author));
     }
 
-    @Override
-    public Posts updatePost(Posts post) {
-        //update content, showlevel
-        return null;
+    private Posts makeObjectForPost(Posts post, String author) {
+
+        return new Posts.Builder()
+                        .author(author)
+                        .content(post.getContent())
+                        .lastUpdate(whatIsTimestampOfNow())
+                        .showLevel(post.getShowLevel())
+                        .deleted(NEW_POST_CHECK)
+                        .build();
     }
 
+    //Todo : 배치에서 post, postsImages, Comments 에서 다 삭제처리하기
     @Override
-    public Posts deletePost(long postId, String userId) {
-        Posts post = postsRepository.findById((int)postId)
-                                    .orElseThrow(EntityNotFoundException::new);
+    public Posts deletePost(int postId, HttpServletRequest request) {
+        logger.info("[PostService] delete Post.");
 
-        if(userId.equals(post.getUserId())) {
-            postsRepository.deleteById((int)postId);
-            // 사진 지우기 through postsImagesRepository
-            return post;
+        Posts post = checkIfPostDeleted(postId);
+        String author = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
+
+        if(author.equals(post.getAuthor())) {
+            post.setDeleted(DELETED_POST_CHECK);
+            int affectedRow = this.postsRepository.markDeleteByPostId(post);
+
+            return takeActionByQuery(post, affectedRow);
         }
         else {
-            throw new UnauthorizedUserException("UNAUTHORIZED USER-ID");
+            throw new UnauthorizedUserException();
         }
     }
 
+    @Override
+    public Posts updatePost(int postId, Posts post, HttpServletRequest request) {
+        logger.info("[PostService] update Post.");
 
+        Posts existedPost = checkIfPostDeleted(postId);
+        String author = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
+
+        if(author.equals(existedPost.getAuthor())) {
+            isUpdateExecuted(existedPost, post);
+            checkContentLength(post.getContent());
+
+            existedPost.setContent(post.getContent());
+            existedPost.setShowLevel(post.getShowLevel());
+            existedPost.setLastUpdate(whatIsTimestampOfNow());
+
+            int affectedRow = this.postsRepository.updatePostByPostId(existedPost);
+            return takeActionByQuery(existedPost, affectedRow);
+        }
+        else {
+            throw new UnauthorizedUserException();
+        }
+    }
+
+    private void isUpdateExecuted(Posts existed, Posts updated) {
+
+        if(existed.getContent().equals(updated.getContent())
+            && existed.getShowLevel().equals(updated.getShowLevel())) {
+
+            throw new BadRequestException();
+        }
+    }
 }
