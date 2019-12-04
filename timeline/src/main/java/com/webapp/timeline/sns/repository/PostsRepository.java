@@ -1,6 +1,8 @@
 package com.webapp.timeline.sns.repository;
 
 import com.webapp.timeline.sns.domain.Posts;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +28,14 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
                 "WHERE p.postId = :#{#post.postId}",
             nativeQuery = false)
     Integer updatePostByPostId(@Param("post") Posts post);
+
+    @Transactional
+    @Query(value = "SELECT myPosts FROM Posts myPosts WHERE myPosts.deleted = 0 AND myPosts.author = :author",
+            nativeQuery = false)
+    Page<Posts> listMyPostsByUser(Pageable pageable, @Param("author") String author);
+
+    @Transactional
+    @Query(value = "SELECT list FROM Posts list WHERE list.deleted = 0 AND list.showLevel = 1 AND list.author = :author",
+            nativeQuery = false)
+    Page<Posts> listPublicPostsByUser(Pageable pageable, @Param("author") String author);
 }

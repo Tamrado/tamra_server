@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.model.CustomPageRequest;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -162,5 +163,33 @@ public class PostController {
         }
     }
 
+    @ApiOperation(value = "userId에 따른 글 목록 보기 (request : 유저 Id, paging 정보 (ASC로 요청하기))",
+                notes = "response : 200 -> 성공 " +
+                                "| 404 -> 비활성 유저 (내 아이디여도 못 봄) " +
+                                "| 500 -> 탈퇴한 유저")
+    @GetMapping(value = "/{userId}")
+    public ResponseEntity listByUser(@PathVariable("userId") String userId,
+                                     CustomPageRequest pageRequest,
+                                     @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] get post-list by user-id.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.getPostListByUser(userId, pageRequest.of("postId"), request), header, HttpStatus.OK);
+        }
+        catch(NoInformationException inactive_user) {
+            logger.info("[PostController] Inactive User.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(InternalServerException no_user) {
+            logger.info("[PostController] Cannot get UserInfo.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 
