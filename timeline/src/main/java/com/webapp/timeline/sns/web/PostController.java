@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.model.CustomPageRequest;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,7 +27,6 @@ public class PostController {
     private final static Logger logger = LoggerFactory.getLogger(PostController.class);
     private PostService postServiceImpl;
     private HttpHeaders header;
-
 
     @Autowired
     public void setPostService(PostService postServiceImpl) {
@@ -130,6 +130,63 @@ public class PostController {
         }
         catch(InternalServerException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");
+
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "1개 글 상세보기 (request : 글 Id)",
+                notes = "response : 200 -> 성공 " +
+                                "| 400 -> Private 글인데 본인(log-in된 Id) 글이 아닐 때 " +
+                                "| 404 -> 해당 post가 이미 지워짐")
+    @GetMapping(value = "/{postId}/detail", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    public ResponseEntity detail(@PathVariable("postId") int postId,
+                                 @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] get one post by post-id. ");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.getOnePostByPostId(postId, request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException access_denied) {
+            logger.error("[PostController] CANNOT access post because of FOLLOWERS or PRIVATE show level.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[PostController] Can NOT find post by post-id.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @ApiOperation(value = "userId에 따른 글 목록 보기 (request : 유저 Id, paging 정보 (ASC로 요청하기))",
+                notes = "response : 200 -> 성공 " +
+                                "| 404 -> 비활성 유저 (내 아이디여도 못 봄) " +
+                                "| 500 -> 탈퇴한 유저")
+    @GetMapping(value = "/{userId}")
+    public ResponseEntity listByUser(@PathVariable("userId") String userId,
+                                     CustomPageRequest pageRequest,
+                                     @ApiIgnore HttpServletRequest request) {
+
+        logger.info("[PostController] get post-list by user-id.");
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.postServiceImpl.getPostListByUser(userId, pageRequest.of("postId"), request), header, HttpStatus.OK);
+        }
+        catch(NoInformationException inactive_user) {
+            logger.info("[PostController] Inactive User.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        catch(InternalServerException no_user) {
+            logger.info("[PostController] Cannot get UserInfo.");
 
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.service;
 
 
 import com.webapp.timeline.exception.*;
+import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.repository.PostsRepository;
@@ -9,6 +10,8 @@ import com.webapp.timeline.sns.service.interfaces.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +32,8 @@ public class PostServiceImpl implements PostService {
     private static final int MAXIMUM_CONTENT_LENGTH = 255;
     private static final int NEW_POST_CHECK = 0;
     private static final int DELETED_POST_CHECK = 1;
+    private static final String PRIVATE = "private";
+    private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
 
 
     @Autowired
@@ -173,6 +178,56 @@ public class PostServiceImpl implements PostService {
             && existed.getShowLevel().equals(updated.getShowLevel())) {
 
             throw new BadRequestException();
+        }
+    }
+
+    @Override
+    public Posts getOnePostByPostId(int postId, HttpServletRequest request) {
+        logger.info("[PostService] get one post by post-id.");
+
+        Posts post = checkIfPostDeleted(postId);
+        String author = post.getAuthor();
+        String loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
+                                                    .getId();
+        String showLevel = post.getShowLevel();
+
+        if(! author.equals(loggedIn)) {
+            //Todo : following-level 글 처리
+
+            if(showLevel.equals(PRIVATE)) {
+                throw new BadRequestException();
+            }
+        }
+        return post;
+    }
+
+    @Override
+    public Page<Posts> getPostListByUser(String userId, Pageable pageable, HttpServletRequest request) {
+        logger.info("[PostService] get post-list by user-id.");
+        String loggedIn;
+        checkInactiveUser(userId);
+
+        try {
+            loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
+                                                .getId();
+        }
+        catch(NoMatchPointException not_logged_in) {
+            return this.postsRepository.listPublicPostsByUser(pageable, userId);
+        }
+
+        if(loggedIn.equals(userId)) {
+            return this.postsRepository.listMyPostsByUser(pageable, loggedIn);
+        }
+
+        //Todo : following 중인지 검사 -> following중이면 followers 허용 글까지 볼 수 있게
+        return this.postsRepository.listPublicPostsByUser(pageable, userId);
+    }
+
+    private void checkInactiveUser(String userId) {
+        Users userInfo = this.userSignServiceImpl.loadUserByUsername(userId);
+
+        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
+            throw new NoInformationException();
         }
     }
 }
