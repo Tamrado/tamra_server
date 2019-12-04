@@ -69,6 +69,7 @@ public class TokenService {
     }
     public void checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws RuntimeException{
         Cookie[] cookies = httpServletRequest.getCookies();
+        Boolean accesstokenTrue = false;
         if(cookies != null) {
             for (int i = 0; i < cookies.length; i++) {
                 if (cookies[i].getName().equals("accesstoken")) {
@@ -81,9 +82,11 @@ public class TokenService {
                         cookie.setHttpOnly(true);
                         cookie.setPath("/");
                         httpServletResponse.addCookie(cookie);
+                        accesstokenTrue = true;
                     }
                 }
             }
+            if(!accesstokenTrue) throw new NoInformationException();
         }
         else throw new NoInformationException();
     }

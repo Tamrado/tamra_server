@@ -20,7 +20,7 @@ public class JpaConfig {
 
     @Primary
     @Bean(name = "dataSource")
-    @ConfigurationProperties("spring.datasource.localdb")
+    @ConfigurationProperties("spring.datasource.timeline-rds")
     public DataSource dataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
