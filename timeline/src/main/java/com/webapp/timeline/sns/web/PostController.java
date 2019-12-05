@@ -36,7 +36,7 @@ public class PostController {
 
     @ApiOperation(value = "글쓰기 (request : 글 내용, show-level)",
                 notes="response : 201 -> 성공 " +
-                                "| 500 -> 글 내용 글자수가 0이거나 255글자 초과 시")
+                                "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity create(@RequestBody Posts post,
                                  @ApiIgnore HttpServletRequest request) {
@@ -47,10 +47,10 @@ public class PostController {
         try {
             return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
         }
-        catch(InternalServerException too_long_or_short_content) {
+        catch(NoStoringException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");
 
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
@@ -93,8 +93,8 @@ public class PostController {
                                 "| 400 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
                                 "| 404 -> 해당 post가 이미 지워짐 " +
-                                "| 422 -> 삭제가 반영되지 않았을 때 " +
-                                "| 500 -> 수정한 글 내용이 0글자 or 255글자 초과일 때")
+                                "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때" +
+                                "| 422 -> 삭제가 반영되지 않았을 때 ")
     @PutMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity update(@PathVariable("postId") int postId,
                                  @RequestBody Posts post,
@@ -123,15 +123,15 @@ public class PostController {
 
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        catch(NoStoringException too_long_or_short_content) {
+            logger.error("[PostController] The content is empty or too long.");
+
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
         catch(WrongCodeException no_affected_row) {
             logger.error("[PostController] There is 0 affected row.");
 
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        catch(InternalServerException too_long_or_short_content) {
-            logger.error("[PostController] The content is empty or too long.");
-
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -165,8 +165,7 @@ public class PostController {
 
     @ApiOperation(value = "userId에 따른 글 목록 보기 (request : 유저 Id, paging 정보 (ASC로 요청하기))",
                 notes = "response : 200 -> 성공 " +
-                                "| 404 -> 비활성 유저 (내 아이디여도 못 봄) " +
-                                "| 500 -> 탈퇴한 유저")
+                                "| 404 -> 비활성 유저 (내 아이디여도 못 봄) ")
     @GetMapping(value = "/{userId}")
     public ResponseEntity listByUser(@PathVariable("userId") String userId,
                                      CustomPageRequest pageRequest,
@@ -184,11 +183,6 @@ public class PostController {
             logger.info("[PostController] Inactive User.");
 
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        catch(InternalServerException no_user) {
-            logger.info("[PostController] Cannot get UserInfo.");
-
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

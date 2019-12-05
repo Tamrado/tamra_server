@@ -54,6 +54,12 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    private void checkContentLength(String content) {
+        if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
+            throw new NoStoringException();
+        }
+    }
+
     @Override
     public Comments registerComment(long postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
@@ -65,13 +71,7 @@ public class CommentServiceImpl implements CommentService {
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getId();
         content = comment.getContent();
-
-        if(content.length() == 0) {
-            throw new BadRequestException();
-        }
-        else if(content.length() > MAXIMUM_CONTENT_LENGTH) {
-            throw new NoMatchPointException();
-        }
+        checkContentLength(content);
 
         Comments newComment = makeObjectForComment(postId, content, author);
 
@@ -130,6 +130,8 @@ public class CommentServiceImpl implements CommentService {
         }
 
         if(author.equals(existedComment.getAuthor())) {
+            checkContentLength(comment.getContent());
+
             existedComment.setContent(comment.getContent());
             existedComment.setLastUpdate(whatIsTimestampOfNow());
 
@@ -154,12 +156,7 @@ public class CommentServiceImpl implements CommentService {
         if(affectedRow == 1) {
             return comment;
         }
-        else if(affectedRow == 0) {
-            throw new WrongCodeException();
-        }
-        else {
-            throw new InternalServerException();
-        }
+        throw new WrongCodeException();
     }
 
     @Override

@@ -29,7 +29,7 @@ public class PostServiceImpl implements PostService {
     private PostsRepository postsRepository;
     private PostImageS3Component postImageS3Component;
     private UserSignServiceImpl userSignServiceImpl;
-    private static final int MAXIMUM_CONTENT_LENGTH = 255;
+    private static final int MAXIMUM_CONTENT_LENGTH = 1000;
     private static final int NEW_POST_CHECK = 0;
     private static final int DELETED_POST_CHECK = 1;
     private static final String PRIVATE = "private";
@@ -80,7 +80,7 @@ public class PostServiceImpl implements PostService {
 
     private void checkContentLength(String content) {
         if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
-            throw new InternalServerException();
+            throw new NoStoringException();
         }
     }
 
