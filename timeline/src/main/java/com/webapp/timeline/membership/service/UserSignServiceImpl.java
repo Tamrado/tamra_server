@@ -40,22 +40,23 @@ public class UserSignServiceImpl implements UserDetailsService,UserSignService {
     public UserSignServiceImpl(){ }
 
     @Override
-    public Users loadUserByUsername(String username) {
-        Users user = usersEntityRepository.findIdByExistingId(username);
+    public Users loadUserByUsername(String username) throws RuntimeException {
+        Users user;
         log.info("loadUserByUsername");
+        try {
+            user = usersEntityRepository.findIdByExistingId(username);
+        }
+        catch(Exception e){
+            throw new NoInformationException();
+        }
         return user;
     }
     @Override
-    public Users extractUserFromToken(HttpServletRequest httpServletRequest){
+    public Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException{
         jwtTokenProvider = new JwtTokenProvider(new UserSignServiceImpl());
-        try {
-            String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
-            Users user = loadUserByUsername(username);
-            return user;
-        }
-        catch(Exception e){
-            throw new NoMatchPointException();
-        }
+        String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
+        Users user = loadUserByUsername(username);
+        return user;
     }
     @Override
     public void confirmCorrectUser(HttpServletRequest httpServletRequest ,String password) throws RuntimeException {

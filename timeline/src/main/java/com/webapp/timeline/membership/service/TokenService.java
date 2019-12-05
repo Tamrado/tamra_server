@@ -55,7 +55,7 @@ public class TokenService {
         userSignService.findUser(user);
         return addCookie(response,user.get("id").toString());
     }
-    public String sendIdInCookie(HttpServletRequest httpServletRequest) {
+    public String sendIdInCookie(HttpServletRequest httpServletRequest) throws RuntimeException{
         Cookie[] cookies = httpServletRequest.getCookies();
         if (cookies != null) {
             for (int i = 0; i < cookies.length; i++) {

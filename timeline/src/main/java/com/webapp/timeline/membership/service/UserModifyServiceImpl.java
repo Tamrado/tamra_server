@@ -76,14 +76,14 @@ public class UserModifyServiceImpl implements UserModifyService {
     @Override
     public void modifyIdentify(HttpServletRequest request, HttpServletResponse response)throws RuntimeException{
         Users user = userSignService.extractUserFromToken(request);
-        if(user == null) {
-            throw new NoInformationException();
+        user.setAuthoritytoInactive();
+        try {
+            usersEntityRepository.updateUserAuthority(user.getId(), user.getAuthority());
+        }catch(Exception e){
+            throw new NoMatchPointException();
         }
-        else{
-            user.setAuthoritytoInactive();
-            usersEntityRepository.updateUserAuthority(user.getId(),user.getAuthority());
-            tokenService.removeCookie(request,response);
-        }
+        tokenService.removeCookie(request,response);
+
     }
 
 
