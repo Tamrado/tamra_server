@@ -13,6 +13,6 @@ public interface UserSignService {
     void validateUser(Users users) throws RuntimeException;
     void initUserforSignUp(Users user) throws RuntimeException;
     void findUser(Map<String,Object> user) throws RuntimeException;
-    Users extractUserFromToken(HttpServletRequest httpServletRequest);
+    Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException;
     void confirmCorrectUser(HttpServletRequest httpServletRequest ,String password) throws RuntimeException;
 }

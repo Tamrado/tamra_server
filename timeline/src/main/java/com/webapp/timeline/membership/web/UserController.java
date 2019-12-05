@@ -46,7 +46,7 @@ public class UserController {
     public LoggedInfo checkUserAndSendProfile(@RequestParam String id,HttpServletRequest httpServletRequest) throws RuntimeException{
         return tokenService.sendInfo(id,httpServletRequest);
     }
-    @ApiOperation(value = "유저인지 확인 후 유저 수정 정보 전달",notes = "쿠키 내 accesstoken에서 userId 뽑고 유저 정보 전달 (response : 200 성공, 411 유저 정보가 다름)")
+    @ApiOperation(value = "유저인지 확인 후 유저 수정 정보 전달",notes = "쿠키 내 accesstoken에서 userId 뽑고 유저 정보 전달 (response : 200 성공, 404 유저 정보 없음)")
     @GetMapping(value="/member/user")
     public Users checkUserAndSendUser(HttpServletRequest httpServletRequest) throws RuntimeException{
         return userSignService.extractUserFromToken(httpServletRequest);
@@ -68,13 +68,13 @@ public class UserController {
         return userModifyService.modifyImage(httpServletRequest,file);
     }
 
-    @ApiOperation(value="유저 확인", notes = "비밀번호 확인으로 올바른 유저인지 확인 (response : 200 - 성공 411 - 비밀번호 틀림)")
+    @ApiOperation(value="유저 확인", notes = "비밀번호 확인으로 올바른 유저인지 확인 (response : 200 - 성공 411 - 비밀번호 틀림 404- user 없음)")
     @PostMapping(value="/auth")
     public void checkCorrectUserAndPostInfo(@ApiParam(value = "비밀번호") @RequestBody Map<String,String> user,HttpServletRequest httpServletRequest)throws RuntimeException{
         userSignService.confirmCorrectUser(httpServletRequest,user.get("password"));
     }
 
-    @ApiOperation(value="비활성화",notes = "유저가 비활성화 함 (response : 200 - 성공 411 - 맞는 정보가 없어서 비활성화 실패)")
+    @ApiOperation(value="비활성화",notes = "유저가 비활성화 함 (response : 200 - 성공 411 - 맞는 정보가 없어서 비활성화 실패 404- user 없음)")
     @PutMapping(value="/member/id")
     public void changetoInactive(HttpServletRequest request,HttpServletResponse response) throws RuntimeException{
         userModifyService.modifyIdentify(request,response);

@@ -33,8 +33,7 @@ public class UserSignImageServiceImpl implements UserSignImageService {
     @Transactional
     @Override
     public void userImageUpload(MultipartFile multipartFile, String userId) throws RuntimeException,IOException{
-        if(userSignServiceImpl.loadUserByUsername(userId) == null)
-            throw new NoInformationException();
+        userSignServiceImpl.loadUserByUsername(userId);
         userService.saveImageURL(userId,userImageS3Component.upload(multipartFile, userId));
     }
 }
