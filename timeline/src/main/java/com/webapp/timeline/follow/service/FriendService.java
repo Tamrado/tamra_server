@@ -1,7 +1,11 @@
 package com.webapp.timeline.follow.service;
 
-import org.springframework.stereotype.Service;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 
-@Service
-public class FriendService {
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+
+public interface FriendService {
+    void matchNewRelationship(String uid,String fid) throws RuntimeException;
+    ArrayList<LoggedInfo> sendFriendApplyList(HttpServletRequest request) throws RuntimeException;
 }

@@ -9,32 +9,32 @@ import java.util.Objects;
 
 @Data
 @Embeddable
-public class FollowingId implements Serializable {
+public class FollowId implements Serializable {
     @Column(name = "user_id")
     private String userId;
     @Column(name = "friend_id")
     private String friendId;
 
-    public FollowingId(String userId,String friendId) {
+    public FollowId(String userId,String friendId) {
         this.userId = userId;
         this.friendId = friendId;
     }
 
-    public FollowingId() {}
+    public FollowId() {}
 
     public boolean isEqual(Object object) {
-        return (object instanceof FollowingId);
+        return (object instanceof FollowId);
     }
 
     @Override
     public boolean equals(Object object) {
         boolean result = false;
 
-        if(object instanceof FollowingId) {
-            FollowingId followingId = (FollowingId) object;
-            result = (followingId.isEqual(this) &&
-                    this.getFriendId().equals(followingId.getFriendId()) &&
-                    this.getUserId().equals(followingId.getUserId()));
+        if(object instanceof FollowId) {
+            FollowId followId = (FollowId) object;
+            result = (followId.isEqual(this) &&
+                    this.getFriendId().equals(followId.getFriendId()) &&
+                    this.getUserId().equals(followId.getUserId()));
         }
 
         return result;

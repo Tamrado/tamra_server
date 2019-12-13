@@ -3,11 +3,8 @@ package com.webapp.timeline.follow.domain;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.sql.Date;
+import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Data
@@ -15,15 +12,17 @@ import java.sql.Date;
 public class Followings {
 
     @EmbeddedId
-    private FollowingId id;
-    @Column(name="is_follow")
+    private FollowId id;
+    @Column(name = "is_follow")
     private int isFollow;
+    @Basic(optional = false)
+    @Column(insertable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
-    public Followings(FollowingId id, int isFollow, Date date) {
+    public Followings(FollowId id, int isFollow) {
         this.id = id;
         this.isFollow = isFollow;
-        this.date = date;
     }
 
     public Followings() {}
