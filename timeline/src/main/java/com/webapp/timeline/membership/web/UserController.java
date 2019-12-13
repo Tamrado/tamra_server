@@ -3,10 +3,8 @@ package com.webapp.timeline.membership.web;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserModifyService;
-import com.webapp.timeline.membership.service.UserModifyServiceImpl;
 import com.webapp.timeline.membership.service.UserSignService;
-import com.webapp.timeline.membership.service.result.LoggedInfo;
-import com.webapp.timeline.membership.service.result.ValidationInfo;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -21,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-@Api(tags = {"2. User"})
+@Api(tags = {"1. User"})
 @RequestMapping(value = "/api")
 @CrossOrigin(origins = {"*"})
 @RestController

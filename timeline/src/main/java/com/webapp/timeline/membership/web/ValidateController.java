@@ -1,7 +1,7 @@
 package com.webapp.timeline.membership.web;
 
 import com.webapp.timeline.membership.service.ValidateService;
-import com.webapp.timeline.membership.service.result.ValidationInfo;
+import com.webapp.timeline.membership.service.response.ValidationInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
-@Api(tags = {"2. Validate"})
+@Api(tags = {"1. Validate"})
 @RequestMapping(value = "/api")
 @RestController
 public class ValidateController {

@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @Configurable
 @Service
@@ -41,15 +42,15 @@ public class UserSignServiceImpl implements UserDetailsService,UserSignService {
 
     @Override
     public Users loadUserByUsername(String username) throws RuntimeException {
-        Users user;
         log.info("loadUserByUsername");
         try {
-            user = usersEntityRepository.findIdByExistingId(username);
+            Users user = usersEntityRepository.findUsersById(username);
+            return user;
         }
         catch(Exception e){
             throw new NoInformationException();
         }
-        return user;
+
     }
     @Override
     public Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException{
@@ -82,8 +83,7 @@ public class UserSignServiceImpl implements UserDetailsService,UserSignService {
     @Override
     public void findUser(Map<String,Object> user) throws RuntimeException {
         Users foundedUser = loadUserByUsername(user.get("id").toString());
-        if(foundedUser == null)
-            throw new NoMatchPointException();
+        log.info(foundedUser.getPassword());
         if(!customPasswordEncoder.matches(user.get("password").toString(), foundedUser.getPassword()))
             throw new NoMatchPointException();
     }

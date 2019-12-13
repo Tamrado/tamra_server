@@ -1,30 +1,26 @@
-package com.webapp.timeline.membership.domain;
+package com.webapp.timeline.follow.domain;
 
+import lombok.Data;
+
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
+@Data
 @Embeddable
 public class FollowingId implements Serializable {
-
+    @Column(name = "user_id")
     private String userId;
-    private String followId;
+    @Column(name = "friend_id")
+    private String friendId;
 
-    public FollowingId(String userId,String followId) {
+    public FollowingId(String userId,String friendId) {
         this.userId = userId;
-        this.followId = followId;
+        this.friendId = friendId;
     }
 
     public FollowingId() {}
-
-    public String getuserId() {
-        return userId;
-    }
-
-
-    public String getFollowId() {
-        return followId;
-    }
 
     public boolean isEqual(Object object) {
         return (object instanceof FollowingId);
@@ -37,8 +33,8 @@ public class FollowingId implements Serializable {
         if(object instanceof FollowingId) {
             FollowingId followingId = (FollowingId) object;
             result = (followingId.isEqual(this) &&
-                    this.getFollowId().equals(followingId.getFollowId()) &&
-                    this.getuserId().equals(followingId.getuserId()));
+                    this.getFriendId().equals(followingId.getFriendId()) &&
+                    this.getUserId().equals(followingId.getUserId()));
         }
 
         return result;
@@ -47,7 +43,7 @@ public class FollowingId implements Serializable {
     //hashCode 오버라이딩 하는 법 알아보기
     @Override
     public int hashCode() {
-        return Objects.hash(getuserId(), getFollowId());
+        return Objects.hash(getUserId(), getFriendId());
     }
 
 }

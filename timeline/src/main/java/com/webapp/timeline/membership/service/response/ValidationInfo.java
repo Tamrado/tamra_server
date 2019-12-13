@@ -1,4 +1,4 @@
-package com.webapp.timeline.membership.service.result;
+package com.webapp.timeline.membership.service.response;
 
 public class ValidationInfo {
     private String objectName;

@@ -63,7 +63,7 @@ public class CommentServiceImpl implements CommentService {
         checkIfPostDeleted(postId);
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
-                                        .getId();
+                                        .getUserId();
         content = comment.getContent();
 
         if(content.length() == 0) {
@@ -96,7 +96,7 @@ public class CommentServiceImpl implements CommentService {
         int affectedRow;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
-                                        .getId();
+                                        .getUserId();
         Comments comment = this.commentsRepository.findById(commentId)
                                                 .orElseThrow(NoInformationException::new);
 
@@ -120,7 +120,7 @@ public class CommentServiceImpl implements CommentService {
         int affectedRow;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
-                                        .getId();
+                                        .getUserId();
         Comments existedComment = this.commentsRepository.findById(commentId)
                                                         .orElseThrow(NoInformationException::new);
         checkIfPostDeleted(existedComment.getPostId());

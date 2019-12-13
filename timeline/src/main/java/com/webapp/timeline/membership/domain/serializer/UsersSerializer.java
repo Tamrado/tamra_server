@@ -18,7 +18,7 @@ public class UsersSerializer extends StdSerializer<Users> {
     @Override
     public void serialize(Users users, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        jgen.writeStringField("id",users.getId());
+        jgen.writeStringField("id",users.getUserId());
         jgen.writeStringField("email",users.getEmail());
         jgen.writeStringField("birthday",users.getBirthday().toString());
         jgen.writeStringField("phone",users.getPhone());

@@ -8,7 +8,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @EntityScan(basePackages = {"com.webapp.timeline"})
-@EnableJpaRepositories(basePackages = {"com.webapp.timeline.membership.repository", "com.webapp.timeline.sns.repository"})
+@EnableJpaRepositories(basePackages = {"com.webapp.timeline.membership.repository", "com.webapp.timeline.sns.repository","com.webapp.timeline.follow.repository"})
 @EnableAutoConfiguration(exclude = {MultipartAutoConfiguration.class})
 @SpringBootApplication
 public class TimelineApplication {

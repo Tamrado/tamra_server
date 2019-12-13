@@ -1,6 +1,6 @@
 package com.webapp.timeline.membership.service;
 
-import com.webapp.timeline.membership.service.result.LoggedInfo;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
