@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,9 +42,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoggedInfo setLoggedInfo(String userId) throws RuntimeException{
         Profiles profiles = userImagesRepository.findImageURLById(userId);
-        String nickname = usersEntityRepository.findNickname(userId);
+        Map<String,String> userInfo = usersEntityRepository.findUserInfo(userId);
         if(profiles == null) throw new NoMatchPointException();
-        LoggedInfo loggedInfo = new LoggedInfo(userId, profiles.getProfileURL(),nickname);
+        LoggedInfo loggedInfo = new LoggedInfo(userId, profiles.getProfileURL(),userInfo.get("name"),userInfo.get("comment"));
         return loggedInfo;
     }
 }

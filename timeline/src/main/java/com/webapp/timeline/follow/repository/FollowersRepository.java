@@ -19,7 +19,9 @@ public interface FollowersRepository extends JpaRepository<Followers, FollowId> 
     @Query("select count(f) from Followers f where f.id.friendId = :fid and f.id.userId = :uid and f.isFollow = 1")
     int isThisMyFollower(@Param("uid")String uid, @Param("fid")String fid);
 
-    
+    @Modifying
+    @Query("update Followers f set f.isAlarm = 0 where f.id.friendId = :fid and f.id.userId = :uid")
+    void updateIsAlarmtoInvalidate(@Param("uid")String uid, @Param("fid")String fid);
 
 
 }

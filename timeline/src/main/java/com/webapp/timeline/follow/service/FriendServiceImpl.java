@@ -9,6 +9,7 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
+import com.webapp.timeline.membership.service.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,15 @@ public class FriendServiceImpl implements FriendService{
     UsersEntityRepository usersEntityRepository;
     UserImagesRepository userImagesRepository;
     TokenService tokenService;
+    UserService userService;
     public FriendServiceImpl(){}
     @Autowired
-    public FriendServiceImpl(UserImagesRepository userImagesRepository,TokenService tokenService,UsersEntityRepository usersEntityRepository,FollowersRepository followersRepository, FollowingRepository followingRepository){
+    public FriendServiceImpl(UserService userService,UserImagesRepository userImagesRepository,TokenService tokenService,UsersEntityRepository usersEntityRepository,FollowersRepository followersRepository, FollowingRepository followingRepository){
         this.followersRepository = followersRepository;
         this.followingRepository = followingRepository;
         this.usersEntityRepository = usersEntityRepository;
         this.tokenService = tokenService;
+        this.userService = userService;
         this.userImagesRepository = userImagesRepository;
     }
     @Override
@@ -60,7 +63,7 @@ public class FriendServiceImpl implements FriendService{
             if(friendMap.get("authority").equals("ROLE_INACTIVEUSER")) continue;
 
             Profiles friendProfile = userImagesRepository.findImageURLById(friendId);
-            LoggedInfo friendInfo = new LoggedInfo(friendMap.get("userId"),friendProfile.getProfileURL(),friendMap.get("name"));
+            LoggedInfo friendInfo = new LoggedInfo(friendMap.get("userId"),friendProfile.getProfileURL(),friendMap.get("name"),friendMap.get("comment"));
             loggedInfoArrayList.add(friendInfo);
         }
 
@@ -68,4 +71,30 @@ public class FriendServiceImpl implements FriendService{
 
         return loggedInfoArrayList;
     }
+    @Transactional
+    @Override
+    public void invalidateFriendApplyAlarm(HttpServletRequest request,String fid) throws RuntimeException{
+        String userId = tokenService.sendIdInCookie(request);
+        try {
+            followingRepository.updateIsAlarmtoInvalidate(userId, fid);
+            followersRepository.updateIsAlarmtoInvalidate(userId, fid);
+        }catch(Exception e){
+            throw new NoMatchPointException();
+        }
+    }
+    @Override
+    public ArrayList<LoggedInfo> sendFriendList(HttpServletRequest request) throws RuntimeException{
+        ArrayList<LoggedInfo> friendListContents = new ArrayList<>();
+        String userId = tokenService.sendIdInCookie(request);
+        List<String> friendList = followingRepository.findFirstFriendList(userId);
+        friendList.addAll(followingRepository.findSecondFriendList(userId));
+        for(String friendId : friendList) {
+            LoggedInfo friendInfo = userService.setLoggedInfo(friendId);
+            if(friendInfo == null) continue;
+            friendListContents.add(friendInfo);
+        }
+        if(friendListContents.isEmpty()) throw new NoMatchPointException();
+        return friendListContents;
+    }
+
 }
