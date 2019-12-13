@@ -31,7 +31,7 @@ public class FollowController {
         return followService.sendUserInfo(httpServletRequest);
     }
 
-    @ApiOperation(value = "follow 버튼 클릭" , notes = "팔로우 신청 (response : 200 -성공 404 - userId 존재하지 않는 아이디 409 - 존재하지 않음 411 - 친구 아이디가 존재하지 않음)")
+    @ApiOperation(value = "follow 버튼 클릭" , notes = "팔로우 신청 (response : 200 -성공 404 - userId 존재하지 않는 아이디 409 - follow 잘못해서 취소했는데 상대방이 바로 follow 한 경우 411 - 친구 아이디가 존재하지 않음)")
     @GetMapping(value="/friend")
     public void clickFollow(String friendName,HttpServletRequest httpServletRequest) throws RuntimeException{
         followService.sendFollow(friendName,httpServletRequest);
