@@ -5,8 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MyInfo {
+public class FollowInfo {
     private int FollowNum;
     private int FollowerNum;
-    private String comment;
 }

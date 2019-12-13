@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Repository
@@ -35,6 +36,9 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
 
     @Query(value = "select u.name from Users u where u.userId = :userId")
     String findNickname(@Param("userId") String userId);
+
+    @Query(value = "select u.name as name, u.userId as userId, u.comment as comment,u.authority as authority from Users u where u.userId = :userId")
+    Map<String,String> findUserInfo(@Param("userId")String userId);
 
     @Modifying
     @Query(value = "update Users u set u.gender = :gender, u.comment = :comment," +

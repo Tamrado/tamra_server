@@ -7,9 +7,11 @@ import com.webapp.timeline.follow.domain.Followers;
 import com.webapp.timeline.follow.domain.Followings;
 import com.webapp.timeline.follow.repository.FollowersRepository;
 import com.webapp.timeline.follow.repository.FollowingRepository;
-import com.webapp.timeline.follow.service.response.MyInfo;
+import com.webapp.timeline.follow.service.response.FollowInfo;
+import com.webapp.timeline.follow.service.response.PostProfileInfo;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
+import com.webapp.timeline.membership.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,33 +26,41 @@ public class FollowServiceImpl implements FollowService {
     FollowingRepository followingRepository;
     TokenService tokenService;
     FriendService friendService;
+    UserService userService;
     UsersEntityRepository usersEntityRepository;
     public FollowServiceImpl(){}
     @Autowired
-    public FollowServiceImpl(FriendService friendService,UsersEntityRepository usersEntityRepository,TokenService tokenService,FollowersRepository followersRepository, FollowingRepository followingRepository){
+    public FollowServiceImpl(UserService userService,FriendService friendService,UsersEntityRepository usersEntityRepository,TokenService tokenService,FollowersRepository followersRepository, FollowingRepository followingRepository){
         this.followersRepository = followersRepository;
+        this.userService = userService;
         this.followingRepository = followingRepository;
         this.tokenService = tokenService;
         this.friendService = friendService;
         this.usersEntityRepository = usersEntityRepository;
     }
     @Override
-    public MyInfo sendUserInfo(HttpServletRequest request) throws RuntimeException{
+    public FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
-        MyInfo myInfo = sendFollowFollowerNum(userId);
-        myInfo.setComment(usersEntityRepository.findComment(userId));
-        return myInfo;
+        FollowInfo followInfo = sendFollowFollowerNum(userId);
+        return followInfo;
     }
-    private MyInfo sendFollowFollowerNum(String uid){
-        MyInfo myInfo = new MyInfo();
+    @Override
+    public PostProfileInfo sendFriendInfo(String fid) throws RuntimeException{
+        PostProfileInfo postProfileInfo = new PostProfileInfo();
+        postProfileInfo.setUserInfo(userService.setLoggedInfo(fid));
+        postProfileInfo.setFollowInfo(sendFollowFollowerNum(fid));
+        return postProfileInfo;
+    }
+    private FollowInfo sendFollowFollowerNum(String uid){
+        FollowInfo followInfo = new FollowInfo();
         int followerNum = 0,followNum = 0;
         followerNum += followersRepository.findFollowerNum(uid);
         followerNum += followingRepository.findFollowerNum(uid);
         followNum += followersRepository.findFollowNum(uid);
         followNum += followingRepository.findFollowNum(uid);
-        myInfo.setFollowNum(followNum);
-        myInfo.setFollowerNum(followerNum);
-        return myInfo;
+        followInfo.setFollowNum(followNum);
+        followInfo.setFollowerNum(followerNum);
+        return followInfo;
     }
     @Override
     @Transactional
