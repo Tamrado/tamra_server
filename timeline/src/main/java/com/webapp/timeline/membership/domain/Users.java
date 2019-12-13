@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.webapp.timeline.membership.domain.deserializer.UsersDeserializer;
 import com.webapp.timeline.membership.domain.serializer.UsersSerializer;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
+@Data
 @JsonDeserialize(using = UsersDeserializer.class)
 @JsonSerialize(using = UsersSerializer.class)
 public class Users implements UserDetails {
@@ -62,7 +64,7 @@ public class Users implements UserDetails {
     }
     public void setAuthority(){
        String pattern = "^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$";
-       Boolean result = Pattern.matches(pattern,this.getId());
+       Boolean result = Pattern.matches(pattern,this.getUserId());
         if(result)
             authority = "ROLE_USER";
 
@@ -93,85 +95,7 @@ public class Users implements UserDetails {
         return true;
     }
 
-    public String getId() {
-        return userId;
-    }
-
-    public void setId(String userId){
-        this.userId = userId;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getUsername() {
         return name;
     }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setBirthday(Date birthday) {
-        this.birthday = birthday;
-    }
-
-    public Date getBirthday() {
-        return birthday;
-    }
-
-    public void setGender(int gender) {
-        this.gender = gender;
-    }
-
-    public int getGender() {
-        return gender;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-
 }

@@ -1,7 +1,7 @@
 package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.membership.security.SignUpValidator;
-import com.webapp.timeline.membership.service.result.ValidationInfo;
+import com.webapp.timeline.membership.service.response.ValidationInfo;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

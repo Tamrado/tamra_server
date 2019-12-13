@@ -111,7 +111,7 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] create Post.");
 
         String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getId();
+                                                .getUserId();
 
         checkContentLength(post.getContent());
         return postsRepository.save(makeObjectForPost(post, author));
@@ -135,7 +135,7 @@ public class PostServiceImpl implements PostService {
 
         Posts post = checkIfPostDeleted(postId);
         String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getId();
+                                                .getUserId();
 
         if(author.equals(post.getAuthor())) {
             post.setDeleted(DELETED_POST_CHECK);
@@ -154,7 +154,7 @@ public class PostServiceImpl implements PostService {
 
         Posts existedPost = checkIfPostDeleted(postId);
         String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getId();
+                                                .getUserId();
 
         if(author.equals(existedPost.getAuthor())) {
             isUpdateExecuted(existedPost, post);
@@ -188,7 +188,7 @@ public class PostServiceImpl implements PostService {
         Posts post = checkIfPostDeleted(postId);
         String author = post.getAuthor();
         String loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
-                                                    .getId();
+                                                    .getUserId();
         String showLevel = post.getShowLevel();
 
         if(! author.equals(loggedIn)) {
@@ -209,7 +209,7 @@ public class PostServiceImpl implements PostService {
 
         try {
             loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getId();
+                                                .getUserId();
         }
         catch(NoMatchPointException not_logged_in) {
             return this.postsRepository.listPublicPostsByUser(pageable, userId);

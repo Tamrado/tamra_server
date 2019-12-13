@@ -54,7 +54,7 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         user.setComment(comment);
         user.setEmail(email);
         user.setGender(gender);
-        user.setId(userId);
+        user.setUserId(userId);
         user.setName(username);
         user.setPhone(phone);
         return user;

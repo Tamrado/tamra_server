@@ -4,14 +4,12 @@ package com.webapp.timeline.membership.service;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
-import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.SignUpValidator;
-import com.webapp.timeline.membership.service.result.LoggedInfo;
-import com.webapp.timeline.membership.service.result.ValidationInfo;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +48,10 @@ public class UserModifyServiceImpl implements UserModifyService {
     @Override
     public void modifyUser(Users user) throws RuntimeException{
         signUpValidator.validateForModify(user);
-        if(userSignServiceImpl.loadUserByUsername(user.getId()) == null) throw new NoInformationException();
+        if(userSignServiceImpl.loadUserByUsername(user.getUserId()) == null) throw new NoInformationException();
             user.setPassword(customPasswordEncoder.encode(user.getPassword()));
             try {
-                usersEntityRepository.updateUser(user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getId());
+                usersEntityRepository.updateUser(user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getUserId());
             }
             catch(Exception e){
                 throw new NoStoringException();
@@ -65,20 +63,20 @@ public class UserModifyServiceImpl implements UserModifyService {
         if(user == null) throw new NoInformationException();
         String url = null;
         try{
-            url = userImageS3Component.upload(file, user.getId());
+            url = userImageS3Component.upload(file, user.getUserId());
             } catch (IOException e) {
             throw new NoStoringException();
         }
         if(url == null) throw new NoMatchPointException();
-        userImagesRepository.updateProfile(user.getId(), url);
-        return userService.setLoggedInfo(user.getId());
+        userImagesRepository.updateProfile(user.getUserId(), url);
+        return userService.setLoggedInfo(user.getUserId());
     }
     @Override
     public void modifyIdentify(HttpServletRequest request, HttpServletResponse response)throws RuntimeException{
         Users user = userSignService.extractUserFromToken(request);
         user.setAuthoritytoInactive();
         try {
-            usersEntityRepository.updateUserAuthority(user.getId(), user.getAuthority());
+            usersEntityRepository.updateUserAuthority(user.getUserId(), user.getAuthority());
         }catch(Exception e){
             throw new NoMatchPointException();
         }

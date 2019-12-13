@@ -36,11 +36,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UsersEntityRepository usersEntityRepository;
     @Autowired
-    private UserImagesRepository userImagesRepository;
-    @Autowired
     private CustomPasswordEncoder customPasswordEncoder;
-    @Autowired
-    private AmazonS3Client amazonS3Client;
 
     @Override
     public void configure(WebSecurity web) throws Exception{

@@ -3,9 +3,7 @@ package com.webapp.timeline.membership.service;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.membership.security.JwtTokenProvider;
-import com.webapp.timeline.membership.service.result.LoggedInfo;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

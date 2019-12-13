@@ -43,6 +43,8 @@ dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.602'
     compile fileTree(dir: 'ext_libs', include: ['*.jar'])
     annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.projectlombok:lombok'
 
 }
 dependencyManagement {

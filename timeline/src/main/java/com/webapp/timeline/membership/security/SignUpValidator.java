@@ -4,14 +4,11 @@ import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
-import com.webapp.timeline.membership.service.result.ValidationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,17 +77,17 @@ public class SignUpValidator{
     }
     private Boolean checkIfObjectModifyOverlap(Users user){
         Boolean overlappedChecking = false;
-        log.info(user.getId());
-        if(usersEntityRepository.findEmailByExistingEmail(user.getEmail()) != null && !usersEntityRepository.findEmailByExistingEmail(user.getEmail()).getId().equals(user.getId()) )
+        log.info(user.getUserId());
+        if(usersEntityRepository.findEmailByExistingEmail(user.getEmail()) != null && !usersEntityRepository.findEmailByExistingEmail(user.getEmail()).equals(user.getUserId()) )
             overlappedChecking = true;
-        else if(usersEntityRepository.findPhoneByExistingPhone(user.getPhone()) != null && !usersEntityRepository.findPhoneByExistingPhone(user.getPhone()).getId().equals(user.getId()))
+        else if(usersEntityRepository.findPhoneByExistingPhone(user.getPhone()) != null && !usersEntityRepository.findPhoneByExistingPhone(user.getPhone()).equals(user.getUserId()))
             overlappedChecking = true;
 
         return overlappedChecking;
     }
 
     private Boolean checkIfObjectOverlap(Users user){
-        if(usersEntityRepository.findOverlappedObject(user.getId(),user.getEmail(),user.getPhone()).isEmpty())
+        if(usersEntityRepository.findOverlappedObject(user.getUserId(),user.getEmail(),user.getPhone()).isEmpty())
             return false;
         return true;
     }
@@ -100,13 +97,13 @@ public class SignUpValidator{
         return false;
     }
     public Boolean checkEmailExists(boolean mode,String email,String id){
-        if (usersEntityRepository.findEmailByExistingEmail(email) != null &&(mode || (!mode && !usersEntityRepository.findEmailByExistingEmail(email).getId().equals(id))))
+        if (usersEntityRepository.findEmailByExistingEmail(email) != null &&(mode || (!mode && !usersEntityRepository.findEmailByExistingEmail(email).equals(id))))
             return true;
         return false;
 
     }
     public Boolean checkPhoneExists(boolean mode,String phone,String id){
-        if(usersEntityRepository.findPhoneByExistingPhone(phone)!= null &&(mode || (!mode && !usersEntityRepository.findPhoneByExistingPhone(phone).getId().equals(id))))
+        if(usersEntityRepository.findPhoneByExistingPhone(phone)!= null &&(mode || (!mode && !usersEntityRepository.findPhoneByExistingPhone(phone).equals(id))))
             return true;
         return false;
     }

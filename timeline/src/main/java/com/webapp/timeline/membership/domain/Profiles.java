@@ -1,10 +1,15 @@
 package com.webapp.timeline.membership.domain;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
+@Data
 @Table(name = "profiles")
 public class Profiles {
 
@@ -18,20 +23,4 @@ public class Profiles {
     }
 
     public Profiles() {}
-
-    public void setprofileURL(String profileURL) {
-        this.profileURL = profileURL;
-    }
-
-    public String getprofileURL() {
-        return profileURL;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
 }
