@@ -1,0 +1,17 @@
+org:
+  quartz:
+    scheduler:
+      instanceId: AUTO
+      instanceName: timeline-scheduler
+      makeSchedulerThreadDaemon: true
+      interruptJobsOnShutdown: true
+    jobStore:
+      clusterCheckinInterval: 20000
+      driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+      isClustered: true
+      misfireThreshold: 60000
+      tablePrefix: QRTZ_
+      useProperties: false
+    threadPool:
+      threadCount: 4
+      makeThreadsDaemons: true
