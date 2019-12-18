@@ -34,7 +34,7 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @ApiOperation(value = "댓글쓰기 (request : 글 Id, 댓글 내용)",
+    @ApiOperation(value = "댓글(2) : 댓글쓰기 (request : 글 Id, 댓글 내용)",
                 notes = "response : 200 -> 성공 " +
                                 "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 " +
                                 "| 409 -> 댓글 내용 0글자 이거나 글자수 300자 초과 시")
@@ -64,7 +64,7 @@ public class CommentController {
         }
     }
 
-    @ApiOperation(value = "댓글 삭제하기 (request : 글 Id)",
+    @ApiOperation(value = "댓글(2) : 댓글 삭제하기 (request : 글 Id)",
                 notes = "response : 200 -> 삭제 성공 " +
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
                                 "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 or 저장되지 않은 commentId " +
@@ -99,7 +99,7 @@ public class CommentController {
         }
     }
 
-    @ApiOperation(value = "댓글 수정하기 (request : 글 Id, 댓글 내용)",
+    @ApiOperation(value = "댓글(2) : 댓글 수정하기 (request : 글 Id, 댓글 내용)",
                 notes = "response : 200 -> 수정 (내용/ 시간) 성공 " +
                                 "| 400 -> 수정이 불가능한 댓글 (이미 삭제됐는데 db 반영 안돼서 남아있을 경우)" +
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
@@ -147,8 +147,9 @@ public class CommentController {
         }
     }
 
-    @ApiOperation(value = "게시글 내의 댓글 목록 보기 (request : 글 Id, paging 정보 (ASC로 요청하기))",
+    @ApiOperation(value = "댓글(2) : 게시글 내의 댓글 목록 보기 (request : 글 Id, 몇 page)",
                 notes = "response : 200 -> 목록 보기 성공 " +
+                                "| 400 -> 페이지 번호 > 마지막 페이지 일때 " +
                                 "| 404 -> 해당 글이 이미 지워졌을 때 / 없을 때")
     @GetMapping(value = "/{postId}/comment/list")
     public ResponseEntity list(@PathVariable("postId") long postId,
@@ -162,6 +163,11 @@ public class CommentController {
         try {
             return new ResponseEntity<>
                     (this.commentService.listAllCommentsByPostId(pageRequest.of("commentId"), postId), header, HttpStatus.OK);
+        }
+        catch(BadRequestException exceed_page) {
+            logger.info("[CommentController] Input page exceeds last page.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         catch(NoInformationException deleted_post) {
             logger.error("[CommentController] The Post already deleted : " + postId);

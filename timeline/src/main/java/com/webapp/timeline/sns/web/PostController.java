@@ -34,7 +34,7 @@ public class PostController {
     }
 
 
-    @ApiOperation(value = "글쓰기 (request : 글 내용, show-level)",
+    @ApiOperation(value = "글쓰기 : 무슨 일이 있으셨나요? (request : 글 내용, show-level)",
                 notes="response : 201 -> 성공 " +
                                 "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
@@ -163,8 +163,9 @@ public class PostController {
         }
     }
 
-    @ApiOperation(value = "userId에 따른 글 목록 보기 (request : 유저 Id, paging 정보 (ASC로 요청하기))",
+    @ApiOperation(value = "내/ 다른 사용자의 프로필 - 메인화면(글 목록) (request : 유저 Id, 몇 page)",
                 notes = "response : 200 -> 성공 " +
+                                "| 400 -> 페이지 번호 > 마지막 페이지 일때 " +
                                 "| 404 -> 비활성 유저 (내 아이디여도 못 봄) ")
     @GetMapping(value = "/{userId}")
     public ResponseEntity listByUser(@PathVariable("userId") String userId,
@@ -178,6 +179,11 @@ public class PostController {
         try {
             return new ResponseEntity<>
                     (this.postServiceImpl.getPostListByUser(userId, pageRequest.of("postId"), request), header, HttpStatus.OK);
+        }
+        catch(BadRequestException exceed_page) {
+            logger.info("[PostController] Input page exceeds last page.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         catch(NoInformationException inactive_user) {
             logger.info("[PostController] Inactive User.");
