@@ -1,40 +1,38 @@
 package com.webapp.timeline.sns.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import javax.validation.constraints.NotBlank;
+
+
+@Getter
 public class CustomPageRequest {
+    @JsonProperty
+    @NotBlank
     private int page;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private int size;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Sort.Direction direction;
+
+    private static final int DEFAULT_SIZE = 10;
+    private static final Sort.Direction DEFAULT_DIRECTION = Sort.Direction.ASC;
 
     public void setPage(int page) {
         this.page = page <= 0 ? 1 : page;
     }
 
-    public int getPage() {
-        return this.page;
-    }
-
     public void setSize(int size) {
-        int DEFAULT_SIZE = 30;
         int MAX_SIZE = 50;
         this.size = size > MAX_SIZE ? DEFAULT_SIZE : size;
     }
 
-    public int getSize() {
-        return this.size;
-    }
-
-    public void setDirection(Sort.Direction direction) {
-        this.direction = direction;
-    }
-
-    public Sort.Direction getDirection() {
-        return this.direction;
-    }
-
     public PageRequest of(String sortBy) {
-        return PageRequest.of(page-1, size, direction, sortBy);
+        return PageRequest.of(page-1, DEFAULT_SIZE, DEFAULT_DIRECTION, sortBy);
     }
 }

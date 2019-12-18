@@ -14,10 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -26,6 +23,7 @@ public class CommentServiceImpl implements CommentService {
     private PostsRepository postsRepository;
     private CommentsRepository commentsRepository;
     private UserSignServiceImpl userSignServiceImpl;
+    private ServiceAspectFactory<Comments> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 300;
     private static final int NEW_COMMENT_CHECK = 0;
     private static final int REMOVED_COMMENT_CHECK = 1;
@@ -46,17 +44,16 @@ public class CommentServiceImpl implements CommentService {
         this.userSignServiceImpl = userSignServiceImpl;
     }
 
+    @Autowired
+    public void setServiceAspectExecutor(ServiceAspectFactory<Comments> factory) {
+        this.factory = factory;
+    }
+
     private void checkIfPostDeleted(long postId) {
         Posts post = this.postsRepository.findById((int) postId)
                                         .orElseThrow(NoInformationException::new);
         if(post.getDeleted() == DELETED_POST) {
             throw new NoInformationException();
-        }
-    }
-
-    private void checkContentLength(String content) {
-        if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
-            throw new NoStoringException();
         }
     }
 
@@ -71,7 +68,7 @@ public class CommentServiceImpl implements CommentService {
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getUserId();
         content = comment.getContent();
-        checkContentLength(content);
+        factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
         Comments newComment = makeObjectForComment(postId, content, author);
 
@@ -84,7 +81,7 @@ public class CommentServiceImpl implements CommentService {
                             .postId(postId)
                             .author(author)
                             .content(content)
-                            .lastUpdate(whatIsTimestampOfNow())
+                            .lastUpdate(factory.whatIsTimestampOfNow())
                             .deleted(NEW_COMMENT_CHECK)
                             .build();
     }
@@ -107,7 +104,7 @@ public class CommentServiceImpl implements CommentService {
 
             affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
 
-            return takeActionByQuery(comment, affectedRow);
+            return factory.takeActionByQuery(comment, affectedRow);
         }
         else
             throw new UnauthorizedUserException();
@@ -130,40 +127,31 @@ public class CommentServiceImpl implements CommentService {
         }
 
         if(author.equals(existedComment.getAuthor())) {
-            checkContentLength(comment.getContent());
+            factory.checkContentLength(comment.getContent(), MAXIMUM_CONTENT_LENGTH);
 
             existedComment.setContent(comment.getContent());
-            existedComment.setLastUpdate(whatIsTimestampOfNow());
+            existedComment.setLastUpdate(factory.whatIsTimestampOfNow());
 
             affectedRow = this.commentsRepository.editCommentByCommentId(existedComment);
 
-            return takeActionByQuery(existedComment, affectedRow);
+            return factory.takeActionByQuery(existedComment, affectedRow);
         }
         else
             throw new UnauthorizedUserException();
     }
 
-    private Timestamp whatIsTimestampOfNow() {
-        ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        String now = LocalDateTime.now()
-                .atZone(zoneId)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-        return Timestamp.valueOf(now);
-    }
-
-    private Comments takeActionByQuery(Comments comment, int affectedRow) {
-        if(affectedRow == 1) {
-            return comment;
-        }
-        throw new WrongCodeException();
-    }
-
     @Override
     public Page<Comments> listAllCommentsByPostId(Pageable pageable, long postId) {
         logger.info("[CommentService] list comments.");
+        Page<Comments> pagingCommentList;
 
         checkIfPostDeleted(postId);
-        return this.commentsRepository.listValidCommentsByPostId(pageable, postId);
+        pagingCommentList = this.commentsRepository.listValidCommentsByPostId(pageable, postId);
+
+        if(factory.isPageExceed(pagingCommentList, pageable)) {
+            throw new BadRequestException();
+        }
+
+        return pagingCommentList;
     }
 }

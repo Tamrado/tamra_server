@@ -1,6 +1,5 @@
 package com.webapp.timeline.sns.service;
 
-
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
@@ -16,10 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 
 @Service("postServiceImpl")
@@ -29,12 +24,12 @@ public class PostServiceImpl implements PostService {
     private PostsRepository postsRepository;
     private PostImageS3Component postImageS3Component;
     private UserSignServiceImpl userSignServiceImpl;
+    private ServiceAspectFactory<Posts> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 1000;
     private static final int NEW_POST_CHECK = 0;
     private static final int DELETED_POST_CHECK = 1;
     private static final String PRIVATE = "private";
     private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
-
 
     @Autowired
     public void setPostsRepository(PostsRepository postsRepository) {
@@ -51,21 +46,9 @@ public class PostServiceImpl implements PostService {
         this.userSignServiceImpl = userSignServiceImpl;
     }
 
-    private Timestamp whatIsTimestampOfNow() {
-        ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        String now = LocalDateTime.now()
-                .atZone(zoneId)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-        return Timestamp.valueOf(now);
-    }
-
-    private Posts takeActionByQuery(Posts post, int affectedRow) {
-        if(affectedRow == 0) {
-            throw new WrongCodeException();
-        }
-
-        return post;
+    @Autowired
+    public void setServiceAspectFactory(ServiceAspectFactory<Posts> factory) {
+        this.factory = factory;
     }
 
     private Posts checkIfPostDeleted(int postId) {
@@ -76,12 +59,6 @@ public class PostServiceImpl implements PostService {
         }
 
         return post;
-    }
-
-    private void checkContentLength(String content) {
-        if(content.length() == 0 || content.length() > MAXIMUM_CONTENT_LENGTH) {
-            throw new NoStoringException();
-        }
     }
 
     @Override
@@ -111,9 +88,9 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] create Post.");
 
         String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getUserId();
+                                                 .getUserId();
 
-        checkContentLength(post.getContent());
+        factory.checkContentLength(post.getContent(), MAXIMUM_CONTENT_LENGTH);
         return postsRepository.save(makeObjectForPost(post, author));
     }
 
@@ -122,7 +99,7 @@ public class PostServiceImpl implements PostService {
         return new Posts.Builder()
                         .author(author)
                         .content(post.getContent())
-                        .lastUpdate(whatIsTimestampOfNow())
+                        .lastUpdate(factory.whatIsTimestampOfNow())
                         .showLevel(post.getShowLevel())
                         .deleted(NEW_POST_CHECK)
                         .build();
@@ -135,13 +112,13 @@ public class PostServiceImpl implements PostService {
 
         Posts post = checkIfPostDeleted(postId);
         String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getUserId();
+                                                 .getUserId();
 
         if(author.equals(post.getAuthor())) {
             post.setDeleted(DELETED_POST_CHECK);
             int affectedRow = this.postsRepository.markDeleteByPostId(post);
 
-            return takeActionByQuery(post, affectedRow);
+            return factory.takeActionByQuery(post, affectedRow);
         }
         else {
             throw new UnauthorizedUserException();
@@ -158,14 +135,14 @@ public class PostServiceImpl implements PostService {
 
         if(author.equals(existedPost.getAuthor())) {
             isUpdateExecuted(existedPost, post);
-            checkContentLength(post.getContent());
+            factory.checkContentLength(post.getContent(), MAXIMUM_CONTENT_LENGTH);
 
             existedPost.setContent(post.getContent());
             existedPost.setShowLevel(post.getShowLevel());
-            existedPost.setLastUpdate(whatIsTimestampOfNow());
+            existedPost.setLastUpdate(factory.whatIsTimestampOfNow());
 
             int affectedRow = this.postsRepository.updatePostByPostId(existedPost);
-            return takeActionByQuery(existedPost, affectedRow);
+            return factory.takeActionByQuery(existedPost, affectedRow);
         }
         else {
             throw new UnauthorizedUserException();
@@ -206,21 +183,31 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] get post-list by user-id.");
         String loggedIn;
         checkInactiveUser(userId);
+        Page<Posts> pagingPostList;
 
         try {
             loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
                                                 .getUserId();
+
+            if(loggedIn.equals(userId)) {
+                pagingPostList = this.postsRepository.listMyPostsByUser(pageable, loggedIn);
+
+                System.out.println(pagingPostList.getTotalPages() - 1);
+                System.out.println(pageable.getPageNumber());
+            }
+
+            pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
         }
         catch(NoMatchPointException not_logged_in) {
-            return this.postsRepository.listPublicPostsByUser(pageable, userId);
+            pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
+
         }
 
-        if(loggedIn.equals(userId)) {
-            return this.postsRepository.listMyPostsByUser(pageable, loggedIn);
+        if(factory.isPageExceed(pagingPostList, pageable)) {
+            throw new BadRequestException();
         }
-
         //Todo : following 중인지 검사 -> following중이면 followers 허용 글까지 볼 수 있게
-        return this.postsRepository.listPublicPostsByUser(pageable, userId);
+        return pagingPostList;
     }
 
     private void checkInactiveUser(String userId) {

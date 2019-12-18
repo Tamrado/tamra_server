@@ -47,6 +47,7 @@ public class JpaConfig {
                     .build();
     }
 
+    @Primary
     @Bean(name = "defaultTransactionManager")
     public PlatformTransactionManager transactionManager(
             @Qualifier("entityManagerFactory") EntityManagerFactory entityManagerFactory) {
@@ -56,4 +57,5 @@ public class JpaConfig {
 
         return transactionManager;
     }
+
 }
