@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = {"3. Post"})
 @RestController
-@RequestMapping(value="/post")
+@RequestMapping(value = "/post")
 public class PostController {
 
     private final static Logger logger = LoggerFactory.getLogger(PostController.class);
@@ -35,17 +35,20 @@ public class PostController {
 
 
     @ApiOperation(value = "글쓰기 : 무슨 일이 있으셨나요? (request : 글 내용, show-level)",
-                notes="response : 201 -> 성공 " +
+                notes = "response : 201 -> 성공 " +
                                 "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity create(@RequestBody Posts post,
                                  @ApiIgnore HttpServletRequest request) {
 
+        logger.info("[PostController] create post.");
         header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
+            this.postServiceImpl.createPost(post, request);
+
+            return new ResponseEntity<>(HttpStatus.CREATED);
         }
         catch(NoStoringException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");
