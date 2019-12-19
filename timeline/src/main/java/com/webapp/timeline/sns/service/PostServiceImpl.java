@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.repository.PostsRepository;
@@ -12,9 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 
 @Service("postServiceImpl")
@@ -22,8 +22,7 @@ public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
     private PostsRepository postsRepository;
-    private PostImageS3Component postImageS3Component;
-    private UserSignServiceImpl userSignServiceImpl;
+    private UserSignServiceImpl userSignService;
     private ServiceAspectFactory<Posts> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 1000;
     private static final int NEW_POST_CHECK = 0;
@@ -37,13 +36,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Autowired
-    public void setFileUploader(PostImageS3Component postImageS3Component) {
-        this.postImageS3Component = postImageS3Component;
-    }
-
-    @Autowired
     public void setUserSignService(UserSignServiceImpl userSignServiceImpl) {
-        this.userSignServiceImpl = userSignServiceImpl;
+        this.userSignService = userSignServiceImpl;
     }
 
     @Autowired
@@ -62,36 +56,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public String uploadImages(MultipartFile multipartFile,
-                               HttpServletRequest request) {
-        logger.info("[PostService] Upload new file to AWS S3 / timeline.");
-
-        String dirName = "";
-        dirName = this.userSignServiceImpl.extractUserFromToken(request).getEmail();
-
-        try {
-            return this.postImageS3Component.upload(multipartFile, dirName);
-        }
-        catch (IOException one_more_try) {
-
-            try {
-                return this.postImageS3Component.upload(multipartFile, dirName);
-            }
-            catch(IOException exception) {
-                return null;
-            }
-        }
-    }
-
-    @Override
-    public Posts createPost(Posts post, HttpServletRequest request) {
+    public void createPost(Posts post, HttpServletRequest request) {
         logger.info("[PostService] create Post.");
 
-        String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                 .getUserId();
+        String author = this.userSignService.extractUserFromToken(request)
+                                            .getUserId();
 
         factory.checkContentLength(post.getContent(), MAXIMUM_CONTENT_LENGTH);
-        return postsRepository.save(makeObjectForPost(post, author));
+        postsRepository.save(makeObjectForPost(post, author));
     }
 
     private Posts makeObjectForPost(Posts post, String author) {
@@ -111,8 +83,8 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] delete Post.");
 
         Posts post = checkIfPostDeleted(postId);
-        String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                 .getUserId();
+        String author = this.userSignService.extractUserFromToken(request)
+                                            .getUserId();
 
         if(author.equals(post.getAuthor())) {
             post.setDeleted(DELETED_POST_CHECK);
@@ -130,8 +102,8 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] update Post.");
 
         Posts existedPost = checkIfPostDeleted(postId);
-        String author = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getUserId();
+        String author = this.userSignService.extractUserFromToken(request)
+                                            .getUserId();
 
         if(author.equals(existedPost.getAuthor())) {
             isUpdateExecuted(existedPost, post);
@@ -164,8 +136,8 @@ public class PostServiceImpl implements PostService {
 
         Posts post = checkIfPostDeleted(postId);
         String author = post.getAuthor();
-        String loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
-                                                    .getUserId();
+        String loggedIn = this.userSignService.extractUserFromToken(request)
+                                            .getUserId();
         String showLevel = post.getShowLevel();
 
         if(! author.equals(loggedIn)) {
@@ -186,8 +158,8 @@ public class PostServiceImpl implements PostService {
         Page<Posts> pagingPostList;
 
         try {
-            loggedIn = this.userSignServiceImpl.extractUserFromToken(request)
-                                                .getUserId();
+            loggedIn = this.userSignService.extractUserFromToken(request)
+                                        .getUserId();
 
             if(loggedIn.equals(userId)) {
                 pagingPostList = this.postsRepository.listMyPostsByUser(pageable, loggedIn);
@@ -211,7 +183,7 @@ public class PostServiceImpl implements PostService {
     }
 
     private void checkInactiveUser(String userId) {
-        Users userInfo = this.userSignServiceImpl.loadUserByUsername(userId);
+        Users userInfo = this.userSignService.loadUserByUsername(userId);
 
         if(userInfo.getAuthority().equals(INACTIVE_USER)) {
             throw new NoInformationException();

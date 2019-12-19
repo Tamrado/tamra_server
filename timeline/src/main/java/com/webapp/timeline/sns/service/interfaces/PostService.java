@@ -8,10 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 
 
 public interface PostService {
-    Posts createPost(Posts post, HttpServletRequest request);
-
-    String uploadImages(MultipartFile multipartFile, HttpServletRequest request);
-
+    void createPost(Posts post, HttpServletRequest request);
+    
     Posts deletePost(int postId, HttpServletRequest request);
 
     Posts updatePost(int postId, Posts post, HttpServletRequest request);
