@@ -46,9 +46,7 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            this.postServiceImpl.createPost(post, request);
-
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
         }
         catch(NoStoringException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");

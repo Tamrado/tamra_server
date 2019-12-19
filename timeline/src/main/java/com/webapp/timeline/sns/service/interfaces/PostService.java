@@ -5,10 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 
 public interface PostService {
-    void createPost(Posts post, HttpServletRequest request);
+    Map<String, Integer> createPost(Posts post, HttpServletRequest request);
     
     Posts deletePost(int postId, HttpServletRequest request);
 
