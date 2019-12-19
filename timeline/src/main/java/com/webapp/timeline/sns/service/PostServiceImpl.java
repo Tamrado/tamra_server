@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Map;
 
 
 @Service("postServiceImpl")
@@ -56,14 +58,16 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void createPost(Posts post, HttpServletRequest request) {
+    public Map<String, Integer> createPost(Posts post, HttpServletRequest request) {
         logger.info("[PostService] create Post.");
 
         String author = this.userSignService.extractUserFromToken(request)
                                             .getUserId();
 
         factory.checkContentLength(post.getContent(), MAXIMUM_CONTENT_LENGTH);
-        postsRepository.save(makeObjectForPost(post, author));
+        Posts created = postsRepository.save(makeObjectForPost(post, author));
+
+        return Collections.singletonMap("postId", created.getPostId());
     }
 
     private Posts makeObjectForPost(Posts post, String author) {
