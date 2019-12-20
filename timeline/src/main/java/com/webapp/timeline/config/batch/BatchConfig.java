@@ -16,7 +16,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
@@ -31,7 +30,6 @@ import java.util.List;
 public class BatchConfig {
     private JpaConfig dataSourceConfiguration;
 
-    @Primary
     @Autowired
     public void setDataSoure(JpaConfig dataSourceConfiguration) {
         this.dataSourceConfiguration = dataSourceConfiguration;

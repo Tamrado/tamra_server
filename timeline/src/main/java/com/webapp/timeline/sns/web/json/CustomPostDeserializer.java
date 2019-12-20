@@ -29,9 +29,9 @@ public class CustomPostDeserializer extends StdDeserializer<Posts> {
         String content = node.get("content").asText(null);
         String showLevel = node.get("showLevel").asText("public");
 
-        return new Posts.Builder()
-                        .content(content)
-                        .showLevel(showLevel)
-                        .build();
+        return Posts.builder()
+                    .content(content)
+                    .showLevel(showLevel)
+                    .build();
     }
 }

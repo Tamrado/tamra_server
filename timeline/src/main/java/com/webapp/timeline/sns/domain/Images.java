@@ -1,7 +1,9 @@
 package com.webapp.timeline.sns.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
@@ -9,6 +11,8 @@ import javax.persistence.*;
 @Table(name = "images")
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Images {
 
     @Id
