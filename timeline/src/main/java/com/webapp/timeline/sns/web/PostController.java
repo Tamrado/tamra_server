@@ -2,7 +2,6 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.model.CustomPageRequest;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -164,33 +163,5 @@ public class PostController {
         }
     }
 
-    @ApiOperation(value = "내/ 다른 사용자의 프로필 - 메인화면(글 목록) (request : 유저 Id, 몇 page)",
-                notes = "response : 200 -> 성공 " +
-                                "| 400 -> 페이지 번호 > 마지막 페이지 일때 " +
-                                "| 404 -> 비활성 유저 (내 아이디여도 못 봄) ")
-    @GetMapping(value = "/{userId}")
-    public ResponseEntity listByUser(@PathVariable("userId") String userId,
-                                     CustomPageRequest pageRequest,
-                                     @ApiIgnore HttpServletRequest request) {
-
-        logger.info("[PostController] get post-list by user-id.");
-        header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
-
-        try {
-            return new ResponseEntity<>
-                    (this.postServiceImpl.getPostListByUser(userId, pageRequest.of("postId"), request), header, HttpStatus.OK);
-        }
-        catch(BadRequestException exceed_page) {
-            logger.info("[PostController] Input page exceeds last page.");
-
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        catch(NoInformationException inactive_user) {
-            logger.info("[PostController] Inactive User.");
-
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
 }
 

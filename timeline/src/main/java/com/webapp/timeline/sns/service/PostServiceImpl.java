@@ -1,8 +1,6 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.membership.domain.Users;
-import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.repository.PostsRepository;
@@ -10,8 +8,6 @@ import com.webapp.timeline.sns.service.interfaces.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +26,6 @@ public class PostServiceImpl implements PostService {
     private static final int NEW_POST_CHECK = 0;
     private static final int DELETED_POST_CHECK = 1;
     private static final String PRIVATE = "private";
-    private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
 
     @Autowired
     public void setPostsRepository(PostsRepository postsRepository) {
@@ -72,13 +67,13 @@ public class PostServiceImpl implements PostService {
 
     private Posts makeObjectForPost(Posts post, String author) {
 
-        return new Posts.Builder()
-                        .author(author)
-                        .content(post.getContent())
-                        .lastUpdate(factory.whatIsTimestampOfNow())
-                        .showLevel(post.getShowLevel())
-                        .deleted(NEW_POST_CHECK)
-                        .build();
+        return Posts.builder()
+                    .author(author)
+                    .content(post.getContent())
+                    .lastUpdate(factory.whatIsTimestampOfNow())
+                    .showLevel(post.getShowLevel())
+                    .deleted(NEW_POST_CHECK)
+                    .build();
     }
 
     //Todo : 배치에서 post, postsImages, Comments 에서 다 삭제처리하기
@@ -154,43 +149,5 @@ public class PostServiceImpl implements PostService {
         return post;
     }
 
-    @Override
-    public Page<Posts> getPostListByUser(String userId, Pageable pageable, HttpServletRequest request) {
-        logger.info("[PostService] get post-list by user-id.");
-        String loggedIn;
-        checkInactiveUser(userId);
-        Page<Posts> pagingPostList;
 
-        try {
-            loggedIn = this.userSignService.extractUserFromToken(request)
-                                        .getUserId();
-
-            if(loggedIn.equals(userId)) {
-                pagingPostList = this.postsRepository.listMyPostsByUser(pageable, loggedIn);
-
-                System.out.println(pagingPostList.getTotalPages() - 1);
-                System.out.println(pageable.getPageNumber());
-            }
-
-            pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
-        }
-        catch(NoMatchPointException not_logged_in) {
-            pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
-
-        }
-
-        if(factory.isPageExceed(pagingPostList, pageable)) {
-            throw new BadRequestException();
-        }
-        //Todo : following 중인지 검사 -> following중이면 followers 허용 글까지 볼 수 있게
-        return pagingPostList;
-    }
-
-    private void checkInactiveUser(String userId) {
-        Users userInfo = this.userSignService.loadUserByUsername(userId);
-
-        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
-            throw new NoInformationException();
-        }
-    }
 }

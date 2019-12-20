@@ -3,7 +3,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Comments;
-import com.webapp.timeline.sns.model.CustomPageRequest;
+import com.webapp.timeline.sns.dto.CustomPageRequest;
 import com.webapp.timeline.sns.service.CommentServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

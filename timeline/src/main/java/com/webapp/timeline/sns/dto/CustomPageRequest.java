@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.model;
+package com.webapp.timeline.sns.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
