@@ -16,6 +16,4 @@ public interface PostService {
     Posts updatePost(int postId, Posts post, HttpServletRequest request);
 
     Posts getOnePostByPostId(int postId, HttpServletRequest request);
-
-    Page<Posts> getPostListByUser(String userId, Pageable pageable, HttpServletRequest request);
 }
