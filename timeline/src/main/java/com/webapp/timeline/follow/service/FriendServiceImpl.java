@@ -89,10 +89,15 @@ public class FriendServiceImpl implements FriendService{
         List<String> friendList = followingRepository.findFirstFriendList(userId);
         friendList.addAll(followingRepository.findSecondFriendList(userId));
         for(String friendId : friendList) {
-            LoggedInfo friendInfo = userService.setLoggedInfo(friendId);
+            LoggedInfo friendInfo = null;
+            try {
+                friendInfo = userService.setLoggedInfo(friendId);
+            }catch(RuntimeException e){
+
+            }
             if(friendInfo == null) continue;
             friendListContents.add(friendInfo);
-        }
+        }                       
         if(friendListContents.isEmpty()) throw new NoMatchPointException();
         return friendListContents;
     }
