@@ -1,6 +1,7 @@
-package com.webapp.timeline.sns.dto;
+package com.webapp.timeline.sns.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.webapp.timeline.sns.dto.ImageDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

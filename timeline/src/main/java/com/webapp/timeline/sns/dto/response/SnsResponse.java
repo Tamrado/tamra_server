@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.dto;
+package com.webapp.timeline.sns.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SnsResponse<T> {
-    @JsonProperty("contentList")
+    @JsonProperty("contentlist")
     List<T> objectSet;
     boolean first;
     boolean last;

@@ -4,7 +4,8 @@ import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.dto.CommentResponse;
+import com.webapp.timeline.sns.dto.response.CommentResponse;
+import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
@@ -50,7 +53,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comments registerComment(int postId, Comments comment, HttpServletRequest request) {
+    public CommentResponse registerComment(int postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
         String author;
         String content;
@@ -62,11 +65,12 @@ public class CommentServiceImpl implements CommentService {
         content = comment.getContent();
         factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
-        return commentsRepository.save(makeObjectForComment(postId, content, author));
+        Comments newComment = makeObjectForComment(postId, content, author);
+        return makeSingleResponse(commentsRepository.save(newComment));
     }
 
     @Override
-    public Comments removeComment(long commentId, HttpServletRequest request) {
+    public Map<String, Integer> removeComment(long commentId, HttpServletRequest request) {
         logger.info("[CommentService] remove comment.");
         String author;
         int affectedRow;
@@ -82,15 +86,15 @@ public class CommentServiceImpl implements CommentService {
             comment.setDeleted(DELETED_EVENT_CHECK);
 
             affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
-
-            return factory.takeActionByQuery(comment, affectedRow);
+            factory.takeActionByQuery(comment, affectedRow);
+            return Collections.singletonMap("commentId", (int)commentId);
         }
         else
             throw new UnauthorizedUserException();
     }
 
     @Override
-    public Comments editComment(long commentId, Comments comment, HttpServletRequest request) {
+    public CommentResponse editComment(long commentId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] edit comment.");
         String author;
         int affectedRow;
@@ -112,31 +116,38 @@ public class CommentServiceImpl implements CommentService {
             existedComment.setLastUpdate(factory.whatIsTimestampOfNow());
 
             affectedRow = this.commentsRepository.editCommentByCommentId(existedComment);
-
-            return factory.takeActionByQuery(existedComment, affectedRow);
+            return makeSingleResponse(factory.takeActionByQuery(existedComment, affectedRow));
         }
         else
             throw new UnauthorizedUserException();
     }
 
     @Override
-    public Page<Comments> listAllCommentsByPostId(Pageable pageable, int postId) {
+    public SnsResponse<CommentResponse> listAllCommentsByPostId(Pageable pageable, int postId) {
         logger.info("[CommentService] list comments.");
-        Page<Comments> pagingCommentList;
+        LinkedList<CommentResponse> eventList = new LinkedList<>();
 
         checkIfPostDeleted(postId);
-        pagingCommentList = this.commentsRepository.listValidCommentsByPostId(pageable, postId);
+        Page<Comments> pagingCommentList = this.commentsRepository.listValidCommentsByPostId(pageable, postId);
 
         if(factory.isPageExceed(pagingCommentList, pageable)) {
             throw new BadRequestException();
         }
 
-        return pagingCommentList;
+        pagingCommentList.forEach(item -> {
+            eventList.add(makeSingleResponse(item));
+        });
+
+        return SnsResponse.<CommentResponse>builder()
+                        .objectSet(eventList)
+                        .first(pagingCommentList.isFirst())
+                        .last(pagingCommentList.isLast())
+                        .build();
     }
 
     private void checkIfPostDeleted(int postId) {
         Posts post = this.postsRepository.findById(postId)
-                .orElseThrow(NoInformationException::new);
+                        .orElseThrow(NoInformationException::new);
         if(post.getDeleted() == DELETED_EVENT_CHECK) {
             throw new NoInformationException();
         }
@@ -151,5 +162,20 @@ public class CommentServiceImpl implements CommentService {
                         .lastUpdate(factory.whatIsTimestampOfNow())
                         .deleted(NEW_EVENT_CHECK)
                         .build();
+    }
+
+    private CommentResponse makeSingleResponse(Comments comment) {
+        Map<String, String> userInfo = timelineService.getUserProfile(comment.getAuthor());
+        String nickname = userInfo.keySet()
+                                .iterator()
+                                .next();
+
+        return CommentResponse.builder()
+                            .postId(comment.getPostId())
+                            .author(nickname)
+                            .profile(userInfo.get(nickname))
+                            .content(comment.getContent())
+                            .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
+                            .build();
     }
 }
