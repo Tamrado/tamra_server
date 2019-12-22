@@ -12,6 +12,8 @@ import java.util.Map;
 public interface CommentService {
     CommentResponse registerComment(int postId, Comments comment, HttpServletRequest request);
 
+    int removeCommentByPostId(int postId);
+
     Map<String, Integer> removeComment(long commentId, HttpServletRequest request);
 
     CommentResponse editComment(long commentId, Comments comment, HttpServletRequest request);
