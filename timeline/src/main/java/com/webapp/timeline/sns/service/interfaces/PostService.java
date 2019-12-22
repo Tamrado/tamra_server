@@ -1,8 +1,7 @@
 package com.webapp.timeline.sns.service.interfaces;
 
-import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.dto.EventRequest;
-import com.webapp.timeline.sns.dto.TimelineResponse;
+import com.webapp.timeline.sns.dto.request.EventRequest;
+import com.webapp.timeline.sns.dto.response.TimelineResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;

@@ -1,10 +1,7 @@
 package com.webapp.timeline.sns.domain;
 
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.webapp.timeline.sns.web.json.CustomCommentDeserializer;
-import com.webapp.timeline.sns.web.json.CustomCommentSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +17,6 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonSerialize(using = CustomCommentSerializer.class)
 @JsonDeserialize(using = CustomCommentDeserializer.class)
 public class Comments {
 

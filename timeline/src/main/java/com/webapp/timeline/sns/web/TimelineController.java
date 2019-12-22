@@ -2,7 +2,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.sns.dto.CustomPageRequest;
+import com.webapp.timeline.sns.dto.request.CustomPageRequest;
 import com.webapp.timeline.sns.service.TimelineServiceImpl;
 import com.webapp.timeline.sns.service.interfaces.TimelineService;
 import io.swagger.annotations.Api;

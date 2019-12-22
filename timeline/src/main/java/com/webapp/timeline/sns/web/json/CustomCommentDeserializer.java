@@ -26,7 +26,7 @@ public class CustomCommentDeserializer extends StdDeserializer<Comments> {
         JsonNode node = parser.getCodec().readTree(parser);
         String content = node.get("content").asText(null);
 
-        return new Comments.Builder()
+        return Comments.builder()
                         .content(content)
                         .build();
     }
