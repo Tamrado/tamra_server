@@ -14,6 +14,11 @@ import javax.transaction.Transactional;
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Long> {
 
+    @Modifying
+    @Query(value = "UPDATE Comments item SET item.deleted = 1 " +
+                    "WHERE item.postId = :postId AND item.deleted = 0")
+    Integer markDeleteByPostId(@Param("postId") int postId);
+
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Comments item SET item.deleted = :#{#comment.deleted} " +

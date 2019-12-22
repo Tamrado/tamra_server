@@ -4,6 +4,7 @@ import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.service.interfaces.ImageService;
@@ -72,6 +73,20 @@ public class ImageServiceImpl implements ImageService {
         }
 
         return null;
+    }
+
+    @Override
+    public void saveImage(Images entity) {
+        logger.info("[ImageService] Save image to database.");
+
+        imagesRepository.save(entity);
+    }
+
+    @Override
+    public int deleteImageByPostId(int postId) {
+        logger.info("[ImageService] Delete all-images by postId.");
+
+        return this.imagesRepository.markDeleteByPostId(postId);
     }
 
     private String makeThumbNail(File original, String email) {

@@ -70,10 +70,16 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    public int removeCommentByPostId(int postId) {
+        logger.info("[CommentService] remove all-comments by postId.");
+
+        return this.commentsRepository.markDeleteByPostId(postId);
+    }
+
+    @Override
     public Map<String, Integer> removeComment(long commentId, HttpServletRequest request) {
         logger.info("[CommentService] remove comment.");
         String author;
-        int affectedRow;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getUserId();
@@ -85,8 +91,7 @@ public class CommentServiceImpl implements CommentService {
         if(author.equals(comment.getAuthor())) {
             comment.setDeleted(DELETED_EVENT_CHECK);
 
-            affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
-            factory.takeActionByQuery(comment, affectedRow);
+            factory.takeActionByQuery(this.commentsRepository.markDeleteByCommentId(comment));
             return Collections.singletonMap("commentId", (int)commentId);
         }
         else
@@ -97,7 +102,6 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponse editComment(long commentId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] edit comment.");
         String author;
-        int affectedRow;
 
         author = this.userSignServiceImpl.extractUserFromToken(request)
                                         .getUserId();
@@ -115,8 +119,8 @@ public class CommentServiceImpl implements CommentService {
             existedComment.setContent(comment.getContent());
             existedComment.setLastUpdate(factory.whatIsTimestampOfNow());
 
-            affectedRow = this.commentsRepository.editCommentByCommentId(existedComment);
-            return makeSingleResponse(factory.takeActionByQuery(existedComment, affectedRow));
+            factory.takeActionByQuery(this.commentsRepository.editCommentByCommentId(existedComment));
+            return makeSingleResponse(existedComment);
         }
         else
             throw new UnauthorizedUserException();

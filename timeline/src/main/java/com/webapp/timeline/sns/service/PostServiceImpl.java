@@ -7,8 +7,9 @@ import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.request.EventRequest;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
-import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
+import com.webapp.timeline.sns.service.interfaces.CommentService;
+import com.webapp.timeline.sns.service.interfaces.ImageService;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +32,8 @@ public class PostServiceImpl implements PostService {
 
     private static Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
     private PostsRepository postsRepository;
-    private ImagesRepository imagesRepository;
+    private ImageService imageService;
+    private CommentService commentService;
     private UserSignServiceImpl userSignService;
     private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Posts> factory;
@@ -42,12 +45,14 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     public PostServiceImpl(PostsRepository postsRepository,
-                           ImagesRepository imagesRepository,
+                           ImageServiceImpl imageService,
+                           CommentServiceImpl commentService,
                            UserSignServiceImpl userSignService,
                            TimelineServiceImpl timelineService,
                            ServiceAspectFactory<Posts> factory) {
         this.postsRepository = postsRepository;
-        this.imagesRepository = imagesRepository;
+        this.imageService = imageService;
+        this.commentService = commentService;
         this.userSignService = userSignService;
         this.timelineService = timelineService;
         this.factory = factory;
@@ -58,6 +63,7 @@ public class PostServiceImpl implements PostService {
     public Map<String, Integer> createEvent(EventRequest eventRequest, HttpServletRequest request) {
         logger.info("[PostService] create Post.");
 
+        Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
         String author = this.userSignService.extractUserFromToken(request)
                                             .getUserId();
@@ -76,29 +82,34 @@ public class PostServiceImpl implements PostService {
                                 .thumbnail(imageRequest.getThumbnail())
                                 .deleted(NEW_EVENT_CHECK)
                                 .build();
-            imagesRepository.save(entity);
+            imageService.saveImage(entity);
 
             count.incrementAndGet();
         });
 
-        return Collections.singletonMap("postId", postId);
+        responseBody.put("postId", postId);
+        responseBody.put("imageNum", count.get());
+        return responseBody;
     }
 
+    @Transactional
     @Override
     public Map<String, Integer> deletePost(int postId, HttpServletRequest request) {
         logger.info("[PostService] delete Post.");
+        Map<String, Integer> responseBody = new HashMap<>(3);
 
         Posts post = checkIfPostDeleted(postId);
         String author = this.userSignService.extractUserFromToken(request)
                                             .getUserId();
 
         if(author.equals(post.getAuthor())) {
-            //Todo : Images delete - by postId.
-            //Todo : Comments delete - by postId.
             post.setDeleted(DELETED_EVENT_CHECK);
+            factory.takeActionByQuery(this.postsRepository.markDeleteByPostId(post));
 
-            int affectedRow = this.postsRepository.markDeleteByPostId(post);
-            return Collections.singletonMap("postId", factory.takeActionByQuery(post, affectedRow).getPostId());
+            responseBody.put("postId", postId);
+            responseBody.put("imageNum", this.imageService.deleteImageByPostId(postId));
+            responseBody.put("commentNum", this.commentService.removeCommentByPostId(postId));
+            return responseBody;
         }
         else {
             throw new UnauthorizedUserException();
@@ -123,8 +134,8 @@ public class PostServiceImpl implements PostService {
         existedPost.setShowLevel(eventRequest.getShowLevel());
         existedPost.setLastUpdate(factory.whatIsTimestampOfNow());
 
-        int affectedRow = this.postsRepository.updatePostByPostId(existedPost);
-        return Collections.singletonMap("postId", factory.takeActionByQuery(existedPost, affectedRow).getPostId());
+        factory.takeActionByQuery(this.postsRepository.updatePostByPostId(existedPost));
+        return Collections.singletonMap("postId", postId);
     }
 
     @Override
