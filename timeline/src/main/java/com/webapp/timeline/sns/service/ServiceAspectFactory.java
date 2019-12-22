@@ -25,12 +25,10 @@ public class ServiceAspectFactory<T> {
         return Timestamp.valueOf(now);
     }
 
-    protected T takeActionByQuery(T object, int affectedRow) {
+    protected void takeActionByQuery(int affectedRow) {
         if(affectedRow == 0) {
             throw new WrongCodeException();
         }
-
-        return object;
     }
 
     protected void checkContentLength(String content, int maxLength) {
