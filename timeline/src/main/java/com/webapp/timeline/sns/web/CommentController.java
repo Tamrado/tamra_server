@@ -3,7 +3,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Comments;
-import com.webapp.timeline.sns.dto.CustomPageRequest;
+import com.webapp.timeline.sns.dto.request.CustomPageRequest;
 import com.webapp.timeline.sns.service.CommentServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,7 +39,7 @@ public class CommentController {
                                 "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 " +
                                 "| 409 -> 댓글 내용 0글자 이거나 글자수 300자 초과 시")
     @PostMapping(value = "/{postId}/comment/register")
-    public ResponseEntity register(@PathVariable("postId") long postId,
+    public ResponseEntity register(@PathVariable("postId") int postId,
                                    @RequestBody Comments comment,
                                    @ApiIgnore HttpServletRequest request) {
 
@@ -69,7 +69,7 @@ public class CommentController {
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
                                 "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 or 저장되지 않은 commentId " +
                                 "| 422 -> 삭제가 반영되지 않을 때 (아직 댓글 남아있음)")
-    @PutMapping(value = "/comment/{commentId}/remove")
+    @DeleteMapping(value = "/comment/{commentId}/remove")
     public ResponseEntity remove(@PathVariable("commentId") long commentId,
                                  @ApiIgnore HttpServletRequest request) {
 
@@ -99,7 +99,7 @@ public class CommentController {
         }
     }
 
-    @ApiOperation(value = "댓글(2) : 댓글 수정하기 (request : 글 Id, 댓글 내용)",
+    @ApiOperation(value = "댓글(2) : 댓글 수정하기 (request : 댓글 Id, 댓글 내용)",
                 notes = "response : 200 -> 수정 (내용/ 시간) 성공 " +
                                 "| 400 -> 수정이 불가능한 댓글 (이미 삭제됐는데 db 반영 안돼서 남아있을 경우)" +
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
@@ -152,7 +152,7 @@ public class CommentController {
                                 "| 400 -> 페이지 번호 > 마지막 페이지 일때 " +
                                 "| 404 -> 해당 글이 이미 지워졌을 때 / 없을 때")
     @GetMapping(value = "/{postId}/comment/list")
-    public ResponseEntity list(@PathVariable("postId") long postId,
+    public ResponseEntity list(@PathVariable("postId") int postId,
                                CustomPageRequest pageRequest) {
 
         logger.info("[CommentController] List comments by postId.");

@@ -9,8 +9,8 @@ import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.ImageDto;
-import com.webapp.timeline.sns.dto.SnsResponse;
-import com.webapp.timeline.sns.dto.TimelineResponse;
+import com.webapp.timeline.sns.dto.response.SnsResponse;
+import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.service.interfaces.TimelineResponseHelper;
@@ -162,6 +162,10 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
             if(responsedItem.isAfter(now.minus(1, ChronoUnit.MINUTES))) {
                 int secondDifference = now.getSecond() - responsedItem.getSecond();
                 timestamp = secondDifference >= 0 ? secondDifference : secondDifference + ONE_MINUTE;
+
+                if(timestamp == 0 || timestamp == 1) {
+                    return "방금 전";
+                }
 
                 return timestamp + "초 전";
             }
