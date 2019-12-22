@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.dto;
+package com.webapp.timeline.sns.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
