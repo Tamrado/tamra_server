@@ -4,7 +4,7 @@ import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
-import com.webapp.timeline.sns.domain.Images;
+import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.service.interfaces.ImageService;
 import org.slf4j.Logger;
@@ -27,8 +27,8 @@ public class ImageServiceImpl implements ImageService {
     private ImageS3Uploader imageUploader;
     private ImagesRepository imagesRepository;
     private UserSignService userSignService;
-    private final int THUMBNAIL_HEIGHT = 300;
-    private final int THUMBNAIL_WIDTH = 300;
+    private final int THUMBNAIL_HEIGHT = 290;
+    private final int THUMBNAIL_WIDTH = 290;
     private final String IMAGE_FORMAT = "png";
     private final String TEMP_FILEPATH = "src/main/resources/thumbnail.png";
 
@@ -48,7 +48,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
+    public ImageDto uploadImage(MultipartFile multipartFile, HttpServletRequest request) {
         logger.info("[ImageService] Upload Original Image.");
 
         String email = this.userSignService.extractUserFromToken(request)
@@ -59,20 +59,19 @@ public class ImageServiceImpl implements ImageService {
         try {
             url = this.imageUploader.upload(multipartFile, email);
             originalFile = this.imageUploader.getOriginalFile();
+
+            if(! url.equals("")) {
+                return ImageDto.builder()
+                                .original(url)
+                                .thumbnail(makeThumbNail(originalFile, email))
+                                .build();
+            }
         }
         catch(IOException aws_IO_exception) {
             throw new NoStoringException();
         }
 
-        if(! url.equals("")) {
-            Images image = Images.builder()
-                                .postId(postId)
-                                .thumbnail(makeThumbNail(originalFile, email))
-                                .url(url)
-                                .build();
-
-            this.imagesRepository.saveAndFlush(image);
-        }
+        return null;
     }
 
     private String makeThumbNail(File original, String email) {

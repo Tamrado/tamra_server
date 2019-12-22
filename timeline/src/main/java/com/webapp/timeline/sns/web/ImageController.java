@@ -38,14 +38,13 @@ public class ImageController {
                                 "| 409 -> AWS S3에서 오류" +
                                 "| 422 -> 썸네일 만들기 실패")
     @PostMapping(value = "upload/image")
-    public ResponseEntity upload(@RequestParam(value = "postId") int postId,
-                                 MultipartFile file,
+    public ResponseEntity upload(MultipartFile file,
                                  @ApiIgnore HttpServletRequest request) {
 
         logger.info("[ImageController] upload image.");
 
         try {
-            this.imageService.uploadImage(postId, file, request);
+            this.imageService.uploadImage(file, request);
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
         catch(NoStoringException original_aws_exception) {

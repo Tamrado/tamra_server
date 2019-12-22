@@ -7,11 +7,11 @@ import org.springframework.data.domain.Pageable;
 import javax.servlet.http.HttpServletRequest;
 
 public interface CommentService {
-    Comments registerComment(long postId, Comments comment, HttpServletRequest request);
+    Comments registerComment(int postId, Comments comment, HttpServletRequest request);
 
     Comments removeComment(long commentId, HttpServletRequest request);
 
     Comments editComment(long commentId, Comments comment, HttpServletRequest request);
 
-    Page<Comments> listAllCommentsByPostId(Pageable pageable, long postId);
+    Page<Comments> listAllCommentsByPostId(Pageable pageable, int postId);
 }

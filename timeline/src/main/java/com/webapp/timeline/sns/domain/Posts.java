@@ -1,9 +1,5 @@
 package com.webapp.timeline.sns.domain;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.webapp.timeline.sns.web.json.CustomPostDeserializer;
-import com.webapp.timeline.sns.web.json.CustomPostSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,8 +12,6 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "posts")
-@JsonSerialize(using = CustomPostSerializer.class)
-@JsonDeserialize(using = CustomPostDeserializer.class)
 @Getter
 @Builder
 @NoArgsConstructor
