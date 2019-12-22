@@ -13,12 +13,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimelineResponse {
+    private int postId;
     private String author;
     private String profile;
     private String content;
     private String showLevel;
     private String timestamp;
     @JsonProperty("files")
-    private List<ImageResponse> files;
+    private List<ImageDto> files;
     private int totalComment;
 }
