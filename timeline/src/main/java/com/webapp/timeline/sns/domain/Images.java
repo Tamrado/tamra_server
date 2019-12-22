@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 
@@ -27,4 +28,7 @@ public class Images {
 
     @Column(name = "url", nullable = false)
     private String url;
+
+    @Column(name = "deleted", nullable = false)
+    private int deleted;
 }

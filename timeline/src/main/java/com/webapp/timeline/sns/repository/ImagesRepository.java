@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface ImagesRepository extends JpaRepository<Images, Long> {
 
-    @Query(value = "SELECT images FROM Images images WHERE images.postId = :postId")
+    @Query(value = "SELECT i FROM Images i WHERE i.postId = :postId AND i.deleted = 0")
     List<Images> listImageListInPost(@Param("postId") int postId);
 }
