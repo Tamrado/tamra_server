@@ -4,6 +4,7 @@ import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.dto.CommentResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
@@ -15,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Map;
+
+import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NEW_EVENT_CHECK;
+
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -23,42 +29,28 @@ public class CommentServiceImpl implements CommentService {
     private PostsRepository postsRepository;
     private CommentsRepository commentsRepository;
     private UserSignServiceImpl userSignServiceImpl;
+    private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Comments> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 300;
-    private static final int NEW_COMMENT_CHECK = 0;
-    private static final int REMOVED_COMMENT_CHECK = 1;
-    private static final int DELETED_POST = 1;
+
+    CommentServiceImpl() {
+    }
 
     @Autowired
-    public void setPostsRepository(PostsRepository postsRepository) {
+    public CommentServiceImpl(PostsRepository postsRepository,
+                              CommentsRepository commentsRepository,
+                              UserSignServiceImpl userSignServiceImpl,
+                              TimelineServiceImpl timelineService,
+                              ServiceAspectFactory<Comments> factory) {
         this.postsRepository = postsRepository;
-    }
-
-    @Autowired
-    public void setCommentsRepository(CommentsRepository commentsRepository) {
         this.commentsRepository = commentsRepository;
-    }
-
-    @Autowired
-    public void setUserSignServiceImpl(UserSignServiceImpl userSignServiceImpl) {
         this.userSignServiceImpl = userSignServiceImpl;
-    }
-
-    @Autowired
-    public void setServiceAspectExecutor(ServiceAspectFactory<Comments> factory) {
+        this.timelineService = timelineService;
         this.factory = factory;
     }
 
-    private void checkIfPostDeleted(long postId) {
-        Posts post = this.postsRepository.findById((int) postId)
-                                        .orElseThrow(NoInformationException::new);
-        if(post.getDeleted() == DELETED_POST) {
-            throw new NoInformationException();
-        }
-    }
-
     @Override
-    public Comments registerComment(long postId, Comments comment, HttpServletRequest request) {
+    public Comments registerComment(int postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
         String author;
         String content;
@@ -70,20 +62,7 @@ public class CommentServiceImpl implements CommentService {
         content = comment.getContent();
         factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
-        Comments newComment = makeObjectForComment(postId, content, author);
-
-        return commentsRepository.save(newComment);
-    }
-
-    private Comments makeObjectForComment(long postId, String content, String author) {
-
-        return new Comments.Builder()
-                            .postId(postId)
-                            .author(author)
-                            .content(content)
-                            .lastUpdate(factory.whatIsTimestampOfNow())
-                            .deleted(NEW_COMMENT_CHECK)
-                            .build();
+        return commentsRepository.save(makeObjectForComment(postId, content, author));
     }
 
     @Override
@@ -100,7 +79,7 @@ public class CommentServiceImpl implements CommentService {
         checkIfPostDeleted(comment.getPostId());
 
         if(author.equals(comment.getAuthor())) {
-            comment.setDeleted(REMOVED_COMMENT_CHECK);
+            comment.setDeleted(DELETED_EVENT_CHECK);
 
             affectedRow = this.commentsRepository.markDeleteByCommentId(comment);
 
@@ -122,7 +101,7 @@ public class CommentServiceImpl implements CommentService {
                                                         .orElseThrow(NoInformationException::new);
         checkIfPostDeleted(existedComment.getPostId());
 
-        if(existedComment.getDeleted() == REMOVED_COMMENT_CHECK) {
+        if(existedComment.getDeleted() == DELETED_EVENT_CHECK) {
             throw new BadRequestException();
         }
 
@@ -141,7 +120,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Page<Comments> listAllCommentsByPostId(Pageable pageable, long postId) {
+    public Page<Comments> listAllCommentsByPostId(Pageable pageable, int postId) {
         logger.info("[CommentService] list comments.");
         Page<Comments> pagingCommentList;
 
@@ -153,5 +132,24 @@ public class CommentServiceImpl implements CommentService {
         }
 
         return pagingCommentList;
+    }
+
+    private void checkIfPostDeleted(int postId) {
+        Posts post = this.postsRepository.findById(postId)
+                .orElseThrow(NoInformationException::new);
+        if(post.getDeleted() == DELETED_EVENT_CHECK) {
+            throw new NoInformationException();
+        }
+    }
+
+    private Comments makeObjectForComment(int postId, String content, String author) {
+
+        return Comments.builder()
+                        .postId(postId)
+                        .author(author)
+                        .content(content)
+                        .lastUpdate(factory.whatIsTimestampOfNow())
+                        .deleted(NEW_EVENT_CHECK)
+                        .build();
     }
 }
