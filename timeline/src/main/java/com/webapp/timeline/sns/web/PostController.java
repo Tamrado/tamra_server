@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.dto.EventRequest;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,9 +36,9 @@ public class PostController {
 
     @ApiOperation(value = "글쓰기 : 무슨 일이 있으셨나요? (request : 글 내용, show-level)",
                 notes = "response : 201 -> 성공 " +
-                                "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
+                                "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시 (사진 있을 경우 0 허용)")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-    public ResponseEntity create(@RequestBody Posts post,
+    public ResponseEntity create(@RequestBody EventRequest eventRequest,
                                  @ApiIgnore HttpServletRequest request) {
 
         logger.info("[PostController] create post.");
@@ -45,7 +46,7 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(this.postServiceImpl.createPost(post, request), header, HttpStatus.CREATED);
+            return new ResponseEntity<>(this.postServiceImpl.createEvent(eventRequest, request), header, HttpStatus.CREATED);
         }
         catch(NoStoringException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");
@@ -59,7 +60,7 @@ public class PostController {
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
                                 "| 404 -> 해당 post를 찾을 수 없음(이미 지워짐) " +
                                 "| 422 -> 삭제가 반영되지 않았을 때 (아직 글 남아있음)")
-    @PutMapping(value = "/{postId}/delete")
+    @DeleteMapping(value = "/{postId}/delete")
     public ResponseEntity delete(@PathVariable("postId") int postId,
                                  @ApiIgnore HttpServletRequest request) {
 
@@ -90,14 +91,14 @@ public class PostController {
 
     @ApiOperation(value = "글 수정하기 (request : 글 Id, 글 내용/ show-level)",
                 notes = "response : 200 -> 성공 " +
-                                "| 400 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
+                                "| 304 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
                                 "| 404 -> 해당 post가 이미 지워짐 " +
-                                "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때" +
+                                "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때 (사진 있을 경우 0 허용)" +
                                 "| 422 -> 삭제가 반영되지 않았을 때 ")
-    @PutMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    @PatchMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity update(@PathVariable("postId") int postId,
-                                 @RequestBody Posts post,
+                                 @RequestBody EventRequest eventRequest,
                                  @ApiIgnore HttpServletRequest request) {
 
         logger.info("[PostController] update post.");
@@ -106,12 +107,12 @@ public class PostController {
 
         try {
             return new ResponseEntity<>
-                    (this.postServiceImpl.updatePost(postId, post, request), header, HttpStatus.OK);
+                    (this.postServiceImpl.updatePost(postId, eventRequest, request), header, HttpStatus.OK);
         }
         catch(BadRequestException no_change) {
-            logger.warn("[PostController] There is NO CHANGE to update.");
+            logger.info("[PostController] There is NO CHANGE to update.");
 
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
         }
         catch(UnauthorizedUserException unauthorized_user) {
             logger.error("[PostController] This user is NOT authorized to delete.");
