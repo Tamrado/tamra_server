@@ -17,13 +17,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(tags = {"3. Post Image"})
+@Api(tags = {"3. Post"})
 @RestController
-@RequestMapping(value = "/post")
+@CrossOrigin(origins = {"*"})
+@RequestMapping(value = "/api/post")
 public class ImageController {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageController.class);
@@ -46,7 +46,7 @@ public class ImageController {
                                 "| 422 -> 썸네일 만들기 실패")
     @PostMapping(value = "upload/image")
     public ResponseEntity upload(MultipartFile file,
-                                 @ApiIgnore HttpServletRequest request) {
+                                 HttpServletRequest request) {
 
         logger.info("[ImageController] upload image.");
 
@@ -67,11 +67,11 @@ public class ImageController {
 
     @ApiOperation(value = "무슨 일이 있으셨나요? - 사진 개별 삭제 (request : image-id)",
                 notes = "response : 200 -> 성공" +
-                                "| 401 -> 로그인된 Id와 글/사진 올린 사람 Id 다를 때" +
+                                "| 401 -> 로그인된 Id와 글/사진 올린 사람 Id 다를 때 or user 없을 경우 (권한 없음) " +
                                 "| 404 -> 사진 or 글이 이미 삭제됨 ")
     @DeleteMapping(value = "image/{id}/delete")
     public ResponseEntity delete(@PathVariable("id") long id,
-                                 @ApiIgnore HttpServletRequest request) {
+                                 HttpServletRequest request) {
 
         logger.info("[ImageController] delete image.");
 
