@@ -11,5 +11,9 @@ public interface ImageService {
 
     void saveImage(Images entity);
 
+    void deleteImage(long id, HttpServletRequest request);
+
     int deleteImageByPostId(int postId);
+
+
 }
