@@ -67,8 +67,7 @@ public class CommentController {
     @ApiOperation(value = "댓글(2) : 댓글 삭제하기 (request : 글 Id)",
                 notes = "response : 200 -> 삭제 성공 " +
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
-                                "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 or 저장되지 않은 commentId " +
-                                "| 422 -> 삭제가 반영되지 않을 때 (아직 댓글 남아있음)")
+                                "| 404 -> 해당 글이나 댓글이 이미 삭제됨 (not found) ")
     @DeleteMapping(value = "/comment/{commentId}/remove")
     public ResponseEntity remove(@PathVariable("commentId") long commentId,
                                  @ApiIgnore HttpServletRequest request) {
@@ -82,20 +81,15 @@ public class CommentController {
             return new ResponseEntity<>
                     (this.commentService.removeComment(commentId, request), header, HttpStatus.OK);
         }
-        catch(NoInformationException no_comment_by_postId) {
-            logger.error("[CommentController] The Post already deleted or Comment is not saved.");
-
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         catch(UnauthorizedUserException unauthorized_user) {
             logger.error("[CommentController] This user is NOT authorized to delete.");
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        catch(WrongCodeException no_affected_row) {
-            logger.error("[CommentController] There is 0 affected row.");
+        catch(NoInformationException no_comment_by_postId) {
+            logger.error("[CommentController] The Post or Comment is already deleted.");
 
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
@@ -103,9 +97,8 @@ public class CommentController {
                 notes = "response : 200 -> 수정 (내용/ 시간) 성공 " +
                                 "| 400 -> 수정이 불가능한 댓글 (이미 삭제됐는데 db 반영 안돼서 남아있을 경우)" +
                                 "| 401 -> 로그인된 Id와 댓글 쓴 사람 Id가 다를 때" +
-                                "| 404 -> 해당 글이 이미 지워졌을 때/ 없을 때 or 저장되지 않은 commentId " +
-                                "| 409 -> 수정한 댓글 내용이 0글자 or 300글자 초과일 때" +
-                                "| 422 -> 수정이 반영되지 않을 때")
+                                "| 404 -> 해당 글이나 댓글이 이미 삭제됨 (not found) " +
+                                "| 409 -> 수정한 댓글 내용이 0글자 or 300글자 초과일 때" )
     @PutMapping(value = "/comment/{commentId}/edit")
     public ResponseEntity edit(@PathVariable("commentId") long commentId,
                                @RequestBody Comments comment,
@@ -126,7 +119,7 @@ public class CommentController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         catch(NoInformationException no_comment_by_postId) {
-            logger.error("[CommentController] The Post already deleted or Comment is not saved.");
+            logger.error("[CommentController] The Post or Comment is already deleted.");
 
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -139,11 +132,6 @@ public class CommentController {
             logger.error("[CommentController] There are 0 or over 300 characters in content.");
 
             return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
-        catch(WrongCodeException no_affected_row) {
-            logger.error("[CommentController] There is 0 affected row.");
-
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 

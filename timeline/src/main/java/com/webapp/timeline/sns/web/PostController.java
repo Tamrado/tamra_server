@@ -57,8 +57,7 @@ public class PostController {
     @ApiOperation(value = "글 삭제하기 (request : 글 Id)",
                 notes = "response : 200 -> 성공 " +
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
-                                "| 404 -> 해당 post를 찾을 수 없음(이미 지워짐) " +
-                                "| 422 -> 삭제가 반영되지 않았을 때 (아직 글 남아있음)")
+                                "| 404 -> 삭제됐거나 찾을 수 없는 post " )
     @DeleteMapping(value = "/{postId}/delete")
     public ResponseEntity delete(@PathVariable("postId") int postId,
                                  @ApiIgnore HttpServletRequest request) {
@@ -77,14 +76,9 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         catch(NoInformationException no_post) {
-            logger.error("[PostController] CanNOT find post by post-id.");
+            logger.error("[PostController] CanNOT find (or already deleted) post by post-id.");
 
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        catch(WrongCodeException no_affected_row) {
-            logger.error("[PostController] There is 0 affected row.");
-
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 
@@ -92,9 +86,8 @@ public class PostController {
                 notes = "response : 200 -> 성공 " +
                                 "| 304 -> 바뀐 내용이 없을 때 (글이 수정되지 않았습니다. 돌아가시겠습니까?) " +
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 " +
-                                "| 404 -> 해당 post가 이미 지워짐 " +
-                                "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때 (사진 있을 경우 0 허용)" +
-                                "| 422 -> 삭제가 반영되지 않았을 때 ")
+                                "| 404 -> 삭제됐거나 찾을 수 없는 post " +
+                                "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때 (사진 있을 경우 0 허용)" )
     @PatchMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity update(@PathVariable("postId") int postId,
                                  @RequestBody EventRequest eventRequest,
@@ -119,7 +112,7 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         catch(NoInformationException no_post) {
-            logger.error("[PostController] Can NOT find post by post-id.");
+            logger.error("[PostController] Can NOT find (or already deleted) post by post-id.");
 
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -127,11 +120,6 @@ public class PostController {
             logger.error("[PostController] The content is empty or too long.");
 
             return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
-        catch(WrongCodeException no_affected_row) {
-            logger.error("[PostController] There is 0 affected row.");
-
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 

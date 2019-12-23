@@ -72,8 +72,7 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         checkInactiveUser(userId);
 
         try {
-            loggedIn = this.userSignService.extractUserFromToken(request)
-                                        .getUserId();
+            loggedIn = factory.extractLoggedIn(request);
 
             if(loggedIn.equals(userId)) {
                 pagingPostList = this.postsRepository.listMyPostsByUser(pageable, loggedIn);
@@ -124,9 +123,9 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
 
     protected Map<String, String> getUserProfile(String userId) {
         String profile = this.userImagesRepository.findImageURLById(userId)
-                .getProfileURL();
+                                                .getProfileURL();
         String nickname = this.userSignService.loadUserByUsername(userId)
-                .getUsername();
+                                            .getUsername();
 
         return Collections.singletonMap(nickname, profile);
     }
