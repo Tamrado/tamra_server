@@ -1,7 +1,6 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.request.EventRequest;
@@ -34,7 +33,6 @@ public class PostServiceImpl implements PostService {
     private PostsRepository postsRepository;
     private ImageService imageService;
     private CommentService commentService;
-    private UserSignServiceImpl userSignService;
     private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Posts> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 1000;
@@ -47,13 +45,11 @@ public class PostServiceImpl implements PostService {
     public PostServiceImpl(PostsRepository postsRepository,
                            ImageServiceImpl imageService,
                            CommentServiceImpl commentService,
-                           UserSignServiceImpl userSignService,
                            TimelineServiceImpl timelineService,
                            ServiceAspectFactory<Posts> factory) {
         this.postsRepository = postsRepository;
         this.imageService = imageService;
         this.commentService = commentService;
-        this.userSignService = userSignService;
         this.timelineService = timelineService;
         this.factory = factory;
     }
@@ -65,8 +61,7 @@ public class PostServiceImpl implements PostService {
 
         Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
-        String author = this.userSignService.extractUserFromToken(request)
-                                            .getUserId();
+        String author = factory.extractLoggedIn(request);
         checkContentValidation(eventRequest);
         int postId = postsRepository.save(makeObjectForPost(eventRequest, author))
                                     .getPostId();
@@ -98,11 +93,9 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] delete Post.");
         Map<String, Integer> responseBody = new HashMap<>(3);
 
-        Posts post = checkIfPostDeleted(postId);
-        String author = this.userSignService.extractUserFromToken(request)
-                                            .getUserId();
+        Posts post = factory.checkDeleteAndGetIfExist(postId);
 
-        if(author.equals(post.getAuthor())) {
+        if(factory.extractLoggedIn(request).equals(post.getAuthor())) {
             post.setDeleted(DELETED_EVENT_CHECK);
             factory.takeActionByQuery(this.postsRepository.markDeleteByPostId(post));
 
@@ -120,10 +113,9 @@ public class PostServiceImpl implements PostService {
     public Map<String, Integer> updatePost(int postId, EventRequest eventRequest, HttpServletRequest request) {
         logger.info("[PostService] update Post.");
 
-        Posts existedPost = checkIfPostDeleted(postId);
-        String author = this.userSignService.extractUserFromToken(request)
-                                            .getUserId();
-        if(! author.equals(existedPost.getAuthor())) {
+        Posts existedPost = factory.checkDeleteAndGetIfExist(postId);
+
+        if(!factory.extractLoggedIn(request).equals(existedPost.getAuthor())) {
             throw new UnauthorizedUserException();
         }
 
@@ -142,13 +134,11 @@ public class PostServiceImpl implements PostService {
     public TimelineResponse getOnePostByPostId(int postId, HttpServletRequest request) {
         logger.info("[PostService] get one post by post-id.");
 
-        Posts post = checkIfPostDeleted(postId);
+        Posts post = factory.checkDeleteAndGetIfExist(postId);
         String author = post.getAuthor();
-        String loggedIn = this.userSignService.extractUserFromToken(request)
-                                            .getUserId();
         String showLevel = post.getShowLevel();
 
-        if(! author.equals(loggedIn)) {
+        if(! author.equals(factory.extractLoggedIn(request))) {
             //Todo : following-level 글 처리
 
             if(showLevel.equals(PRIVATE)) {
@@ -178,16 +168,6 @@ public class PostServiceImpl implements PostService {
                     .showLevel(event.getShowLevel())
                     .deleted(NEW_EVENT_CHECK)
                     .build();
-    }
-
-    private Posts checkIfPostDeleted(int postId) {
-        Posts post = this.postsRepository.findById(postId)
-                                        .orElseThrow(NoInformationException::new);
-        if(post.getDeleted() == DELETED_EVENT_CHECK) {
-            throw new NoInformationException();
-        }
-
-        return post;
     }
 
     private void isUpdateExecuted(Posts existed, EventRequest updated) {

@@ -22,7 +22,7 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Comments item SET item.deleted = :#{#comment.deleted} " +
-                    "WHERE item.commentId = :#{#comment.commentId}",
+                    "WHERE item.commentId = :#{#comment.commentId} AND item.deleted = 0",
             nativeQuery = false)
     Integer markDeleteByCommentId(@Param("comment") Comments comment);
 
@@ -30,7 +30,7 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Comments item " +
                     "SET item.content = :#{#comment.content}, item.lastUpdate = :#{#comment.lastUpdate} " +
-                    "WHERE item.commentId = :#{#comment.commentId}",
+                    "WHERE item.commentId = :#{#comment.commentId} AND item.deleted = 0",
             nativeQuery = false)
     Integer editCommentByCommentId(@Param("comment") Comments comment);
 

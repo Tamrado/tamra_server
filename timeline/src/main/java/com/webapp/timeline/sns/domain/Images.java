@@ -31,4 +31,8 @@ public class Images {
 
     @Column(name = "deleted", nullable = false)
     private int deleted;
+
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
+    }
 }
