@@ -24,4 +24,6 @@ public interface FollowersRepository extends JpaRepository<Followers, FollowId> 
     void updateIsAlarmtoInvalidate(@Param("uid")String uid, @Param("fid")String fid);
 
 
+
+
 }

@@ -49,25 +49,12 @@ public class FriendServiceImpl implements FriendService{
     }
     @Override
     public ArrayList<LoggedInfo> sendFriendApplyList(HttpServletRequest request) throws RuntimeException{
-        ArrayList<LoggedInfo> loggedInfoArrayList = new ArrayList<>();
-
         String userId = tokenService.sendIdInCookie(request);
-        List<String> friendApplyList = followingRepository.findFriendApplyList(userId);
 
+        List<String> friendApplyList = followingRepository.findFriendApplyList(userId);
         if(friendApplyList.isEmpty()) throw new NoMatchPointException();
 
-        for(String friendId : friendApplyList){
-            Map<String,String> friendMap = usersEntityRepository.findUserInfo(friendId);
-
-            if(friendMap == null) continue;
-            if(friendMap.get("authority").equals("ROLE_INACTIVEUSER")) continue;
-
-            Profiles friendProfile = userImagesRepository.findImageURLById(friendId);
-            LoggedInfo friendInfo = new LoggedInfo(friendMap.get("userId"),friendProfile.getProfileURL(),friendMap.get("name"),friendMap.get("comment"));
-            loggedInfoArrayList.add(friendInfo);
-        }
-
-        if(loggedInfoArrayList.isEmpty()) throw new NoMatchPointException();
+        ArrayList<LoggedInfo> loggedInfoArrayList = this.createFriendInfo(friendApplyList);
 
         return loggedInfoArrayList;
     }
@@ -84,22 +71,39 @@ public class FriendServiceImpl implements FriendService{
     }
     @Override
     public ArrayList<LoggedInfo> sendFriendList(HttpServletRequest request) throws RuntimeException{
-        ArrayList<LoggedInfo> friendListContents = new ArrayList<>();
         String userId = tokenService.sendIdInCookie(request);
         List<String> friendList = followingRepository.findFirstFriendList(userId);
         friendList.addAll(followingRepository.findSecondFriendList(userId));
+        ArrayList<LoggedInfo> friendListContents = this.createFriendInfo(friendList);
+        return friendListContents;
+    }
+    @Override
+    public ArrayList<LoggedInfo> searchInFriendList(String nickname,HttpServletRequest request) throws RuntimeException{
+        String userId = tokenService.sendIdInCookie(request);
+        List<String> friendIdList = usersEntityRepository.findNameInFirstFriendList(userId,nickname);
+        friendIdList.addAll(usersEntityRepository.findNameInSecondFriendList(userId,nickname));
+        ArrayList<LoggedInfo> friendListForSearching = this.createFriendInfo(friendIdList);
+        return friendListForSearching;
+    }
+    @Override
+    public ArrayList<String> sendFriendIdList(String userId) throws RuntimeException{
+        List<String> friendList = followingRepository.findFirstFriendList(userId);
+        friendList.addAll(followingRepository.findSecondFriendList(userId));
+        return (ArrayList<String>) friendList;
+    }
+    private ArrayList<LoggedInfo> createFriendInfo(List<String> friendList) throws RuntimeException{
+        ArrayList<LoggedInfo> friendListContents = new ArrayList<>();
         for(String friendId : friendList) {
             LoggedInfo friendInfo = null;
-            try {
+            try{
                 friendInfo = userService.setLoggedInfo(friendId);
             }catch(RuntimeException e){
 
             }
             if(friendInfo == null) continue;
             friendListContents.add(friendInfo);
-        }                       
+        }
         if(friendListContents.isEmpty()) throw new NoMatchPointException();
         return friendListContents;
     }
-
 }

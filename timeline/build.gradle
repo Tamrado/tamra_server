@@ -43,6 +43,8 @@ dependencies {
     compile fileTree(dir: 'ext_libs', include: ['*.jar'])
     annotationProcessor 'org.projectlombok:lombok'
     compile 'org.projectlombok:lombok'
+    compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile('org.springframework.boot:spring-boot-starter-batch')
     compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
     compile group: 'org.springframework', name: 'spring-context-support', version: '5.2.1.RELEASE'

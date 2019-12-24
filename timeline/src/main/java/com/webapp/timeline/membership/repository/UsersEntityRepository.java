@@ -52,4 +52,14 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
     @Modifying
     @Query(value = "update Users u set u.authority = :authority where u.userId = :userId")
     void updateUserAuthority(@Param("userId")String userId, @Param("authority")String authority);
+
+    @Query("select u.userId from Users u where u.name like %:nickname% " +
+            "and u.userId in(select fl.id.friendId from Followings fl where fl.id.userId = :uid and fl.isFollow = 1 and " +
+            "fl.id.friendId in (select f.id.userId from Followers f where f.id.friendId = :uid and f.isFollow = 1))")
+    List<String> findNameInFirstFriendList(@Param("uid")String uid,@Param("nickname") String nickname);
+
+    @Query("select u.userId from Users u where u.name like %:nickname%" +
+            " and u.userId in (select fl.id.userId from Followings fl where fl.id.friendId = :uid and fl.isFollow = 1 and " +
+            "fl.id.userId in (select f.id.friendId from Followers f where f.id.userId = :uid and f.isFollow = 1))")
+    List<String> findNameInSecondFriendList(@Param("uid")String uid,@Param("nickname") String nickname);
 }

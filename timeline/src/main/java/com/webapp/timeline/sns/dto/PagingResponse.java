@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PagingResponse<T> {
-    @JsonProperty("content-list")
+    @JsonProperty("contentlist")
     List<T> objectSet;
     boolean first;
     boolean last;
