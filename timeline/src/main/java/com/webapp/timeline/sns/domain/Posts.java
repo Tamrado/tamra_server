@@ -41,6 +41,9 @@ public class Posts {
     @Formula("(select count(*) from comments c where c.postId = postId AND c.deleted = 0)")
     private Long commentNum;
 
+    @Formula("(select count(*) from likes l where l.postId = postId)")
+    private Long likeNum;
+
     public void setContent(String content) {
         this.content = content;
     }
