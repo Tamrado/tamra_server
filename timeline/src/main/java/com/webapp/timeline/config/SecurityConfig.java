@@ -48,10 +48,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/*/member/auth","/*/member","/*/member/image").permitAll()
-                .antMatchers(HttpMethod.GET, "/*/member/*").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/member/*").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/member/*").permitAll()
+                .antMatchers("/api/*").hasAuthority("ROLE_USER")
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .anyRequest().permitAll()
                 .and()
                 .cors().configurationSource(corsConfigurationSource())
                 .and()

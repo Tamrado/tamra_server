@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Map;
 
 @Api(tags = {"2. Follow"})
 @RequestMapping(value = "/api")
@@ -34,7 +35,7 @@ public class FollowController {
     }
     @ApiOperation(value = "다른이의 follow follower 개수" , notes = "마이 포스트 내 개수 리턴 (response : 200 - 성공, 404 - 아이디가 없는 아이디임 )")
     @GetMapping(value="/friend/post/num")
-    public PostProfileInfo sendFriendFollowFollowerNum(String fid) throws RuntimeException {
+    public PostProfileInfo sendFriendFollowFollowerNum(String fid,HttpServletRequest request) throws RuntimeException {
         return followService.sendFriendInfo(fid);
     }
 
@@ -52,13 +53,18 @@ public class FollowController {
 
     @ApiOperation(value = "친구 신청 알림 삭제", notes = "response : 200- 성공 404 - uid 없음 411 - fid 없음")
     @PutMapping(value = "/friend/alarmlist/notification")
-    public void deleteFriendApplyAlarm(HttpServletRequest httpServletRequest,String friendName) throws RuntimeException{
-        friendService.invalidateFriendApplyAlarm(httpServletRequest,friendName);
+    public void deleteFriendApplyAlarm(HttpServletRequest httpServletRequest,@RequestBody Map<String,String> friendName) throws RuntimeException{
+        friendService.invalidateFriendApplyAlarm(httpServletRequest,friendName.get("userId"));
     }
     @ApiOperation(value = "친구 리스트 컨텐츠", notes = "response : 200 성공 404 - uid 없음 411 - 친구가 없음")
     @GetMapping(value = "/friend/list")
     public ArrayList<LoggedInfo> sendFriendListContents(HttpServletRequest httpServletRequest) throws RuntimeException{
         return friendService.sendFriendList(httpServletRequest);
+    }
+    @ApiOperation(value = "친구 리스트 내 검색 기능", notes = "response : 200 성공 404 - uid 없음 411 - 친구가 없음")
+    @GetMapping(value = "/friend/list/{nickname}")
+    public ArrayList<LoggedInfo> searchInFriendList(@PathVariable String nickname,HttpServletRequest httpServletRequest) throws RuntimeException{
+        return friendService.searchInFriendList(nickname,httpServletRequest);
     }
 }
 

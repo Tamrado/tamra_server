@@ -3,6 +3,7 @@ package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.membership.domain.Profiles;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
@@ -43,6 +44,8 @@ public class UserServiceImpl implements UserService {
     public LoggedInfo setLoggedInfo(String userId) throws RuntimeException{
         Profiles profiles = userImagesRepository.findImageURLById(userId);
         Map<String,String> userInfo = usersEntityRepository.findUserInfo(userId);
+        if(userInfo == null) throw new NoMatchPointException();
+        if(!userInfo.get("authority").equals("ROLE_USER")) throw new UnauthorizedUserException();
         if(profiles == null) throw new NoMatchPointException();
         LoggedInfo loggedInfo = new LoggedInfo(userId, profiles.getProfileURL(),userInfo.get("name"),userInfo.get("comment"));
         return loggedInfo;
