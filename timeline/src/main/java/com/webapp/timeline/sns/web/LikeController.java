@@ -3,6 +3,7 @@ package com.webapp.timeline.sns.web;
 import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.UnauthorizedUserException;
+import com.webapp.timeline.sns.dto.request.CustomPageRequest;
 import com.webapp.timeline.sns.service.LikeServiceImpl;
 import com.webapp.timeline.sns.service.interfaces.LikeService;
 import io.swagger.annotations.Api;
@@ -10,7 +11,9 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,5 +92,30 @@ public class LikeController {
         }
     }
 
-    @ApiOperation(value = "1개 글을 좋아한 유저 목록 + 총 개수 (request: 글 Id, 몇 page)")
+    @ApiOperation(value = "1개 글을 좋아한 유저 목록 + 총 개수 (request: 글 Id, 몇 page)",
+                notes = "response : 200 -> 성공 " +
+                                "| 400 -> 페이지 번호 > 마지막 페이지일 때 " +
+                                "| 404 -> 이미 지워진 글")
+    @GetMapping(value = "/{postId}/like/list")
+    public ResponseEntity show(@PathVariable("postId") int postId,
+                               CustomPageRequest pageRequest) {
+        logger.info("[LikeController] Show like-list.");
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        try {
+            return new ResponseEntity<>
+                    (this.likeService.showLikes(pageRequest.of("likeId"), postId), header, HttpStatus.OK);
+        }
+        catch(BadRequestException exceed_page) {
+            logger.info("[LikeController] Input page exceeds last page.");
+
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(NoInformationException no_post) {
+            logger.error("[LikeController] The post already deleted.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

@@ -4,7 +4,6 @@ import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.membership.domain.Users;
-import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
@@ -36,7 +35,6 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
 
     private static final Logger logger = LoggerFactory.getLogger(TimelineServiceImpl.class);
     private UserSignServiceImpl userSignService;
-    private UserImagesRepository userImagesRepository;
     private PostsRepository postsRepository;
     private ImagesRepository imagesRepository;
     private ServiceAspectFactory<Posts> factory;
@@ -50,12 +48,10 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
 
     @Autowired
     public TimelineServiceImpl(UserSignServiceImpl userSignService,
-                               UserImagesRepository userImagesRepository,
                                PostsRepository postsRepository,
                                ImagesRepository imagesRepository,
                                ServiceAspectFactory<Posts> factory) {
         this.userSignService = userSignService;
-        this.userImagesRepository = userImagesRepository;
         this.postsRepository = postsRepository;
         this.imagesRepository = imagesRepository;
         this.factory = factory;
@@ -104,7 +100,7 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
     @Override
     @SuppressWarnings("unchecked")
     public TimelineResponse makeSingleResponse(Posts item) {
-        Map<String, String> userInfo = getUserProfile(item.getAuthor());
+        Map<String, String> userInfo = factory.getUserProfile(item.getAuthor());
         String nickname = userInfo.keySet()
                                 .iterator()
                                 .next();
@@ -118,16 +114,8 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
                             .timestamp(printEasyTimestamp(item.getLastUpdate()))
                             .files(getPostImages(item.getPostId()))
                             .totalComment(Math.toIntExact(item.getCommentNum()))
+                            .totalLike(Math.toIntExact(item.getLikeNum()))
                             .build();
-    }
-
-    protected Map<String, String> getUserProfile(String userId) {
-        String profile = this.userImagesRepository.findImageURLById(userId)
-                                                .getProfileURL();
-        String nickname = this.userSignService.loadUserByUsername(userId)
-                                            .getUsername();
-
-        return Collections.singletonMap(nickname, profile);
     }
 
     private List getPostImages(int postId) {

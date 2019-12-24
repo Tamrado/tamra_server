@@ -2,7 +2,9 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.exception.WrongCodeException;
+import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.repository.PostsRepository;
@@ -16,6 +18,8 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
 
@@ -23,20 +27,40 @@ import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CH
 public class ServiceAspectFactory<T> {
     private UserSignServiceImpl userSignService;
     private PostsRepository postsRepository;
+    private UserImagesRepository userImagesRepository;
 
     ServiceAspectFactory() {
     }
 
     @Autowired
     public ServiceAspectFactory (UserSignServiceImpl userSignService,
-                                 PostsRepository postsRepository) {
+                                 PostsRepository postsRepository,
+                                 UserImagesRepository userImagesRepository) {
         this.userSignService = userSignService;
         this.postsRepository = postsRepository;
+        this.userImagesRepository = userImagesRepository;
     }
 
     protected String extractLoggedIn(HttpServletRequest request) {
-        return this.userSignService.extractUserFromToken(request)
-                .getUserId();
+        String loggedIn = "";
+        try {
+            loggedIn = this.userSignService.extractUserFromToken(request)
+                                        .getUserId();
+        }
+        catch(NoInformationException no_user) {
+            throw new UnauthorizedUserException();
+        }
+
+        return loggedIn;
+    }
+
+    protected Map<String, String> getUserProfile(String userId) {
+        String profile = this.userImagesRepository.findImageURLById(userId)
+                                                .getProfileURL();
+        String nickname = this.userSignService.loadUserByUsername(userId)
+                                            .getUsername();
+
+        return Collections.singletonMap(nickname, profile);
     }
 
     protected Posts checkDeleteAndGetIfExist(int postId) {

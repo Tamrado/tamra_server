@@ -1,18 +1,23 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.BadRequestException;
-import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.sns.domain.Likes;
+import com.webapp.timeline.sns.dto.response.LikeResponse;
+import com.webapp.timeline.sns.dto.response.ProfileResponse;
 import com.webapp.timeline.sns.repository.LikesRepository;
 import com.webapp.timeline.sns.service.interfaces.LikeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class LikeServiceImpl implements LikeService {
@@ -67,4 +72,40 @@ public class LikeServiceImpl implements LikeService {
         likesRepository.deleteById(likeId);
     }
 
+    @Override
+    public LikeResponse showLikes(Pageable pageable, int postId) {
+        logger.info("[LikeService] show like-list by post-Id.");
+        List<ProfileResponse> profileList = new LinkedList<>();
+
+        factory.checkDeleteAndGetIfExist(postId);
+        Page<String> pagingUserList = likesRepository.showLikesByPostId(pageable, postId);
+
+        if(factory.isPageExceed(pagingUserList, pageable)) {
+            throw new BadRequestException();
+        }
+
+        pagingUserList.forEach(userId -> {
+            profileList.add(makeSingleResponse(userId));
+        });
+
+        return LikeResponse.builder()
+                            .postId(postId)
+                            .profileSet(profileList)
+                            .totalNum(pagingUserList.getTotalElements())
+                            .first(pagingUserList.isFirst())
+                            .last(pagingUserList.isLast())
+                            .build();
+    }
+
+    private ProfileResponse makeSingleResponse(String userId) {
+        Map<String, String> userInfo = factory.getUserProfile(userId);
+        String name = userInfo.keySet()
+                            .iterator()
+                            .next();
+
+        return ProfileResponse.builder()
+                            .name(name)
+                            .profile(userInfo.get(name))
+                            .build();
+    }
 }
