@@ -142,7 +142,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private CommentResponse makeSingleResponse(Comments comment) {
-        Map<String, String> userInfo = timelineService.getUserProfile(comment.getAuthor());
+        Map<String, String> userInfo = factory.getUserProfile(comment.getAuthor());
         String nickname = userInfo.keySet()
                                 .iterator()
                                 .next();
