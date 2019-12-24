@@ -8,6 +8,7 @@ import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.JwtTokenProvider;
 import com.webapp.timeline.membership.security.SignUpValidator;
+import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +16,13 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 @Configurable
 @Service
-public class UserSignServiceImpl implements UserDetailsService,UserSignService {
+public class UserSignServiceImpl implements UserDetailsService, UserSignService {
     Logger log = LoggerFactory.getLogger(this.getClass());
     private UsersEntityRepository usersEntityRepository;
     private CustomPasswordEncoder customPasswordEncoder;

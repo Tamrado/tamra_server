@@ -62,4 +62,8 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
             " and u.userId in (select fl.id.userId from Followings fl where fl.id.friendId = :uid and fl.isFollow = 1 and " +
             "fl.id.userId in (select f.id.friendId from Followers f where f.id.userId = :uid and f.isFollow = 1))")
     List<String> findNameInSecondFriendList(@Param("uid")String uid,@Param("nickname") String nickname);
+
+
+
+
 }

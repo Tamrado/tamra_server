@@ -29,7 +29,7 @@ public interface FollowingRepository extends JpaRepository<Followings, FollowId>
 
     @Modifying
     @Query("update Followings f set f.isAlarm = 0 where f.id.friendId = :uid and f.id.userId = :fid")
-    void updateIsAlarmtoInvalidate(@Param("uid")String uid, @Param("fid")String fid);
+    void updateAlarmtoInvalidate(@Param("uid")String uid, @Param("fid")String fid);
 
     @Query("select fl.id.friendId from Followings fl where fl.id.userId = :uid and fl.isFollow = 1 and " +
             "fl.id.friendId in (select f.id.userId from Followers f where f.id.friendId = :uid and f.isFollow = 1)")
@@ -39,5 +39,7 @@ public interface FollowingRepository extends JpaRepository<Followings, FollowId>
             "fl.id.userId in (select f.id.friendId from Followers f where f.id.userId = :uid and f.isFollow = 1)")
     List<String> findSecondFriendList(@Param("uid")String uid);
 
-
+    @Modifying
+    @Query("update Followers f set f.isFollow = 0 where f.id.friendId = :uid and f.id.userId = :fid")
+    void updateUnfollow(@Param("uid")String uid, @Param("fid")String fid);
 }

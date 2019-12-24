@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = {"1. Validate"})
-@RequestMapping(value = "/api")
+@RequestMapping(value = "/api/member")
 @RestController
 public class ValidateController {
     private ValidateService validateService;
@@ -23,17 +23,17 @@ public class ValidateController {
     }
 
     @ApiOperation(value = "회원가입 시 아이디 확인", notes = "존재하는 아이디인지 알려줌")
-    @GetMapping(value="/member/id")
+    @GetMapping(value="/id")
     public ValidationInfo validateIdExists(@RequestParam String id, HttpServletResponse response){
          return validateService.checkId(id,response);
     }
     @ApiOperation(value = "회원가입 시 이메일 확인", notes = "존재하는 이메일인지 알려줌")
-    @GetMapping(value="/member/email")
+    @GetMapping(value="/email")
     public ValidationInfo validateEmailExists(@RequestParam String email,@RequestParam String id,HttpServletResponse response){
         return validateService.checkEmail(email,id,response);
     }
     @ApiOperation(value = "회원가입 시 핸드폰 번호 확인", notes = "존재하는 핸드폰 번호인지 알려줌")
-    @GetMapping(value="/member/phone")
+    @GetMapping(value="/phone")
     public ValidationInfo validatePhoneExists (@RequestParam String phone,@RequestParam String id,HttpServletResponse response){
         return validateService.checkPhone(phone,id,response);
     }
