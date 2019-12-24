@@ -14,7 +14,6 @@ import javax.transaction.Transactional;
 @Repository
 public interface PostsRepository extends JpaRepository<Posts, Integer> {
 
-    @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Posts p SET p.deleted = :#{#post.deleted} " +
                     "WHERE p.postId = :#{#post.postId}",

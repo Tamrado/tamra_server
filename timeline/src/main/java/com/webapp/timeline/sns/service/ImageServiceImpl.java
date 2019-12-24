@@ -1,10 +1,13 @@
 package com.webapp.timeline.sns.service;
 
+import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
+import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Images;
+import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.service.interfaces.ImageService;
 import org.slf4j.Logger;
@@ -20,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
+
 
 @Service
 public class ImageServiceImpl implements ImageService {
@@ -27,28 +32,28 @@ public class ImageServiceImpl implements ImageService {
     private ImageS3Uploader imageUploader;
     private ImagesRepository imagesRepository;
     private UserSignService userSignService;
-    private final int THUMBNAIL_HEIGHT = 300;
-    private final int THUMBNAIL_WIDTH = 300;
+    private ServiceAspectFactory<Images> factory;
+    private final int THUMBNAIL_HEIGHT = 290;
+    private final int THUMBNAIL_WIDTH = 290;
     private final String IMAGE_FORMAT = "png";
     private final String TEMP_FILEPATH = "src/main/resources/thumbnail.png";
 
+    ImageServiceImpl() {
+    }
+
     @Autowired
-    public void setImageUploader(ImageS3Uploader imageUploader) {
+    public ImageServiceImpl(ImageS3Uploader imageUploader,
+                            ImagesRepository imagesRepository,
+                            UserSignServiceImpl userSignService,
+                            ServiceAspectFactory<Images> factory) {
         this.imageUploader = imageUploader;
-    }
-
-    @Autowired
-    public void setImagesRepository(ImagesRepository imagesRepository) {
         this.imagesRepository = imagesRepository;
-    }
-
-    @Autowired
-    public void setUserSignService(UserSignServiceImpl userSignService) {
         this.userSignService = userSignService;
+        this.factory = factory;
     }
 
     @Override
-    public void uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
+    public ImageDto uploadImage(MultipartFile multipartFile, HttpServletRequest request) {
         logger.info("[ImageService] Upload Original Image.");
 
         String email = this.userSignService.extractUserFromToken(request)
@@ -59,20 +64,55 @@ public class ImageServiceImpl implements ImageService {
         try {
             url = this.imageUploader.upload(multipartFile, email);
             originalFile = this.imageUploader.getOriginalFile();
+
+            if(! url.equals("")) {
+                return ImageDto.builder()
+                                .original(url)
+                                .thumbnail(makeThumbNail(originalFile, email))
+                                .build();
+            }
         }
         catch(IOException aws_IO_exception) {
             throw new NoStoringException();
         }
 
-        if(! url.equals("")) {
-            Images image = Images.builder()
-                                .postId(postId)
-                                .thumbnail(makeThumbNail(originalFile, email))
-                                .url(url)
-                                .build();
+        return null;
+    }
 
-            this.imagesRepository.saveAndFlush(image);
+    @Override
+    public void saveImage(Images entity) {
+        logger.info("[ImageService] Save image to database.");
+
+        imagesRepository.save(entity);
+    }
+
+    @Override
+    public void deleteImage(long id, HttpServletRequest request) {
+        logger.info("[ImageService] Delete 1 image by id.");
+
+        String userId = factory.extractLoggedIn(request);
+        Images image = this.imagesRepository.findById(id)
+                                            .orElseThrow(NoInformationException::new);
+        String author = factory.checkDeleteAndGetIfExist(image.getPostId())
+                                .getAuthor();
+
+        if(author != null && author.equals(userId)) {
+            image.setDeleted(DELETED_EVENT_CHECK);
+            factory.takeActionByQuery(this.imagesRepository.markDeleteByImageId(image));
         }
+        else if(author == null || author.equals("")) {
+            throw new NoInformationException();
+        }
+        else {
+            throw new UnauthorizedUserException();
+        }
+    }
+
+    @Override
+    public int deleteImageByPostId(int postId) {
+        logger.info("[ImageService] Delete all-images by postId.");
+
+        return this.imagesRepository.markDeleteByPostId(postId);
     }
 
     private String makeThumbNail(File original, String email) {
@@ -89,7 +129,7 @@ public class ImageServiceImpl implements ImageService {
             graphic.drawImage(originalBuffer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, null);
 
             if(ImageIO.write(thumbnailBuffer, IMAGE_FORMAT, thumbnail)) {
-                thumbnailUrl =  uploadThumbnail(thumbnail, email);
+                thumbnailUrl = uploadThumbnail(thumbnail, email);
                 this.imageUploader.removeFileInLocal(original);
                 this.imageUploader.removeFileInLocal(thumbnail);
 

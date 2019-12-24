@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.dto;
+package com.webapp.timeline.sns.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -12,10 +12,11 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PagingResponse<T> {
-    @JsonProperty("contentlist")
-    List<T> objectSet;
+public class LikeResponse {
+    int postId;
+    @JsonProperty("likeProfiles")
+    List<ProfileResponse> profileSet;
+    long totalNum;
     boolean first;
     boolean last;
-
 }
