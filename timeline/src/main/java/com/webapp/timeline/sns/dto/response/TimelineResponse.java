@@ -23,4 +23,5 @@ public class TimelineResponse {
     @JsonProperty("files")
     private List<ImageDto> files;
     private int totalComment;
+    private int totalLike;
 }
