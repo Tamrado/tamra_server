@@ -7,18 +7,18 @@ import com.webapp.timeline.follow.domain.Followers;
 import com.webapp.timeline.follow.domain.Followings;
 import com.webapp.timeline.follow.repository.FollowersRepository;
 import com.webapp.timeline.follow.repository.FollowingRepository;
+import com.webapp.timeline.follow.service.interfaces.FollowService;
+import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.follow.service.response.FollowInfo;
 import com.webapp.timeline.follow.service.response.PostProfileInfo;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
-import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Service
 public class FollowServiceImpl implements FollowService {
@@ -41,6 +41,8 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
+
         FollowInfo followInfo = sendFollowFollowerNum(userId);
         return followInfo;
     }
@@ -66,8 +68,10 @@ public class FollowServiceImpl implements FollowService {
     @Transactional
     public void sendFollow(String fid,HttpServletRequest request)throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
         String friend = usersEntityRepository.findIdByExistingId(fid);
         if(friend == null) throw new NoMatchPointException();
+        userService.isTrueActualUser(friend);
         if(followersRepository.isThisMyFollower(userId,fid) == 0){
             FollowId followingId = new FollowId(userId,fid);
             Followings followings = new Followings(followingId,0);
@@ -81,5 +85,20 @@ public class FollowServiceImpl implements FollowService {
             }
         }
         else friendService.matchNewRelationship(userId,fid);
+    }
+    @Transactional
+    @Override
+    public void sendUnFollow(String fid, HttpServletRequest request) throws RuntimeException{
+        String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
+        String friend = usersEntityRepository.findIdByExistingId(fid);
+        if(friend == null) throw new NoMatchPointException();
+        userService.isTrueActualUser(fid);
+        try {
+            followersRepository.updateUnfollow(userId, fid);
+            followingRepository.updateUnfollow(userId, fid);
+        }catch(Exception e){
+            throw new NoStoringException();
+        }
     }
 }

@@ -4,12 +4,11 @@ import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.follow.repository.FollowersRepository;
 import com.webapp.timeline.follow.repository.FollowingRepository;
-import com.webapp.timeline.membership.domain.Profiles;
-import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
-import com.webapp.timeline.membership.service.UserService;
+import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
-public class FriendServiceImpl implements FriendService{
+public class FriendServiceImpl implements FriendService {
     FollowingRepository followingRepository;
     FollowersRepository followersRepository;
     UsersEntityRepository usersEntityRepository;
@@ -50,6 +48,7 @@ public class FriendServiceImpl implements FriendService{
     @Override
     public ArrayList<LoggedInfo> sendFriendApplyList(HttpServletRequest request) throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
 
         List<String> friendApplyList = followingRepository.findFriendApplyList(userId);
         if(friendApplyList.isEmpty()) throw new NoMatchPointException();
@@ -62,9 +61,10 @@ public class FriendServiceImpl implements FriendService{
     @Override
     public void invalidateFriendApplyAlarm(HttpServletRequest request,String fid) throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
         try {
-            followingRepository.updateIsAlarmtoInvalidate(userId, fid);
-            followersRepository.updateIsAlarmtoInvalidate(userId, fid);
+            followingRepository.updateAlarmtoInvalidate(userId, fid);
+            followersRepository.updateAlarmtoInvalidate(userId, fid);
         }catch(Exception e){
             throw new NoMatchPointException();
         }
@@ -72,26 +72,22 @@ public class FriendServiceImpl implements FriendService{
     @Override
     public ArrayList<LoggedInfo> sendFriendList(HttpServletRequest request) throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
+        userService.isTrueActualUser(userId);
+
         List<String> friendList = followingRepository.findFirstFriendList(userId);
         friendList.addAll(followingRepository.findSecondFriendList(userId));
         ArrayList<LoggedInfo> friendListContents = this.createFriendInfo(friendList);
         return friendListContents;
     }
     @Override
-    public ArrayList<LoggedInfo> searchInFriendList(String nickname,HttpServletRequest request) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        List<String> friendIdList = usersEntityRepository.findNameInFirstFriendList(userId,nickname);
-        friendIdList.addAll(usersEntityRepository.findNameInSecondFriendList(userId,nickname));
-        ArrayList<LoggedInfo> friendListForSearching = this.createFriendInfo(friendIdList);
-        return friendListForSearching;
-    }
-    @Override
     public ArrayList<String> sendFriendIdList(String userId) throws RuntimeException{
         List<String> friendList = followingRepository.findFirstFriendList(userId);
         friendList.addAll(followingRepository.findSecondFriendList(userId));
-        return (ArrayList<String>) friendList;
+        ArrayList<String> friendIdList = userService.sendActualUserFromList((ArrayList<String>) friendList);
+        return friendIdList;
     }
-    private ArrayList<LoggedInfo> createFriendInfo(List<String> friendList) throws RuntimeException{
+    @Override
+    public ArrayList<LoggedInfo> createFriendInfo(List<String> friendList) throws RuntimeException{
         ArrayList<LoggedInfo> friendListContents = new ArrayList<>();
         for(String friendId : friendList) {
             LoggedInfo friendInfo = null;

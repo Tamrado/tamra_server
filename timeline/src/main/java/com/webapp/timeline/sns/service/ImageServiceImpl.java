@@ -4,7 +4,7 @@ import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.exception.WrongCodeException;
-import com.webapp.timeline.membership.service.UserSignService;
+import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.dto.ImageDto;

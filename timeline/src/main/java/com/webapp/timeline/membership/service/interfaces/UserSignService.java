@@ -1,4 +1,4 @@
-package com.webapp.timeline.membership.service;
+package com.webapp.timeline.membership.service.interfaces;
 
 import com.webapp.timeline.membership.domain.Users;
 import org.springframework.web.multipart.MultipartFile;
