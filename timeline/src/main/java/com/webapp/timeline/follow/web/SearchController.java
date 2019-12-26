@@ -27,9 +27,11 @@ public class SearchController {
         return searchService.searchInFriendList(nickname,httpServletRequest);
     }
 
+    /*
     @ApiOperation(value = "헤더에 검색 기능", notes = "response : 200 성공 404 - uid 없음 401 - 유저가 비활함")
     @GetMapping(value = "/header/{nickname}")
     public ArrayList<LoggedInfo> searchInHeader(@PathVariable String nickname, HttpServletRequest request){
         return searchService.searchInHeader(nickname);
     }
+     */
 }
