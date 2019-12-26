@@ -33,5 +33,5 @@ public class SearchController {
     public ArrayList<LoggedInfo> searchInHeader(@PathVariable String nickname, CustomPageRequest request, HttpServletRequest httpServletRequest){
         return searchService.searchInHeader(nickname,request);
     }
-     
+
 }
