@@ -3,7 +3,7 @@ package com.webapp.timeline.sns.service;
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.dto.request.EventRequest;
+import com.webapp.timeline.sns.dto.request.PostRequest;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.PostsRepository;
@@ -56,17 +56,17 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public Map<String, Integer> createEvent(EventRequest eventRequest, HttpServletRequest request) {
+    public Map<String, Integer> createEvent(PostRequest postRequest, HttpServletRequest request) {
         logger.info("[PostService] create Post.");
 
         Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
         String author = factory.extractLoggedIn(request);
-        checkContentValidation(eventRequest);
-        int postId = postsRepository.save(makeObjectForPost(eventRequest, author))
+        checkContentValidation(postRequest);
+        int postId = postsRepository.save(makeObjectForPost(postRequest, author))
                                     .getPostId();
 
-        eventRequest.getFiles().forEach(imageRequest -> {
+        postRequest.getFiles().forEach(imageRequest -> {
             if(count.get() == TOTAL_IMAGE_MAX) {
                 return;
             }
@@ -110,7 +110,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Map<String, Integer> updatePost(int postId, EventRequest eventRequest, HttpServletRequest request) {
+    public Map<String, Integer> updatePost(int postId, PostRequest postRequest, HttpServletRequest request) {
         logger.info("[PostService] update Post.");
 
         Posts existedPost = factory.checkDeleteAndGetIfExist(postId);
@@ -119,11 +119,11 @@ public class PostServiceImpl implements PostService {
             throw new UnauthorizedUserException();
         }
 
-        isUpdateExecuted(existedPost, eventRequest);
-        checkContentValidation(eventRequest);
+        isUpdateExecuted(existedPost, postRequest);
+        checkContentValidation(postRequest);
 
-        existedPost.setContent(eventRequest.getContent());
-        existedPost.setShowLevel(eventRequest.getShowLevel());
+        existedPost.setContent(postRequest.getContent());
+        existedPost.setShowLevel(postRequest.getShowLevel());
         existedPost.setLastUpdate(factory.whatIsTimestampOfNow());
 
         factory.takeActionByQuery(this.postsRepository.updatePostByPostId(existedPost));
@@ -148,18 +148,18 @@ public class PostServiceImpl implements PostService {
         return timelineService.makeSingleResponse(post);
     }
 
-    private void checkContentValidation(EventRequest eventRequest) {
-        List<ImageDto> files = eventRequest.getFiles();
+    private void checkContentValidation(PostRequest postRequest) {
+        List<ImageDto> files = postRequest.getFiles();
 
         if(files == null || files.size() == 0) {
-            factory.checkContentLength(eventRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
+            factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
         }
         else {
-            factory.checkContentLengthIfImageExists(eventRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
+            factory.checkContentLengthIfImageExists(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
         }
     }
 
-    private Posts makeObjectForPost(EventRequest event, String author) {
+    private Posts makeObjectForPost(PostRequest event, String author) {
 
         return Posts.builder()
                     .author(author)
@@ -170,7 +170,7 @@ public class PostServiceImpl implements PostService {
                     .build();
     }
 
-    private void isUpdateExecuted(Posts existed, EventRequest updated) {
+    private void isUpdateExecuted(Posts existed, PostRequest updated) {
         if(existed.getContent().equals(updated.getContent())
                 && existed.getShowLevel().equals(updated.getShowLevel())) {
 

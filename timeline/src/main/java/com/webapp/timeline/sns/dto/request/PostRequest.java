@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventRequest {
+public class PostRequest {
     private String content;
     private String showLevel;
     @JsonProperty("files")

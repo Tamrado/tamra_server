@@ -12,13 +12,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+public class SnsResponse<T> {
+    @JsonProperty("contentlist")
+    List<T> objectSet;
+    boolean first;
+    boolean last;
 
-    public class SnsResponse<T> {
-
-        @JsonProperty("contentlist")
-        List<T> objectSet;
-        boolean first;
-        boolean last;
-
-    }
-
+}
