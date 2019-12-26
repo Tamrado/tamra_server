@@ -47,9 +47,9 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
         String token = jwtTokenProvider.resolveToken(request);
-        if(request.getRequestURI().matches(".*/membership/api/member.*"))
+        if(request.getRequestURI().matches(".*/api/member.*"))
             return new JwtAuthenticationToken(null,null,null);
-        log.error("dgsdgdgdgdgsdgdgas");
+
         if (token != null && jwtTokenProvider.validateExpirationToken(token)) {
             String userId = jwtTokenProvider.extractUserIdFromToken(token);
             Users user = null;

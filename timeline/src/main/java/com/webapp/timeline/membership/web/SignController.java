@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Api(tags = {"0. Sign"})
-@RequestMapping(value = "membership/api/member")
+@RequestMapping(value = "/api/member")
 @CrossOrigin(origins = {"*"})
 @RestController
 public class SignController {
