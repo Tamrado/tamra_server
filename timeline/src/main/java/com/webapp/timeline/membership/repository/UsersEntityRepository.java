@@ -1,6 +1,8 @@
 package com.webapp.timeline.membership.repository;
 
 import com.webapp.timeline.membership.domain.Users;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -64,6 +66,7 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
     List<String> findNameInSecondFriendList(@Param("uid")String uid,@Param("nickname") String nickname);
 
 
-
-
+    @Query("select u.userId as userId, u.name as name, u.comment as comment from Users u where u.name like %:nickname% " +
+            "and u.authority = 'ROLE_USER'")
+    Page<Map<String,String>> findUsersBySearching(@Param("nickname")String nickname, Pageable pageable);
 }

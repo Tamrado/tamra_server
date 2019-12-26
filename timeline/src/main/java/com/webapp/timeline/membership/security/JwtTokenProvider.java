@@ -112,7 +112,7 @@ public class JwtTokenProvider {
         if(ObjectUtils.isEmpty(user)) {
             throw new UsernameNotFoundException("Invalid username");
         }
-        return new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 
 }

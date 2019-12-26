@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PostProfileInfo {
-    FollowInfo followInfo;
-    LoggedInfo userInfo;
+    private FollowInfo followInfo;
+    private LoggedInfo userInfo;
 }
