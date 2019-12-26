@@ -1,7 +1,7 @@
 package com.webapp.timeline.sns.web;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.sns.dto.request.EventRequest;
+import com.webapp.timeline.sns.dto.request.PostRequest;
 import com.webapp.timeline.sns.service.interfaces.PostService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,7 +38,7 @@ public class PostController {
                                 "| 401 -> user 없을 경우 (권한 없음) " +
                                 "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시 (사진 있을 경우 0 허용)")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-    public ResponseEntity create(@RequestBody EventRequest eventRequest,
+    public ResponseEntity create(@RequestBody PostRequest postRequest,
                                  HttpServletRequest request) {
 
         logger.info("[PostController] create post.");
@@ -46,7 +46,7 @@ public class PostController {
         header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
-            return new ResponseEntity<>(this.postServiceImpl.createEvent(eventRequest, request), header, HttpStatus.CREATED);
+            return new ResponseEntity<>(this.postServiceImpl.createEvent(postRequest, request), header, HttpStatus.CREATED);
         }
         catch(UnauthorizedUserException no_user) {
             logger.error("[PostController] No user.");
@@ -96,7 +96,7 @@ public class PostController {
                                 "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때 (사진 있을 경우 0 허용)" )
     @PatchMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity update(@PathVariable("postId") int postId,
-                                 @RequestBody EventRequest eventRequest,
+                                 @RequestBody PostRequest postRequest,
                                  HttpServletRequest request) {
 
         logger.info("[PostController] update post.");
@@ -105,7 +105,7 @@ public class PostController {
 
         try {
             return new ResponseEntity<>
-                    (this.postServiceImpl.updatePost(postId, eventRequest, request), header, HttpStatus.OK);
+                    (this.postServiceImpl.updatePost(postId, postRequest, request), header, HttpStatus.OK);
         }
         catch(BadRequestException no_change) {
             logger.info("[PostController] There is NO CHANGE to update.");
