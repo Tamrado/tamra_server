@@ -80,10 +80,17 @@ public class FriendServiceImpl implements FriendService {
         return friendListContents;
     }
     @Override
-    public ArrayList<String> sendFriendIdList(String userId) throws RuntimeException{
-        List<String> friendList = followingRepository.findFirstFriendList(userId);
-        friendList.addAll(followingRepository.findSecondFriendList(userId));
-        ArrayList<String> friendIdList = userService.sendActualUserFromList((ArrayList<String>) friendList);
+    public ArrayList<String> sendFriendIdList(String userId,Boolean isBidirectional) throws RuntimeException{
+        List<String> idList;
+        if(isBidirectional) {
+            idList = followingRepository.findFirstFollowingList(userId);
+            idList.addAll(followingRepository.findSecondFollowingList(userId));
+        }
+        else{
+            idList = followingRepository.findFirstFriendList(userId);
+            idList.addAll(followingRepository.findSecondFriendList(userId));
+        }
+        ArrayList<String> friendIdList = userService.sendActualUserFromList((ArrayList<String>) idList);
         return friendIdList;
     }
     @Override
