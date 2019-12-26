@@ -7,11 +7,15 @@ import com.webapp.timeline.membership.security.*;
 import com.webapp.timeline.membership.service.UserImageS3Component;
 import com.webapp.timeline.membership.service.UserServiceImpl;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +28,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
@@ -34,9 +41,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    CustomAuthenticationProvider apiAuthProvider;
+    @Autowired
+    UserSignServiceImpl userSignServiceImpl;
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
+    @Autowired
     private UsersEntityRepository usersEntityRepository;
     @Autowired
     private CustomPasswordEncoder customPasswordEncoder;
+
+    @Override
+    protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
+        auth.authenticationProvider( apiAuthProvider );
+    }
 
     @Override
     public void configure(WebSecurity web) throws Exception{
@@ -48,9 +66,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/api/member/*").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/member/*").permitAll()
-                .antMatchers("/api/*").hasAuthority("ROLE_USER")
+                .antMatchers("/membership/api/member/*").permitAll()
+                .antMatchers("/api/auth/*").hasAuthority("ROLE_USER")
+                .antMatchers("/api/friend/*").hasAuthority("ROLE_USER")
+                .antMatchers("/api/list/*").hasAuthority("ROLE_USER")
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .and()
                 .cors().configurationSource(corsConfigurationSource())
@@ -65,7 +84,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 .and()
-                .addFilterBefore(author(), UsernamePasswordAuthenticationFilter.class);
+                //.addFilterBefore(author(),UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter( getCookieAuthenticationFilter(
+                        new AndRequestMatcher( new AntPathRequestMatcher( "/api/*" ) )
+                ) , UsernamePasswordAuthenticationFilter.class );
     }
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -115,16 +137,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Bean
-    public JwtAuthorizationFilter author() throws Exception{
-        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(
-                new JwtTokenProvider(new UserSignServiceImpl
-                        (new SignUpValidator(usersEntityRepository),
-                                usersEntityRepository,
-                                customPasswordEncoder)));
-        return jwtAuthorizationFilter;
+    CookieAuthenticationFilter getCookieAuthenticationFilter(RequestMatcher requestMatcher ) {
+        jwtTokenProvider =  new JwtTokenProvider(userSignServiceImpl);
+        userSignServiceImpl = new UserSignServiceImpl(new SignUpValidator(usersEntityRepository)
+                ,usersEntityRepository
+                ,customPasswordEncoder);
+        CookieAuthenticationFilter filter = new CookieAuthenticationFilter(requestMatcher);
+        filter.setJwtTokenProvider(jwtTokenProvider);
+        filter.setUserSignServiceImpl(userSignServiceImpl);
+        return filter;
     }
-
-
 
 }

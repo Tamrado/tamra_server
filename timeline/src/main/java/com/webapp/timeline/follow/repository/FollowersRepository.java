@@ -24,7 +24,7 @@ public interface FollowersRepository extends JpaRepository<Followers, FollowId> 
     void updateAlarmtoInvalidate(@Param("uid")String uid, @Param("fid")String fid);
 
     @Modifying
-    @Query("update Followers f set f.isFollow = 0 where f.id.userId = :fid and f.id.friendId = :uid")
+    @Query("update Followers f set f.isFollow = 0, f.isAlarm = 0 where f.id.userId = :fid and f.id.friendId = :uid")
     void updateUnfollow(@Param("uid")String uid, @Param("fid") String fid);
 
 
