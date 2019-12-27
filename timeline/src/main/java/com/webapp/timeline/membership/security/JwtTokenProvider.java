@@ -27,7 +27,6 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-
     Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static String secret;
@@ -75,9 +74,12 @@ public class JwtTokenProvider {
         log.info("JwtTokenProvider.resolveToken ::::");
         Cookie[] cookies = httpServletRequest.getCookies();
         if (cookies != null) {
-            for (int i = 0; i < cookies.length; i++) {
-                if (cookies[i].getName().equals("accesstoken") && getExpirationToken(cookies[i].getValue()).getTime() - System.currentTimeMillis() > 0)
-                    return cookies[i].getValue();
+            for (int j = 0; j < cookies.length; ++j) {
+                log.info(cookies[j].getName());
+                if (cookies[j].getName().equals("accesstoken") && getExpirationToken(cookies[j].getValue()).getTime() - System.currentTimeMillis() > 0) {
+                    log.info("쿠키 정보");
+                    return cookies[j].getValue();
+                }
             }
         }
         return null;
@@ -100,19 +102,6 @@ public class JwtTokenProvider {
         catch (Exception e) {
             return false;
         }
-    }
-    // Jwt 토큰으로 인증 정보를 조회
-    public Authentication getAuthentication(String token) {
-        log.info("JwtTokenProvider.getAuthentication ::::");
-        String userId = this.extractUserIdFromToken(token);
-        Users user = null;
-        if(!StringUtils.isEmpty(userId)) {
-           user = userSignService.loadUserByUsername(userId);
-        }
-        if(ObjectUtils.isEmpty(user)) {
-            throw new UsernameNotFoundException("Invalid username");
-        }
-        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 
 }

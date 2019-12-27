@@ -2,10 +2,12 @@ package com.webapp.timeline.membership.security;
 
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,50 +31,44 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
 
     Logger log = LoggerFactory.getLogger(this.getClass());
     private JwtTokenProvider jwtTokenProvider;
-    private UserSignServiceImpl userSignServiceImpl;
+
 
     public CookieAuthenticationFilter(RequestMatcher requestMatcher) {
         super(requestMatcher);
         setAuthenticationManager( super.getAuthenticationManager() );
 
     }
-    public void setUserSignServiceImpl(UserSignServiceImpl userSignServiceImpl){
-        this.userSignServiceImpl = userSignServiceImpl;
-    }
     public void setJwtTokenProvider(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws RuntimeException {
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
-        String token = jwtTokenProvider.resolveToken(request);
-        if(request.getRequestURI().matches(".*/api/member.*"))
-            return new JwtAuthenticationToken(null,null,null);
-
-        if (token != null && jwtTokenProvider.validateExpirationToken(token)) {
-            String userId = jwtTokenProvider.extractUserIdFromToken(token);
-            Users user = null;
-            if(!StringUtils.isEmpty(userId)) {
-                user = userSignServiceImpl.loadUserByUsername(userId);
-            }
-            if(ObjectUtils.isEmpty(user)) {
-                throw new UsernameNotFoundException("Invalid username");
-            }
-            return new JwtAuthenticationToken(token,null,null);
+        if(request.getRequestURI().matches(".*/api/member.*")) {
+            log.error("login");
+            return new JwtAuthenticationToken("ismember", null, null);
         }
-        else throw new UsernameNotFoundException("no user");
+        String token = jwtTokenProvider.resolveToken(request);
+
+            return new JwtAuthenticationToken(token,null,null);
+
     }
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
-                         FilterChain chain) throws IOException, ServletException {
+                         FilterChain chain) throws IOException, ServletException,RuntimeException {
         log.info("CookieAuthenticationFilter.doFilter ::::");
         HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
         try{
-            this.attemptAuthentication(request,response);
+           JwtAuthenticationToken authentication = (JwtAuthenticationToken) this.attemptAuthentication(request,response);
+           if(authentication.getToken() != null)
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+           else
+               throw new AuthenticationCredentialsNotFoundException("error");
             chain.doFilter(req,res);
         }catch(AuthenticationException e){
+            log.error("dofilter error");
             unsuccessfulAuthentication(request,response,e);
         }
 

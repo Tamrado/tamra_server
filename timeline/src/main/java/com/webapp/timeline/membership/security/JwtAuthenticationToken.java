@@ -8,15 +8,14 @@ import java.util.Collection;
 
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
-    Users principal;
-    String token;
+    private Users principal;
+    private String token;
 
-    public JwtAuthenticationToken( String token, Users principal, Collection<? extends GrantedAuthority> authorities ) {
+    public JwtAuthenticationToken( String token, Users principal, Collection<? extends GrantedAuthority> authorities) {
         super( authorities );
         this.token = token;
         this.principal = principal;
     }
-
     @Override
     public Object getCredentials() {
         return null;
@@ -27,6 +26,8 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         return principal;
     }
 
+
+
     public void setToken( String token ) {
         this.token = token;
     }
@@ -34,4 +35,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     public String getToken() {
         return token;
     }
+
+
 }

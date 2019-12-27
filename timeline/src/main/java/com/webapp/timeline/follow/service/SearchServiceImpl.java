@@ -11,6 +11,8 @@ import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.dto.request.CustomPageRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.Map;
 
 @Service
 public class SearchServiceImpl implements SearchService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     private TokenService tokenService;
     private UserService userService;
     private UsersEntityRepository usersEntityRepository;
@@ -37,6 +40,7 @@ public class SearchServiceImpl implements SearchService {
     }
     @Override
     public ArrayList<LoggedInfo> searchInFriendList(String nickname, HttpServletRequest request) throws RuntimeException{
+        log.error("searchInFriendList");
         String userId = tokenService.sendIdInCookie(request);
         userService.isTrueActualUser(userId);
 

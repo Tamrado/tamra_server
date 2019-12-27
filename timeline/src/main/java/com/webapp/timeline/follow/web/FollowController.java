@@ -8,6 +8,8 @@ import com.webapp.timeline.follow.service.response.PostProfileInfo;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +22,10 @@ import java.util.Map;
 @CrossOrigin(origins = {"*"})
 @RestController
 public class FollowController {
-    FollowService followService;
-    FriendService friendService;
-    SearchService searchService;
+    private FollowService followService;
+    private FriendService friendService;
+
+    Logger log = LoggerFactory.getLogger(this.getClass());
     public FollowController(){}
     @Autowired
     public FollowController(FollowService followService, FriendService friendService){
@@ -69,6 +72,7 @@ public class FollowController {
     @ApiOperation(value = "친구 리스트 컨텐츠", notes = "response : 200 성공 404 - uid 없음 411 - 친구가 없음 401 - 유저가 비활함")
     @GetMapping(value = "/list")
     public ArrayList<LoggedInfo> sendFriendListContents(HttpServletRequest httpServletRequest) throws RuntimeException{
+        log.info("친구 리스트 컨텐츠");
         return friendService.sendFriendList(httpServletRequest);
     }
 
