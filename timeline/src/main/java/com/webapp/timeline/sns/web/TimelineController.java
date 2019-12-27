@@ -48,7 +48,7 @@ public class TimelineController {
                                      CustomPageRequest pageRequest,
                                      HttpServletRequest request) {
 
-        logger.info("[PostController] get post-list by user-id.");
+        logger.info("[TimelineController] get post-list by user-id.");
 
         try {
             return new ResponseEntity<>
@@ -58,6 +58,32 @@ public class TimelineController {
             logger.error("[TimelineController] Input page exceeds last page.");
 
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        catch(UnauthorizedUserException no_user) {
+            logger.error("[TimelineController] No user.");
+
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException inactive_user) {
+            logger.warn("[TimelineController] Inactive User.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @ApiOperation(value = "내/ 다른 사용자의 프로필 - 게시물 개수 (request : 유저 Id)",
+            notes = "response : 200 -> 성공 " +
+                    "| 401 -> 로그인 안함/ 접근 권한 없을 때 " +
+                    "| 404 -> 비활성 유저 (내 아이디여도 못 봄) ")
+    @GetMapping(value = "/{userId}/postnum")
+    public ResponseEntity postNumByUser(@PathVariable("userId") String userId,
+                                        HttpServletRequest request) {
+
+        logger.info("[TimelineController] get total post-number by user-id.");
+
+        try {
+            return new ResponseEntity<>
+                    (this.timelineService.loadPostNumberByUser(userId, request), header, HttpStatus.OK);
         }
         catch(UnauthorizedUserException no_user) {
             logger.error("[TimelineController] No user.");

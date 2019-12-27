@@ -10,4 +10,6 @@ public interface TimelineService {
 
     SnsResponse<TimelineResponse> loadPostListByUser(String userId, Pageable pageable, HttpServletRequest request);
 
+    long loadPostNumberByUser(String userId, HttpServletRequest request);
+
 }

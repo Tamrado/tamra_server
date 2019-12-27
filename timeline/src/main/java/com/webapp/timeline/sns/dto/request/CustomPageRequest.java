@@ -35,6 +35,4 @@ public class CustomPageRequest {
     public PageRequest of(String sortBy) {
         return PageRequest.of(page-1, size, DEFAULT_DIRECTION, sortBy);
     }
-
-
 }

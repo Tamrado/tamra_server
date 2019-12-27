@@ -33,4 +33,8 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
                 "WHERE list.deleted = 0 AND list.author = :author AND list.showLevel <= :scope",
             nativeQuery = false)
     Page<Posts> showTimelineByUser(Pageable pageable, @Param("author") String author, @Param("scope") String scope);
+
+    @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author",
+            nativeQuery = false)
+    Long showPostNumberByUser(@Param("author") String author);
 }

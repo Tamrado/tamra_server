@@ -67,7 +67,7 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
     public SnsResponse<TimelineResponse> loadPostListByUser(String userId,
                                                             Pageable pageable,
                                                             HttpServletRequest request) {
-        logger.info("[PostService] get post-list by user-id.");
+        logger.info("[TimelineService] get post-list by user-id.");
         checkInactiveUser(userId);
         Page<Posts> userTimeline = dispatchByAccessScope(userId, pageable, request);
 
@@ -76,6 +76,16 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         }
 
         return makeSnsResponse(userTimeline);
+    }
+
+    @Override
+    public long loadPostNumberByUser(String userId, HttpServletRequest request) {
+        logger.info("[TimelineService] get total post-number by user-id.");
+
+        checkInactiveUser(userId);
+        factory.extractLoggedIn(request);
+
+        return this.postsRepository.showPostNumberByUser(userId);
     }
 
     private void checkInactiveUser(String userId) {
