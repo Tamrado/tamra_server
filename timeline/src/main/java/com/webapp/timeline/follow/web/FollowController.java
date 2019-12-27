@@ -45,9 +45,9 @@ public class FollowController {
 
     @ApiOperation(value = "unfollow 버튼 클릭",notes = "response : 200 - 성공 404 - userId 존재하지 않는 아이디" +
             " 411 - 친구 아이디가 존재하지 않음 401 - 친구나 유저가 비활함 409 - 저장되지 않음")
-    @PutMapping(value = "")
-    public void clickUnfollow(@RequestBody String friendId, HttpServletRequest request) throws RuntimeException{
-        followService.sendUnFollow(friendId, request);
+    @PutMapping(value = "/no")
+    public void clickUnfollow(@RequestBody Map<String,String> friendId, HttpServletRequest request) throws RuntimeException{
+        followService.sendUnFollow(friendId.get("friendId"), request);
     }
 
     @ApiOperation(value = "follow 버튼 클릭" , notes = "팔로우 신청 (response : 200 -성공 404 - userId 존재하지 않는 아이디" +

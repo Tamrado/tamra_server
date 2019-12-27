@@ -50,9 +50,7 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
             return new JwtAuthenticationToken("ismember", null, null);
         }
         String token = jwtTokenProvider.resolveToken(request);
-
-            return new JwtAuthenticationToken(token,null,null);
-
+        return new JwtAuthenticationToken(token,null,null);
     }
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
@@ -71,7 +69,6 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
             log.error("dofilter error");
             unsuccessfulAuthentication(request,response,e);
         }
-
     }
 
 }
