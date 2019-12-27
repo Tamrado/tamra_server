@@ -33,7 +33,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
 
     @Override
     public Authentication authenticate( Authentication authentication ) throws AuthenticationException {
-        log.error("authenticate");
+        log.debug("CustomAuthenticationProvider.authenticate ::::");
         JwtAuthenticationToken authentication1 = (JwtAuthenticationToken)SecurityContextHolder.getContext().getAuthentication();
 
          String token = authentication1.getToken();
@@ -43,10 +43,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
             if (!StringUtils.isEmpty(userId)) {
                 user = userSignServiceImpl.loadUserByUsername(userId);
             }
-            if (ObjectUtils.isEmpty(user)) {
-                log.error("gdgsgasgs");
+            if (ObjectUtils.isEmpty(user))
                 throw new UsernameNotFoundException("Invalid username");
-            }
+
 
             return new JwtAuthenticationToken(token, user, user.getAuthorities());
 
@@ -57,7 +56,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
     }
     @Override
     public boolean supports(Class<? extends Object> authentication) throws AuthenticationException {
-        log.error("dgsdgdgsdgsdgsdgsdgdsdgsdgsdgdhdshfdhdfgddshds");
+        log.debug("CustomAuthenticationProvider.supports ::::");
         if(SecurityContextHolder.getContext().getAuthentication() == null) throw new AuthenticationFailedException("fail");
         return true;
     }
