@@ -1,6 +1,7 @@
 package com.webapp.timeline.sns.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.dto.ImageDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,13 +16,25 @@ import java.util.List;
 @AllArgsConstructor
 public class TimelineResponse {
     private int postId;
-    private String author;
-    private String profile;
+
+    @JsonProperty("profile")
+    private ProfileResponse profile;
+
     private String content;
+
     private String showLevel;
+
     private String timestamp;
+
     @JsonProperty("files")
     private List<ImageDto> files;
+
+    @JsonProperty("tags")
+    private List<LoggedInfo> tags;
+
+    private int totalTag;
+
     private int totalComment;
+
     private int totalLike;
 }
