@@ -15,7 +15,9 @@ import java.util.List;
 public class SnsResponse<T> {
     @JsonProperty("contentlist")
     List<T> objectSet;
+
     boolean first;
+
     boolean last;
 
 }

@@ -28,13 +28,9 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
             nativeQuery = false)
     Integer updatePostByPostId(@Param("post") Posts post);
 
-    @Transactional
-    @Query(value = "SELECT myPosts FROM Posts myPosts WHERE myPosts.deleted = 0 AND myPosts.author = :author",
-            nativeQuery = false)
-    Page<Posts> listMyPostsByUser(Pageable pageable, @Param("author") String author);
 
-    @Transactional
-    @Query(value = "SELECT list FROM Posts list WHERE list.deleted = 0 AND list.showLevel = 1 AND list.author = :author",
+    @Query(value = "SELECT list FROM Posts list " +
+                "WHERE list.deleted = 0 AND list.author = :author AND list.showLevel <= :scope",
             nativeQuery = false)
-    Page<Posts> listPublicPostsByUser(Pageable pageable, @Param("author") String author);
+    Page<Posts> showTimelineByUser(Pageable pageable, @Param("author") String author, @Param("scope") String scope);
 }

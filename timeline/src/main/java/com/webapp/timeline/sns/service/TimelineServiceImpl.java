@@ -5,6 +5,7 @@ import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.ImageDto;
@@ -12,6 +13,7 @@ import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
+import com.webapp.timeline.sns.repository.TagsRepository;
 import com.webapp.timeline.sns.service.interfaces.TimelineResponseHelper;
 import com.webapp.timeline.sns.service.interfaces.TimelineService;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.TOTAL_IMAGE_MAX;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.*;
 
 @Service
 public class TimelineServiceImpl implements TimelineService, TimelineResponseHelper {
@@ -37,6 +40,7 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
     private UserSignServiceImpl userSignService;
     private PostsRepository postsRepository;
     private ImagesRepository imagesRepository;
+    private TagsRepository tagsRepository;
     private ServiceAspectFactory<Posts> factory;
     private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
     private static final int ONE_HOUR = 60;
@@ -50,10 +54,12 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
     public TimelineServiceImpl(UserSignServiceImpl userSignService,
                                PostsRepository postsRepository,
                                ImagesRepository imagesRepository,
+                               TagsRepository tagsRepository,
                                ServiceAspectFactory<Posts> factory) {
         this.userSignService = userSignService;
         this.postsRepository = postsRepository;
         this.imagesRepository = imagesRepository;
+        this.tagsRepository = tagsRepository;
         this.factory = factory;
     }
 
@@ -62,31 +68,14 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
                                                             Pageable pageable,
                                                             HttpServletRequest request) {
         logger.info("[PostService] get post-list by user-id.");
-        String loggedIn;
-        Page<Posts> pagingPostList;
-
         checkInactiveUser(userId);
+        Page<Posts> userTimeline = dispatchByAccessScope(userId, pageable, request);
 
-        try {
-            loggedIn = factory.extractLoggedIn(request);
-
-            if(loggedIn.equals(userId)) {
-                pagingPostList = this.postsRepository.listMyPostsByUser(pageable, loggedIn);
-            }
-            else {
-                pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
-            }
-        }
-        catch(NoMatchPointException not_logged_in) {
-            pagingPostList = this.postsRepository.listPublicPostsByUser(pageable, userId);
-        }
-
-        if(factory.isPageExceed(pagingPostList, pageable)) {
+        if(factory.isPageExceed(userTimeline, pageable)) {
             throw new BadRequestException();
         }
 
-        //Todo : following 중인지 검사 -> following중이면 followers 허용 글까지 볼 수 있게
-        return makeSnsResponse(pagingPostList);
+        return makeSnsResponse(userTimeline);
     }
 
     private void checkInactiveUser(String userId) {
@@ -97,22 +86,40 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         }
     }
 
+    private Page<Posts> dispatchByAccessScope(String author, Pageable pageable, HttpServletRequest request) {
+        String loggedIn = "";
+        String subscribe = "";
+
+        loggedIn = factory.extractLoggedIn(request);
+
+        if(author.equals(loggedIn)) {
+            subscribe = PRIVATE_TYPE.getName();
+        }
+        else if(factory.isMyFriend(loggedIn, author)) {
+            subscribe = FOLLOWER_TYPE.getName();
+        }
+        else {
+            subscribe = PUBLIC_TYPE.getName();
+        }
+
+        return this.postsRepository.showTimelineByUser(pageable, author, subscribe);
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public TimelineResponse makeSingleResponse(Posts item) {
-        Map<String, String> userInfo = factory.getUserProfile(item.getAuthor());
-        String nickname = userInfo.keySet()
-                                .iterator()
-                                .next();
+        int postId = item.getPostId();
+        List tags = getPostTags(postId);
 
         return TimelineResponse.builder()
-                            .postId(item.getPostId())
-                            .author(nickname)
-                            .profile(userInfo.get(nickname))
+                            .postId(postId)
+                            .profile(factory.makeSingleProfile(item.getAuthor()))
                             .content(item.getContent())
                             .showLevel(item.getShowLevel())
                             .timestamp(printEasyTimestamp(item.getLastUpdate()))
-                            .files(getPostImages(item.getPostId()))
+                            .files(getPostImages(postId))
+                            .tags(tags)
+                            .totalTag(tags.size())
                             .totalComment(Math.toIntExact(item.getCommentNum()))
                             .totalLike(Math.toIntExact(item.getLikeNum()))
                             .build();
@@ -137,6 +144,20 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         });
 
         return imageResponses;
+    }
+
+    private List getPostTags(int postId) {
+        List<LoggedInfo> tagResponses = new LinkedList<>();
+        Optional<List<String>> tags = Optional.ofNullable(this.tagsRepository.listTagListInPost(postId));
+        if(!tags.isPresent()) {
+            return Collections.EMPTY_LIST;
+        }
+
+        tags.get().forEach(username -> {
+            tagResponses.add(factory.getUserInfo(username));
+        });
+
+        return tagResponses;
     }
 
     protected String printEasyTimestamp(Timestamp time) {
@@ -171,5 +192,4 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
 
         return new SimpleDateFormat("yyyy.MM.dd").format(time);
     }
-
 }

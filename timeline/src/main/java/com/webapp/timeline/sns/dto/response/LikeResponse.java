@@ -14,9 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 public class LikeResponse {
     int postId;
+
     @JsonProperty("likeProfiles")
     List<ProfileResponse> profileSet;
+
     long totalNum;
+
     boolean first;
+
     boolean last;
 }

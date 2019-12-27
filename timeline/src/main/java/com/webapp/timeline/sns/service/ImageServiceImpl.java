@@ -4,8 +4,8 @@ import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.exception.UnauthorizedUserException;
 import com.webapp.timeline.exception.WrongCodeException;
-import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.repository.ImagesRepository;
@@ -33,8 +33,8 @@ public class ImageServiceImpl implements ImageService {
     private ImagesRepository imagesRepository;
     private UserSignService userSignService;
     private ServiceAspectFactory<Images> factory;
-    private final int THUMBNAIL_HEIGHT = 290;
-    private final int THUMBNAIL_WIDTH = 290;
+    private final int THUMBNAIL_HEIGHT = 330;
+    private final int THUMBNAIL_WIDTH = 330;
     private final String IMAGE_FORMAT = "png";
     private final String TEMP_FILEPATH = "src/main/resources/thumbnail.png";
 

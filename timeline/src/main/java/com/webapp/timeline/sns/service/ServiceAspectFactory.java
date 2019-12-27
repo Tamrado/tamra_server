@@ -1,12 +1,14 @@
 package com.webapp.timeline.sns.service;
 
-import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.exception.NoStoringException;
-import com.webapp.timeline.exception.UnauthorizedUserException;
-import com.webapp.timeline.exception.WrongCodeException;
+import com.webapp.timeline.exception.*;
+import com.webapp.timeline.follow.service.FriendServiceImpl;
+import com.webapp.timeline.follow.service.interfaces.FriendService;
+import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.dto.response.ProfileResponse;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CH
 @Service
 public class ServiceAspectFactory<T> {
     private UserSignServiceImpl userSignService;
+    private FriendService friendService;
     private PostsRepository postsRepository;
     private UserImagesRepository userImagesRepository;
 
@@ -34,9 +37,11 @@ public class ServiceAspectFactory<T> {
 
     @Autowired
     public ServiceAspectFactory (UserSignServiceImpl userSignService,
+                                 FriendServiceImpl friendService,
                                  PostsRepository postsRepository,
                                  UserImagesRepository userImagesRepository) {
         this.userSignService = userSignService;
+        this.friendService = friendService;
         this.postsRepository = postsRepository;
         this.userImagesRepository = userImagesRepository;
     }
@@ -54,13 +59,21 @@ public class ServiceAspectFactory<T> {
         return loggedIn;
     }
 
-    protected Map<String, String> getUserProfile(String userId) {
+    protected ProfileResponse makeSingleProfile(String userId) {
+        LoggedInfo userInfo = getUserInfo(userId);
+
+        return ProfileResponse.builder()
+                .name(userInfo.getNickname())
+                .profile(userInfo.getThumbnail())
+                .build();
+    }
+
+    protected LoggedInfo getUserInfo(String userId) {
         String profile = this.userImagesRepository.findImageURLById(userId)
                                                 .getProfileURL();
-        String nickname = this.userSignService.loadUserByUsername(userId)
-                                            .getUsername();
+        Users user = this.userSignService.loadUserByUsername(userId);
 
-        return Collections.singletonMap(nickname, profile);
+        return new LoggedInfo(userId, profile, user.getName(), user.getComment());
     }
 
     protected Posts checkDeleteAndGetIfExist(int postId) {
@@ -110,4 +123,13 @@ public class ServiceAspectFactory<T> {
         return false;
     }
 
+    protected boolean isMyFriend(String loggedIn, String author) {
+        try {
+            return this.friendService.sendFriendIdList(author, false)
+                                     .contains(loggedIn);
+        }
+        catch(NoMatchPointException no_friend) {
+            return false;
+        }
+    }
 }

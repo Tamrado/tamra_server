@@ -1,12 +1,15 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
+import com.webapp.timeline.sns.common.ShowTypeProvider;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.domain.Tags;
 import com.webapp.timeline.sns.dto.request.PostRequest;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.PostsRepository;
+import com.webapp.timeline.sns.repository.TagsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
 import com.webapp.timeline.sns.service.interfaces.ImageService;
 import com.webapp.timeline.sns.service.interfaces.PostService;
@@ -24,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.FOLLOWER_TYPE;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.PRIVATE_TYPE;
 
 
 @Service("postServiceImpl")
@@ -34,9 +39,9 @@ public class PostServiceImpl implements PostService {
     private ImageService imageService;
     private CommentService commentService;
     private TimelineServiceImpl timelineService;
+    private TagsRepository tagsRepository;
     private ServiceAspectFactory<Posts> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 1000;
-    private static final String PRIVATE = "private";
 
     PostServiceImpl(){
     }
@@ -46,11 +51,13 @@ public class PostServiceImpl implements PostService {
                            ImageServiceImpl imageService,
                            CommentServiceImpl commentService,
                            TimelineServiceImpl timelineService,
+                           TagsRepository tagsRepository,
                            ServiceAspectFactory<Posts> factory) {
         this.postsRepository = postsRepository;
         this.imageService = imageService;
         this.commentService = commentService;
         this.timelineService = timelineService;
+        this.tagsRepository = tagsRepository;
         this.factory = factory;
     }
 
@@ -80,6 +87,14 @@ public class PostServiceImpl implements PostService {
             imageService.saveImage(entity);
 
             count.incrementAndGet();
+        });
+
+        postRequest.getTags().forEach(tagRequest -> {
+            Tags entity = Tags.builder()
+                            .postId(postId)
+                            .userId(tagRequest.getUsername())
+                            .build();
+            tagsRepository.save(entity);
         });
 
         responseBody.put("postId", postId);
@@ -135,13 +150,16 @@ public class PostServiceImpl implements PostService {
         logger.info("[PostService] get one post by post-id.");
 
         Posts post = factory.checkDeleteAndGetIfExist(postId);
-        String author = post.getAuthor();
         String showLevel = post.getShowLevel();
+        String loggedIn = factory.extractLoggedIn(request);
+        String author = post.getAuthor();
 
-        if(! author.equals(factory.extractLoggedIn(request))) {
-            //Todo : following-level 글 처리
-
-            if(showLevel.equals(PRIVATE)) {
+        if(! author.equals(loggedIn)) {
+            if(showLevel.equals(PRIVATE_TYPE.getName())) {
+                throw new BadRequestException();
+            }
+            else if(showLevel.equals(FOLLOWER_TYPE.getName())
+                    && !factory.isMyFriend(loggedIn, author)) {
                 throw new BadRequestException();
             }
         }
