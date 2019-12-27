@@ -2,10 +2,13 @@ package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
+import com.webapp.timeline.membership.security.JwtAuthenticationToken;
 import com.webapp.timeline.membership.security.JwtTokenProvider;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,7 @@ import java.util.Map;
 
 @Service
 public class TokenService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     private JwtTokenProvider jwtTokenProvider;
     private UserService userService;
     private UserSignService userSignService;
@@ -60,8 +64,9 @@ public class TokenService {
         if (cookies != null) {
             for (int i = 0; i < cookies.length; i++) {
                 if (cookies[i].getName().equals("accesstoken") && jwtTokenProvider.getExpirationToken(cookies[i].getValue()).getTime() - System.currentTimeMillis() > 0) {
-                        String id = jwtTokenProvider.extractUserIdFromToken(cookies[i].getValue());
-                        return id;
+                    String id = jwtTokenProvider.extractUserIdFromToken(cookies[i].getValue());
+                        log.info(id);
+                    return id;
                 }
             }
         }

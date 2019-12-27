@@ -24,7 +24,7 @@ public class CustomAuthenticationEntryPoint extends LoginUrlAuthenticationEntryP
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
         log.debug("CustomAuthenticationEntryPoint.commence ::::");
-        log.error("entrypoint");
+        log.error(authException.toString());
         response.sendRedirect("/auth/login?expired");
     }
 

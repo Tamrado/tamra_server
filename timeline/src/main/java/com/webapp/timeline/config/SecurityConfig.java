@@ -41,8 +41,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    CustomAuthenticationProvider apiAuthProvider;
-    @Autowired
     UserSignServiceImpl userSignServiceImpl;
     @Autowired
     JwtTokenProvider jwtTokenProvider;
@@ -53,7 +51,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
-        auth.authenticationProvider( apiAuthProvider );
+        jwtTokenProvider =  new JwtTokenProvider(userSignServiceImpl);
+        userSignServiceImpl = new UserSignServiceImpl(new SignUpValidator(usersEntityRepository)
+                ,usersEntityRepository
+                ,customPasswordEncoder);
+        auth.authenticationProvider( new CustomAuthenticationProvider(jwtTokenProvider,
+                userSignServiceImpl) );
     }
 
     @Override
@@ -84,7 +87,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 .and()
-                //.addFilterBefore(author(),UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter( getCookieAuthenticationFilter(
                         new AndRequestMatcher( new AntPathRequestMatcher( "/api/*" ) )
                 ) , UsernamePasswordAuthenticationFilter.class );
@@ -144,7 +146,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 ,customPasswordEncoder);
         CookieAuthenticationFilter filter = new CookieAuthenticationFilter(requestMatcher);
         filter.setJwtTokenProvider(jwtTokenProvider);
-        filter.setUserSignServiceImpl(userSignServiceImpl);
+
         return filter;
     }
 

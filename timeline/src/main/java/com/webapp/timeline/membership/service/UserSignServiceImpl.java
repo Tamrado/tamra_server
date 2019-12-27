@@ -45,6 +45,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
             return user;
         }
         catch(Exception e){
+            log.info(e.toString());
             throw new NoInformationException();
         }
 
