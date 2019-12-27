@@ -29,5 +29,4 @@ public interface FollowersRepository extends JpaRepository<Followers, FollowId> 
 
 
 
-
 }

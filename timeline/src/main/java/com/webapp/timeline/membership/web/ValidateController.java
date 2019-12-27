@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = {"1. Validate"})
-@RequestMapping(value = "membership/api/member")
+@RequestMapping(value = "/api/member")
 @RestController
 public class ValidateController {
     private ValidateService validateService;
