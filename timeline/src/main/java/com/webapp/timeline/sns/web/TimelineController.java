@@ -28,6 +28,11 @@ public class TimelineController {
     private TimelineService timelineService;
     private HttpHeaders header;
 
+    TimelineController() {
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    }
+
     @Autowired
     public void setTimelineService(TimelineServiceImpl timelineService) {
         this.timelineService = timelineService;
@@ -36,7 +41,7 @@ public class TimelineController {
     @ApiOperation(value = "내/ 다른 사용자의 프로필 - 메인화면(글 목록) (request : 유저 Id, 몇 page)",
             notes = "response : 200 -> 성공 " +
                     "| 400 -> 페이지 번호 > 마지막 페이지 일때 " +
-                    "| 401 -> User 없을 경우 (권한 없음) " +
+                    "| 401 -> 로그인 안함/ 접근 권한 없을 때 " +
                     "| 404 -> 비활성 유저 (내 아이디여도 못 봄) ")
     @GetMapping(value = "/{userId}/timeline")
     public ResponseEntity listByUser(@PathVariable("userId") String userId,
@@ -44,8 +49,6 @@ public class TimelineController {
                                      HttpServletRequest request) {
 
         logger.info("[PostController] get post-list by user-id.");
-        header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
 
         try {
             return new ResponseEntity<>

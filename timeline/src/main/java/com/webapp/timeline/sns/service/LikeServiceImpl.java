@@ -1,6 +1,7 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.BadRequestException;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.dto.response.LikeResponse;
 import com.webapp.timeline.sns.dto.response.ProfileResponse;
@@ -85,7 +86,7 @@ public class LikeServiceImpl implements LikeService {
         }
 
         pagingUserList.forEach(userId -> {
-            profileList.add(makeSingleResponse(userId));
+            profileList.add(factory.makeSingleProfile(userId));
         });
 
         return LikeResponse.builder()
@@ -94,18 +95,6 @@ public class LikeServiceImpl implements LikeService {
                             .totalNum(pagingUserList.getTotalElements())
                             .first(pagingUserList.isFirst())
                             .last(pagingUserList.isLast())
-                            .build();
-    }
-
-    private ProfileResponse makeSingleResponse(String userId) {
-        Map<String, String> userInfo = factory.getUserProfile(userId);
-        String name = userInfo.keySet()
-                            .iterator()
-                            .next();
-
-        return ProfileResponse.builder()
-                            .name(name)
-                            .profile(userInfo.get(name))
                             .build();
     }
 }

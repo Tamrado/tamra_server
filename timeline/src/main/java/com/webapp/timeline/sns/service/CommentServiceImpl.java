@@ -1,6 +1,7 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
+import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Comments;
 import com.webapp.timeline.sns.dto.response.CommentResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
@@ -142,15 +143,10 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private CommentResponse makeSingleResponse(Comments comment) {
-        Map<String, String> userInfo = factory.getUserProfile(comment.getAuthor());
-        String nickname = userInfo.keySet()
-                                .iterator()
-                                .next();
 
         return CommentResponse.builder()
                             .postId(comment.getPostId())
-                            .author(nickname)
-                            .profile(userInfo.get(nickname))
+                            .profile(factory.makeSingleProfile(comment.getAuthor()))
                             .content(comment.getContent())
                             .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
                             .build();

@@ -131,7 +131,7 @@ public class PostController {
 
     @ApiOperation(value = "1개 글 상세보기 (request : 글 Id)",
                 notes = "response : 200 -> 성공 " +
-                                "| 400 -> Private 글인데 본인(log-in된 Id) 글이 아닐 때 " +
+                                "| 400 -> Private 글인데 본인(log-in된 Id) 글이 아닐 때/ Followers 글인데 팔로 안했을 때 " +
                                 "| 401 -> user 없을 경우 (권한 없음) " +
                                 "| 404 -> 해당 post가 이미 지워짐")
     @GetMapping(value = "/{postId}/detail", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})

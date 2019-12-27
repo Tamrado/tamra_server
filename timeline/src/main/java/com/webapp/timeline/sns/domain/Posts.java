@@ -1,9 +1,6 @@
 package com.webapp.timeline.sns.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
@@ -25,16 +22,20 @@ public class Posts {
     @Column(name = "author", nullable = false)
     private String author;
 
+    @Setter
     @Column(name = "content", nullable = false)
     private String content;
 
+    @Setter
     @Convert(converter = ConverterShowLevel.class)
     @Column(name = "showLevel", nullable = false)
     private String showLevel;
 
+    @Setter
     @Column(name = "lastUpdate", nullable = false)
     private Timestamp lastUpdate;
 
+    @Setter
     @Column(name = "deleted")
     private int deleted;
 
@@ -44,19 +45,4 @@ public class Posts {
     @Formula("(select count(*) from likes l where l.postId = postId)")
     private Long likeNum;
 
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setShowLevel(String showLevel) {
-        this.showLevel = showLevel;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public void setDeleted(int deleted) {
-        this.deleted = deleted;
-    }
 }
