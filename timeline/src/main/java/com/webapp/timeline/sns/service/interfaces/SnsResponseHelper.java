@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.LinkedList;
 
-public interface TimelineResponseHelper {
+public interface SnsResponseHelper {
 
     TimelineResponse makeSingleResponse(Posts post);
 

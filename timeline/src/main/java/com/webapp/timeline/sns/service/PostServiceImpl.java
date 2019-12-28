@@ -1,7 +1,6 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.sns.common.ShowTypeProvider;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
@@ -69,7 +68,9 @@ public class PostServiceImpl implements PostService {
         Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
         String author = factory.extractLoggedIn(request);
+
         checkContentValidation(postRequest);
+
         int postId = postsRepository.save(makeObjectForPost(postRequest, author))
                                     .getPostId();
 
@@ -159,7 +160,7 @@ public class PostServiceImpl implements PostService {
                 throw new BadRequestException();
             }
             else if(showLevel.equals(FOLLOWER_TYPE.getName())
-                    && !factory.isMyFriend(loggedIn, author)) {
+                    && !factory.isFollowedMe(loggedIn, author)) {
                 throw new BadRequestException();
             }
         }

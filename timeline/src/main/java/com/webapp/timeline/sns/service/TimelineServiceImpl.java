@@ -2,19 +2,17 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
+import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
-import com.webapp.timeline.sns.repository.ImagesRepository;
-import com.webapp.timeline.sns.repository.PostsRepository;
-import com.webapp.timeline.sns.repository.TagsRepository;
-import com.webapp.timeline.sns.service.interfaces.TimelineResponseHelper;
+import com.webapp.timeline.sns.repository.*;
+import com.webapp.timeline.sns.service.interfaces.SnsResponseHelper;
 import com.webapp.timeline.sns.service.interfaces.TimelineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +32,15 @@ import static com.webapp.timeline.sns.common.CommonTypeProvider.TOTAL_IMAGE_MAX;
 import static com.webapp.timeline.sns.common.ShowTypeProvider.*;
 
 @Service
-public class TimelineServiceImpl implements TimelineService, TimelineResponseHelper {
+public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(TimelineServiceImpl.class);
     private UserSignServiceImpl userSignService;
     private PostsRepository postsRepository;
     private ImagesRepository imagesRepository;
     private TagsRepository tagsRepository;
+    private CommentsRepository commentsRepository;
+    private LikesRepository likesRepository;
     private ServiceAspectFactory<Posts> factory;
     private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
     private static final int ONE_HOUR = 60;
@@ -55,11 +55,15 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
                                PostsRepository postsRepository,
                                ImagesRepository imagesRepository,
                                TagsRepository tagsRepository,
+                               CommentsRepository commentsRepository,
+                               LikesRepository likesRepository,
                                ServiceAspectFactory<Posts> factory) {
         this.userSignService = userSignService;
         this.postsRepository = postsRepository;
         this.imagesRepository = imagesRepository;
         this.tagsRepository = tagsRepository;
+        this.commentsRepository = commentsRepository;
+        this.likesRepository = likesRepository;
         this.factory = factory;
     }
 
@@ -105,7 +109,7 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         if(author.equals(loggedIn)) {
             subscribe = PRIVATE_TYPE.getName();
         }
-        else if(factory.isMyFriend(loggedIn, author)) {
+        else if(factory.isFollowedMe(loggedIn, author)) {
             subscribe = FOLLOWER_TYPE.getName();
         }
         else {
@@ -130,8 +134,8 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
                             .files(getPostImages(postId))
                             .tags(tags)
                             .totalTag(tags.size())
-                            .totalComment(Math.toIntExact(item.getCommentNum()))
-                            .totalLike(Math.toIntExact(item.getLikeNum()))
+                            .totalComment((int) countPostComments(postId))
+                            .totalLike((int) countPostLikes(postId))
                             .build();
     }
 
@@ -168,6 +172,14 @@ public class TimelineServiceImpl implements TimelineService, TimelineResponseHel
         });
 
         return tagResponses;
+    }
+
+    private long countPostComments(int postId) {
+        return this.commentsRepository.countCommentsByPostId(postId);
+    }
+
+    private long countPostLikes(int postId) {
+        return this.likesRepository.countLikesByPostId(postId);
     }
 
     protected String printEasyTimestamp(Timestamp time) {

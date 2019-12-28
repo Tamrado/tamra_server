@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
 
@@ -76,6 +76,25 @@ public class ServiceAspectFactory<T> {
         return new LoggedInfo(userId, profile, user.getName(), user.getComment());
     }
 
+    protected boolean isFollowedMe(String loggedIn, String author) {
+        try {
+            return this.friendService.sendFollowIdList(author, false)
+                                     .contains(loggedIn);
+        }
+        catch(NoMatchPointException no_friend) {
+            return false;
+        }
+    }
+
+    protected List whoFollowsMe(String me) {
+        try {
+            return this.friendService.sendFollowIdList(me, false);
+        }
+        catch(NoMatchPointException no_one) {
+            return Collections.EMPTY_LIST;
+        }
+    }
+
     protected Posts checkDeleteAndGetIfExist(int postId) {
         Posts post = this.postsRepository.findById(postId)
                                         .orElseThrow(NoInformationException::new);
@@ -121,15 +140,5 @@ public class ServiceAspectFactory<T> {
             return true;
         }
         return false;
-    }
-
-    protected boolean isMyFriend(String loggedIn, String author) {
-        try {
-            return this.friendService.sendFollowIdList(author, false)
-                                     .contains(loggedIn);
-        }
-        catch(NoMatchPointException no_friend) {
-            return false;
-        }
     }
 }

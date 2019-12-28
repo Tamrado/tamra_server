@@ -38,4 +38,7 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     @Query(value = "SELECT list FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId",
             nativeQuery = false)
     Page<Comments> listValidCommentsByPostId(Pageable pageable, @Param("postId") int postId);
+
+    @Query(value = "SELECT COUNT(list.commentId) FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId")
+    Long countCommentsByPostId(@Param("postId") int postId);
 }

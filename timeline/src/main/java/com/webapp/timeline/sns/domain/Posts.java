@@ -39,10 +39,4 @@ public class Posts {
     @Column(name = "deleted")
     private int deleted;
 
-    @Formula("(select count(*) from comments c where c.postId = postId AND c.deleted = 0)")
-    private Long commentNum;
-
-    @Formula("(select count(*) from likes l where l.postId = postId)")
-    private Long likeNum;
-
 }
