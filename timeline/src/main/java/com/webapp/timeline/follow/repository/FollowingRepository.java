@@ -43,10 +43,9 @@ public interface FollowingRepository extends JpaRepository<Followings, FollowId>
     @Query("update Followers f set f.isFollow = 0,f.isAlarm = 0 where f.id.friendId = :uid and f.id.userId = :fid")
     void updateUnfollow(@Param("uid")String uid, @Param("fid")String fid);
 
-    @Query("select f.id.friendId from Followings f where f.id.userId = :uid and f.id.friendId in (" +
-            "select fl.id.userId from Followers fl where fl.id.friendId = :uid and fl.isFollow = 1)")
-    List<String> findFirstFollowingList(@Param("uid")String uid);
-
     @Query("select f.id.userId from Followings f where f.id.friendId = :uid and f.isFollow = 1")
-    List<String> findSecondFollowingList(@Param("uid")String uid);
+    List<String> selectFollowIdList(@Param("uid")String uid);
+
+    @Query("select f.id.friendId from Followings f where f.id.userId = :uid and f.isFollow = 1")
+    List<String> selectFollowerIdList(@Param("uid")String uid);
 }
