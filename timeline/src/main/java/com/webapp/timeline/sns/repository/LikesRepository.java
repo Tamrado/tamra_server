@@ -17,4 +17,7 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     @Query(value = "SELECT heart.owner FROM Likes heart WHERE heart.postId = :postId")
     Page<String> showLikesByPostId(Pageable pageable, @Param("postId") int postId);
+
+    @Query(value = "SELECT COUNT(heart.likeId) FROM Likes heart WHERE heart.postId = :postId")
+    Long countLikesByPostId(@Param("postId") int postId);
 }
