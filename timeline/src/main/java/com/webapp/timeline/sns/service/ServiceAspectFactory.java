@@ -125,7 +125,7 @@ public class ServiceAspectFactory<T> {
 
     protected boolean isMyFriend(String loggedIn, String author) {
         try {
-            return this.friendService.sendFriendIdList(author, false)
+            return this.friendService.sendFollowIdList(author, false)
                                      .contains(loggedIn);
         }
         catch(NoMatchPointException no_friend) {
