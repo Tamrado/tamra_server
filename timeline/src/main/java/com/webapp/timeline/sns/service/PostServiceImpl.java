@@ -2,6 +2,7 @@ package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.sns.domain.Images;
+import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
 import com.webapp.timeline.sns.dto.request.PostRequest;
@@ -74,6 +75,7 @@ public class PostServiceImpl implements PostService {
         int postId = postsRepository.save(makeObjectForPost(postRequest, author))
                                     .getPostId();
 
+        //Todo: refactoring (분리) -> 각각 ImageService/ TagService 로 이동시키기
         postRequest.getFiles().forEach(imageRequest -> {
             if(count.get() == TOTAL_IMAGE_MAX) {
                 return;
@@ -98,6 +100,8 @@ public class PostServiceImpl implements PostService {
             tagsRepository.save(entity);
         });
 
+        deliverToNewsfeed(postId, author, postRequest.getShowLevel());
+
         responseBody.put("postId", postId);
         responseBody.put("imageNum", count.get());
         return responseBody;
@@ -114,6 +118,8 @@ public class PostServiceImpl implements PostService {
         if(factory.extractLoggedIn(request).equals(post.getAuthor())) {
             post.setDeleted(DELETED_EVENT_CHECK);
             factory.takeActionByQuery(this.postsRepository.markDeleteByPostId(post));
+
+            factory.withdrawFeedByPostId(postId);
 
             responseBody.put("postId", postId);
             responseBody.put("imageNum", this.imageService.deleteImageByPostId(postId));
@@ -165,6 +171,35 @@ public class PostServiceImpl implements PostService {
             }
         }
         return timelineService.makeSingleResponse(post);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deliverToNewsfeed(int postId, String sender, String showLevel) {
+
+        if(showLevel.equals(PRIVATE_TYPE.getName())) {
+            factory.deliver(Newsfeed.builder()
+                                    .postId(postId)
+                                    .category(NEWSFEED_POST)
+                                    .sender(sender)
+                                    .receiver(sender)
+                                    .commentId(NOT_COMMENT)
+                                    .build());
+            return;
+        }
+
+        List<String> followers = factory.whoFollowsMe(sender);
+        followers.add(sender);
+
+        followers.forEach(follower -> {
+            Newsfeed feed = Newsfeed.builder()
+                                    .postId(postId)
+                                    .category(NEWSFEED_POST)
+                                    .sender(sender)
+                                    .receiver(follower)
+                                    .commentId(NOT_COMMENT)
+                                    .build();
+            factory.deliver(feed);
+        });
     }
 
     private void checkContentValidation(PostRequest postRequest) {
