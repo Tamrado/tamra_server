@@ -1,12 +1,10 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
 import com.webapp.timeline.sns.dto.request.PostRequest;
-import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.repository.TagsRepository;
@@ -70,27 +68,10 @@ public class PostServiceImpl implements PostService {
         AtomicInteger count = new AtomicInteger();
         String author = factory.extractLoggedIn(request);
 
-        checkContentValidation(postRequest);
+        factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
 
         int postId = postsRepository.save(makeObjectForPost(postRequest, author))
                                     .getPostId();
-
-        //Todo: refactoring (분리) -> 각각 ImageService/ TagService 로 이동시키기
-        postRequest.getFiles().forEach(imageRequest -> {
-            if(count.get() == TOTAL_IMAGE_MAX) {
-                return;
-            }
-
-            Images entity = Images.builder()
-                                .postId(postId)
-                                .url(imageRequest.getOriginal())
-                                .thumbnail(imageRequest.getThumbnail())
-                                .deleted(NEW_EVENT_CHECK)
-                                .build();
-            imageService.saveImage(entity);
-
-            count.incrementAndGet();
-        });
 
         postRequest.getTags().forEach(tagRequest -> {
             Tags entity = Tags.builder()
@@ -98,12 +79,14 @@ public class PostServiceImpl implements PostService {
                             .userId(tagRequest.getUsername())
                             .build();
             tagsRepository.save(entity);
+
+            count.incrementAndGet();
         });
 
         deliverToNewsfeed(postId, author, postRequest.getShowLevel());
 
         responseBody.put("postId", postId);
-        responseBody.put("imageNum", count.get());
+        responseBody.put("tagNum", count.get());
         return responseBody;
     }
 
@@ -142,7 +125,7 @@ public class PostServiceImpl implements PostService {
         }
 
         isUpdateExecuted(existedPost, postRequest);
-        checkContentValidation(postRequest);
+        factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
 
         existedPost.setContent(postRequest.getContent());
         existedPost.setShowLevel(postRequest.getShowLevel());
@@ -200,17 +183,6 @@ public class PostServiceImpl implements PostService {
                                     .build();
             factory.deliver(feed);
         });
-    }
-
-    private void checkContentValidation(PostRequest postRequest) {
-        List<ImageDto> files = postRequest.getFiles();
-
-        if(files == null || files.size() == 0) {
-            factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
-        }
-        else {
-            factory.checkContentLengthIfImageExists(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
-        }
     }
 
     private Posts makeObjectForPost(PostRequest event, String author) {

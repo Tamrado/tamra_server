@@ -192,12 +192,6 @@ public class ServiceAspectFactory<T> {
         }
     }
 
-    protected void checkContentLengthIfImageExists(String content, int maxLength) {
-        if(content.length() > maxLength) {
-            throw new NoStoringException();
-        }
-    }
-
     protected boolean isPageExceed(Page<T> pagingList, Pageable pageable) {
         int current = pageable.getPageNumber();
         int lastPage = pagingList.getTotalPages() - 1;

@@ -36,7 +36,7 @@ public class PostController {
     @ApiOperation(value = "글쓰기 : 무슨 일이 있으셨나요? (request : 글 내용, show-level)",
                 notes = "response : 201 -> 성공 " +
                                 "| 401 -> user 없을 경우 (권한 없음) " +
-                                "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시 (사진 있을 경우 0 허용)")
+                                "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity create(@RequestBody PostRequest postRequest,
                                  HttpServletRequest request) {

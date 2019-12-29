@@ -44,14 +44,16 @@ public class ImageController {
                 notes = "response : 201 -> 성공" +
                                 "| 409 -> AWS S3에서 오류" +
                                 "| 422 -> 썸네일 만들기 실패")
-    @PostMapping(value = "upload/image")
-    public ResponseEntity upload(MultipartFile file,
+    @PostMapping(value = "upload/{postId}/image")
+    public ResponseEntity upload(@PathVariable("postId") int postId,
+                                 MultipartFile file,
                                  HttpServletRequest request) {
 
         logger.info("[ImageController] upload image.");
 
         try {
-            return new ResponseEntity<>(this.imageService.uploadImage(file, request), headers, HttpStatus.CREATED);
+            this.imageService.uploadImage(postId, file, request);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         }
         catch(NoStoringException original_aws_exception) {
             logger.error("[ImageController] AWS S3 IOException while upload original multipartfile.");
