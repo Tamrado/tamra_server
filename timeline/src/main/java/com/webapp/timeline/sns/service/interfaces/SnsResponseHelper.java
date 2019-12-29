@@ -1,24 +1,22 @@
 package com.webapp.timeline.sns.service.interfaces;
 
-import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
-import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import org.springframework.data.domain.Page;
 
 import java.util.LinkedList;
 
-public interface SnsResponseHelper {
+public interface SnsResponseHelper<T, M> {
 
-    TimelineResponse makeSingleResponse(Posts post);
+    T makeSingleResponse(M item);
 
-    default SnsResponse<TimelineResponse> makeSnsResponse(Page<Posts> pagedList) {
-        LinkedList<TimelineResponse> eventList = new LinkedList<>();
+    default SnsResponse<T> makeSnsResponse(Page<M> pagedList) {
+        LinkedList<T> eventList = new LinkedList<>();
 
         pagedList.forEach(item -> {
             eventList.add(makeSingleResponse(item));
         });
 
-        return SnsResponse.<TimelineResponse>builder()
+        return SnsResponse.<T>builder()
                             .objectSet(eventList)
                             .first(pagedList.isFirst())
                             .last(pagedList.isLast())

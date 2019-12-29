@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Repository
 public interface PostsRepository extends JpaRepository<Posts, Integer> {
@@ -37,4 +38,8 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
     @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author",
             nativeQuery = false)
     Long showPostNumberByUser(@Param("author") String author);
+
+    @Query(value = "SELECT list.postId FROM Posts list WHERE list.deleted = 1",
+            nativeQuery = false)
+    List<Integer> getDeletedPostList();
 }
