@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Repository
 public interface CommentsRepository extends JpaRepository<Comments, Long> {
@@ -19,7 +20,6 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
                     "WHERE item.postId = :postId AND item.deleted = 0")
     Integer markDeleteByPostId(@Param("postId") int postId);
 
-    @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Comments item SET item.deleted = :#{#comment.deleted} " +
                     "WHERE item.commentId = :#{#comment.commentId} AND item.deleted = 0",
@@ -41,4 +41,9 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
 
     @Query(value = "SELECT COUNT(list.commentId) FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId")
     Long countCommentsByPostId(@Param("postId") int postId);
+
+    @Transactional
+    @Query(value = "SELECT list FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId",
+            nativeQuery = false)
+    List<Comments> getCommentsByPostId(@Param("postId") int postId);
 }
