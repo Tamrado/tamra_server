@@ -1,12 +1,8 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.BadRequestException;
-import com.webapp.timeline.exception.NoInformationException;
-import com.webapp.timeline.membership.domain.Users;
-import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
-import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
@@ -32,17 +28,15 @@ import static com.webapp.timeline.sns.common.CommonTypeProvider.TOTAL_IMAGE_MAX;
 import static com.webapp.timeline.sns.common.ShowTypeProvider.*;
 
 @Service
-public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
+public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<TimelineResponse, Posts> {
 
     private static final Logger logger = LoggerFactory.getLogger(TimelineServiceImpl.class);
-    private UserSignServiceImpl userSignService;
     private PostsRepository postsRepository;
     private ImagesRepository imagesRepository;
     private TagsRepository tagsRepository;
     private CommentsRepository commentsRepository;
     private LikesRepository likesRepository;
     private ServiceAspectFactory<Posts> factory;
-    private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
     private static final int ONE_HOUR = 60;
     private static final int ONE_MINUTE = 60;
     private static final int ONE_DAY = 24;
@@ -51,14 +45,12 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
     }
 
     @Autowired
-    public TimelineServiceImpl(UserSignServiceImpl userSignService,
-                               PostsRepository postsRepository,
+    public TimelineServiceImpl(PostsRepository postsRepository,
                                ImagesRepository imagesRepository,
                                TagsRepository tagsRepository,
                                CommentsRepository commentsRepository,
                                LikesRepository likesRepository,
                                ServiceAspectFactory<Posts> factory) {
-        this.userSignService = userSignService;
         this.postsRepository = postsRepository;
         this.imagesRepository = imagesRepository;
         this.tagsRepository = tagsRepository;
@@ -72,7 +64,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
                                                             Pageable pageable,
                                                             HttpServletRequest request) {
         logger.info("[TimelineService] get post-list by user-id.");
-        checkInactiveUser(userId);
+        factory.checkInactiveUser(userId);
         Page<Posts> userTimeline = dispatchByAccessScope(userId, pageable, request);
 
         if(factory.isPageExceed(userTimeline, pageable)) {
@@ -86,19 +78,13 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
     public long loadPostNumberByUser(String userId, HttpServletRequest request) {
         logger.info("[TimelineService] get total post-number by user-id.");
 
-        checkInactiveUser(userId);
+        factory.checkInactiveUser(userId);
         factory.extractLoggedIn(request);
 
         return this.postsRepository.showPostNumberByUser(userId);
     }
 
-    private void checkInactiveUser(String userId) {
-        Users userInfo = this.userSignService.loadUserByUsername(userId);
 
-        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
-            throw new NoInformationException();
-        }
-    }
 
     private Page<Posts> dispatchByAccessScope(String author, Pageable pageable, HttpServletRequest request) {
         String loggedIn = "";
@@ -139,9 +125,10 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
                             .build();
     }
 
-    private List getPostImages(int postId) {
+    List getPostImages(int postId) {
         List<ImageDto> imageResponses = new LinkedList<>();
         Optional<List<Images>> image = Optional.ofNullable(this.imagesRepository.listImageListInPost(postId));
+
         if(!image.isPresent()) {
             return Collections.EMPTY_LIST;
         }
@@ -160,9 +147,10 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
         return imageResponses;
     }
 
-    private List getPostTags(int postId) {
+    List getPostTags(int postId) {
         List<LoggedInfo> tagResponses = new LinkedList<>();
         Optional<List<String>> tags = Optional.ofNullable(this.tagsRepository.listTagListInPost(postId));
+
         if(!tags.isPresent()) {
             return Collections.EMPTY_LIST;
         }
@@ -178,11 +166,11 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper {
         return this.commentsRepository.countCommentsByPostId(postId);
     }
 
-    private long countPostLikes(int postId) {
+    long countPostLikes(int postId) {
         return this.likesRepository.countLikesByPostId(postId);
     }
 
-    protected String printEasyTimestamp(Timestamp time) {
+    String printEasyTimestamp(Timestamp time) {
         LocalDateTime responsedItem = time.toLocalDateTime();
         LocalDateTime now = LocalDateTime.now();
         int timestamp;
