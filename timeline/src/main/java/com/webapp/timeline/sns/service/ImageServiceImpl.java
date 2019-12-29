@@ -7,7 +7,6 @@ import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.sns.domain.Images;
-import com.webapp.timeline.sns.dto.ImageDto;
 import com.webapp.timeline.sns.repository.ImagesRepository;
 import com.webapp.timeline.sns.service.interfaces.ImageService;
 import org.slf4j.Logger;
@@ -24,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NEW_EVENT_CHECK;
 
 
 @Service
@@ -53,11 +53,11 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public ImageDto uploadImage(MultipartFile multipartFile, HttpServletRequest request) {
+    public void uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
         logger.info("[ImageService] Upload Original Image.");
 
         String email = this.userSignService.extractUserFromToken(request)
-                                        .getEmail();
+                                           .getEmail();
         String url = "";
         File originalFile = null;
 
@@ -66,17 +66,17 @@ public class ImageServiceImpl implements ImageService {
             originalFile = this.imageUploader.getOriginalFile();
 
             if(! url.equals("")) {
-                return ImageDto.builder()
-                                .original(url)
+                saveImage(Images.builder()
+                                .postId(postId)
+                                .url(url)
                                 .thumbnail(makeThumbNail(originalFile, email))
-                                .build();
+                                .deleted(NEW_EVENT_CHECK)
+                                .build());
             }
         }
         catch(IOException aws_IO_exception) {
             throw new NoStoringException();
         }
-
-        return null;
     }
 
     @Override
