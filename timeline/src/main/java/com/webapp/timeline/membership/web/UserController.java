@@ -3,6 +3,7 @@ package com.webapp.timeline.membership.web;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.interfaces.UserModifyService;
+import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import io.swagger.annotations.Api;
@@ -29,12 +30,14 @@ public class UserController {
     private TokenService tokenService;
     private UserModifyService userModifyService;
     private UserSignService userSignService;
+    private UserService userService;
 
     @Autowired
-    public UserController(UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
+    public UserController(UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
         this.userModifyService = userModifyService;
         this.tokenService = tokenService;
         this.userSignService = userSignService;
+        this.userService = userService;
     }
 
     public UserController(){}
@@ -77,6 +80,13 @@ public class UserController {
     public void changetoInactive(HttpServletRequest request,HttpServletResponse response) throws RuntimeException{
         userModifyService.modifyIdentify(request,response);
     }
+
+    @ApiOperation(value = "친구 정보 가져오기",notes = "친구 정보 가져옴 (response : 200 - 성공 411 - 맞는 유저가 없음 401 - 비활성 유저")
+    @GetMapping(value="/friend/{userId}")
+    public LoggedInfo sendFriendInfo(@PathVariable String userId,HttpServletRequest request) throws RuntimeException{
+        return userService.setLoggedInfo(userId);
+    }
+
     /*@ApiOperation(value="활성화",notes = "유저가 활성화 함 (response : 200 - 성공 411 - 맞는 정보가 없어서 활성화 실패)")
     @PutMapping(value="/member/uid")
     public void changetoActive(HttpServletRequest request,HttpServletResponse response) throws RuntimeException {
