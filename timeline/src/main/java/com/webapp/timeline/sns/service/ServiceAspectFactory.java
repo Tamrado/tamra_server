@@ -7,8 +7,10 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
+import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.ProfileResponse;
+import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,17 +22,23 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.FOLLOWER_TYPE;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.PUBLIC_TYPE;
 
 @Service
 public class ServiceAspectFactory<T> {
     private UserSignServiceImpl userSignService;
     private FriendService friendService;
+    private NewsfeedRepository newsfeedRepository;
     private PostsRepository postsRepository;
     private UserImagesRepository userImagesRepository;
+
+    private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
 
     ServiceAspectFactory() {
     }
@@ -38,10 +46,12 @@ public class ServiceAspectFactory<T> {
     @Autowired
     public ServiceAspectFactory (UserSignServiceImpl userSignService,
                                  FriendServiceImpl friendService,
+                                 NewsfeedRepository newsfeedRepository,
                                  PostsRepository postsRepository,
                                  UserImagesRepository userImagesRepository) {
         this.userSignService = userSignService;
         this.friendService = friendService;
+        this.newsfeedRepository = newsfeedRepository;
         this.postsRepository = postsRepository;
         this.userImagesRepository = userImagesRepository;
     }
@@ -57,6 +67,14 @@ public class ServiceAspectFactory<T> {
         }
 
         return loggedIn;
+    }
+
+    protected void checkInactiveUser(String userId) {
+        Users userInfo = this.userSignService.loadUserByUsername(userId);
+
+        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
+            throw new NoInformationException();
+        }
     }
 
     protected ProfileResponse makeSingleProfile(String userId) {
@@ -76,14 +94,52 @@ public class ServiceAspectFactory<T> {
         return new LoggedInfo(userId, profile, user.getName(), user.getComment());
     }
 
-    protected boolean isFollowedMe(String loggedIn, String author) {
-        try {
-            return this.friendService.sendFollowIdList(author, false)
-                                     .contains(loggedIn);
+    @SuppressWarnings("unchecked")
+    protected void deliverToNewsfeed(String category, Posts post, String sender, long commentId) {
+        List<String> receivers = new ArrayList<>();
+
+        if(post.getAuthor().equals(sender)) {
+            return;
         }
-        catch(NoMatchPointException no_friend) {
-            return false;
+
+        List<String> followers = whoFollowsMe(sender);
+
+        if(post.getShowLevel().equals(PUBLIC_TYPE.getName())) {
+            receivers = followers;
         }
+        else if(post.getShowLevel().equals(FOLLOWER_TYPE.getName())) {
+            List<String> followersOfAuthor = whoFollowsMe(post.getAuthor());
+            followersOfAuthor.retainAll(followers);
+
+            receivers = followersOfAuthor;
+        }
+
+        receivers.forEach(follower -> {
+            Newsfeed feed = Newsfeed.builder()
+                                    .postId(post.getPostId())
+                                    .category(category)
+                                    .sender(sender)
+                                    .receiver(follower)
+                                    .commentId(commentId)
+                                    .build();
+            deliver(feed);
+        });
+    }
+
+    protected void deliver(Newsfeed feed) {
+        this.newsfeedRepository.save(feed);
+    }
+
+    protected void withdrawFeedByPostId(int postId) {
+        this.newsfeedRepository.deleteNewsfeedByPostId(postId);
+    }
+
+    protected void withdrawFeedByComment(String sender, long commentId) {
+        this.newsfeedRepository.deleteNewsfeedByComment(sender, commentId);
+    }
+
+    protected void withdrawFeedByLike(int postId, String sender) {
+        this.newsfeedRepository.deleteNewsfeedByLike(postId, sender, NEWSFEED_LIKE);
     }
 
     protected List whoFollowsMe(String me) {
@@ -92,6 +148,16 @@ public class ServiceAspectFactory<T> {
         }
         catch(NoMatchPointException no_one) {
             return Collections.EMPTY_LIST;
+        }
+    }
+
+    protected boolean isFollowedMe(String loggedIn, String author) {
+        try {
+            return this.friendService.sendFollowIdList(author, false)
+                                     .contains(loggedIn);
+        }
+        catch(NoMatchPointException no_friend) {
+            return false;
         }
     }
 

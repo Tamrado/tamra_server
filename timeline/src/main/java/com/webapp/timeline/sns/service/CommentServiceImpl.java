@@ -1,8 +1,8 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.*;
-import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Comments;
+import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.CommentResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
@@ -14,13 +14,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
-import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
-import static com.webapp.timeline.sns.common.CommonTypeProvider.NEW_EVENT_CHECK;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
 
 
 @Service
@@ -47,17 +45,17 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponse registerComment(int postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
-        String author;
-        String content;
 
-        factory.checkDeleteAndGetIfExist(postId);
+        Posts post = factory.checkDeleteAndGetIfExist(postId);
 
-        author = factory.extractLoggedIn(request);
-        content = comment.getContent();
+        String loggedIn = factory.extractLoggedIn(request);
+        String content = comment.getContent();
         factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
-        Comments newComment = makeObjectForComment(postId, content, author);
-        return makeSingleResponse(commentsRepository.save(newComment));
+        Comments newComment = commentsRepository.save(makeObjectForComment(postId, content, loggedIn));
+        factory.deliverToNewsfeed(NEWSFEED_COMMENT, post, loggedIn, newComment.getCommentId());
+
+        return makeSingleResponse(newComment);
     }
 
     @Override
@@ -67,17 +65,21 @@ public class CommentServiceImpl implements CommentService {
         return this.commentsRepository.markDeleteByPostId(postId);
     }
 
+    @Transactional
     @Override
     public Map<String, Integer> removeComment(long commentId, HttpServletRequest request) {
         logger.info("[CommentService] remove comment.");
 
+        String loggedIn = factory.extractLoggedIn(request);
         Comments comment = this.commentsRepository.findById(commentId)
-                                                .orElseThrow(NoInformationException::new);
+                                                  .orElseThrow(NoInformationException::new);
 
-        if(factory.extractLoggedIn(request).equals(comment.getAuthor())) {
+        if(loggedIn.equals(comment.getAuthor())) {
             comment.setDeleted(DELETED_EVENT_CHECK);
-
             factory.takeActionByQuery(this.commentsRepository.markDeleteByCommentId(comment));
+
+            factory.withdrawFeedByComment(loggedIn, commentId);
+
             return Collections.singletonMap("commentId", (int)commentId);
         }
         else
@@ -89,7 +91,7 @@ public class CommentServiceImpl implements CommentService {
         logger.info("[CommentService] edit comment.");
 
         Comments existedComment = this.commentsRepository.findById(commentId)
-                                                        .orElseThrow(NoInformationException::new);
+                                                         .orElseThrow(NoInformationException::new);
 
         if(existedComment.getDeleted() == DELETED_EVENT_CHECK) {
             throw new BadRequestException();

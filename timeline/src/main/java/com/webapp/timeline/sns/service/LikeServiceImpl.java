@@ -1,8 +1,8 @@
 package com.webapp.timeline.sns.service;
 
 import com.webapp.timeline.exception.BadRequestException;
-import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Likes;
+import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.LikeResponse;
 import com.webapp.timeline.sns.dto.response.ProfileResponse;
 import com.webapp.timeline.sns.repository.LikesRepository;
@@ -18,7 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_LIKE;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NOT_COMMENT;
 
 @Service
 public class LikeServiceImpl implements LikeService {
@@ -42,15 +44,18 @@ public class LikeServiceImpl implements LikeService {
     public void clickHeart(int postId, HttpServletRequest request) {
         logger.info("[LikeService] click heart -- start to likes...");
 
-        factory.checkDeleteAndGetIfExist(postId);
+        String loggedIn = factory.extractLoggedIn(request);
+
+        Posts post = factory.checkDeleteAndGetIfExist(postId);
         Likes like = Likes.builder()
-                        .postId(postId)
-                        .owner(factory.extractLoggedIn(request))
-                        .build();
+                          .postId(postId)
+                          .owner(loggedIn)
+                          .build();
 
         if(likesRepository.isUserLikedPost(like) != null) {
             throw new BadRequestException();
         }
+        factory.deliverToNewsfeed(NEWSFEED_LIKE, post, loggedIn, NOT_COMMENT);
 
         likesRepository.save(like);
     }
@@ -59,16 +64,19 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void cancelHeart(int postId, HttpServletRequest request) {
         logger.info("[LikeService] cancel heart.");
+        String loggedIn = factory.extractLoggedIn(request);
 
         Likes like = Likes.builder()
-                        .postId(postId)
-                        .owner(factory.extractLoggedIn(request))
-                        .build();
+                          .postId(postId)
+                          .owner(loggedIn)
+                          .build();
         Long likeId = likesRepository.isUserLikedPost(like);
 
         if(likeId == null) {
             throw new BadRequestException();
         }
+
+        factory.withdrawFeedByLike(postId, loggedIn);
 
         likesRepository.deleteById(likeId);
     }
