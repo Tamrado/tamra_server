@@ -1,4 +1,4 @@
-package com.webapp.timeline.sns.dto;
+package com.webapp.timeline.sns.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImageDto {
+public class ImageResponse {
     private String original;
     private String thumbnail;
 }
