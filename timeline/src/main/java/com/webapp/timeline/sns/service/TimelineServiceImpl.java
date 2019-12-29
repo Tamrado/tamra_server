@@ -4,7 +4,7 @@ import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Posts;
-import com.webapp.timeline.sns.dto.ImageDto;
+import com.webapp.timeline.sns.dto.response.ImageResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.*;
@@ -126,7 +126,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
     }
 
     List getPostImages(int postId) {
-        List<ImageDto> imageResponses = new LinkedList<>();
+        List<ImageResponse> imageResponses = new LinkedList<>();
         Optional<List<Images>> image = Optional.ofNullable(this.imagesRepository.listImageListInPost(postId));
 
         if(!image.isPresent()) {
@@ -138,7 +138,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                 return;
             }
 
-            imageResponses.add(ImageDto.builder()
+            imageResponses.add(ImageResponse.builder()
                                         .original(object.getUrl())
                                         .thumbnail(object.getThumbnail())
                                         .build());

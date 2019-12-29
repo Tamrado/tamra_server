@@ -2,7 +2,6 @@ package com.webapp.timeline.sns.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
-import com.webapp.timeline.sns.dto.ImageDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,9 +17,6 @@ public class PostRequest {
     private String content;
 
     private String showLevel;
-
-    @JsonProperty("files")
-    private List<ImageDto> files;
 
     @JsonProperty("tags")
     private List<LoggedInfo> tags;
