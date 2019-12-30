@@ -1,8 +1,9 @@
 package com.webapp.timeline.sns.service;
 
-import com.webapp.timeline.event.repository.ActionRepository;
 import com.webapp.timeline.exception.*;
 import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.membership.service.AlarmServiceImpl;
+import com.webapp.timeline.membership.service.interfaces.AlarmService;
 import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
@@ -39,6 +40,7 @@ public class PostServiceImpl implements PostService {
     private ImageService imageService;
     private CommentService commentService;
     private TimelineServiceImpl timelineService;
+    private AlarmService alarmService;
     private TagsRepository tagsRepository;
     private ServiceAspectFactory<Posts> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 1000;
@@ -51,12 +53,14 @@ public class PostServiceImpl implements PostService {
                            ImageServiceImpl imageService,
                            CommentServiceImpl commentService,
                            TimelineServiceImpl timelineService,
+                           AlarmServiceImpl alarmService,
                            TagsRepository tagsRepository,
                            ServiceAspectFactory<Posts> factory) {
         this.postsRepository = postsRepository;
         this.imageService = imageService;
         this.commentService = commentService;
         this.timelineService = timelineService;
+        this.alarmService = alarmService;
         this.tagsRepository = tagsRepository;
         this.factory = factory;
     }
@@ -68,7 +72,7 @@ public class PostServiceImpl implements PostService {
 
         Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
-        Users authorInfo = factory.extractLoggedInUserInfo(request);
+        Users authorInfo = factory.extractLoggedInAndActiveUser(request);
         String author = authorInfo.getUserId();
 
         factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
@@ -77,9 +81,19 @@ public class PostServiceImpl implements PostService {
                                     .getPostId();
 
         postRequest.getTags().forEach(tagRequest -> {
+            int alarm = DISALLOW_ALARM;
+
+            if (alarmService.isTrueActiveAlarm(tagRequest.getUsername())) {
+                alarm = ALLOW_ALARM;
+            }
+
             Tags entity = Tags.builder()
                               .postId(postId)
-                              .userId(tagRequest.getUsername())
+                              .sender(author)
+                              .receiver(tagRequest.getUsername())
+                              .timestamp(factory.whatIsTimestampOfNow())
+                              .alarm(alarm)
+                              .read(NOT_READ_ALARM)
                               .build();
             tagsRepository.save(entity);
 
@@ -101,7 +115,7 @@ public class PostServiceImpl implements PostService {
 
         Posts post = factory.checkDeleteAndGetIfExist(postId);
 
-        if(factory.extractLoggedIn(request).equals(post.getAuthor())) {
+        if (factory.extractLoggedIn(request).equals(post.getAuthor())) {
             post.setDeleted(DELETED_EVENT_CHECK);
             factory.takeActionByQuery(this.postsRepository.markDeleteByPostId(post));
 
@@ -123,7 +137,7 @@ public class PostServiceImpl implements PostService {
 
         Posts existedPost = factory.checkDeleteAndGetIfExist(postId);
 
-        if(!factory.extractLoggedIn(request).equals(existedPost.getAuthor())) {
+        if (!factory.extractLoggedIn(request).equals(existedPost.getAuthor())) {
             throw new UnauthorizedUserException();
         }
 
@@ -138,6 +152,7 @@ public class PostServiceImpl implements PostService {
         return Collections.singletonMap("postId", postId);
     }
 
+    @Transactional
     @Override
     public TimelineResponse getOnePostByPostId(int postId, HttpServletRequest request) {
         logger.info("[PostService] get one post by post-id.");
@@ -147,13 +162,13 @@ public class PostServiceImpl implements PostService {
         String loggedIn = factory.extractLoggedIn(request);
         String author = post.getAuthor();
 
-        //mark read alarm
+        tagsRepository.markReadSingleTagAlarm(postId, loggedIn);
 
-        if(! author.equals(loggedIn)) {
-            if(showLevel.equals(PRIVATE_TYPE.getName())) {
+        if (! author.equals(loggedIn)) {
+            if (showLevel.equals(PRIVATE_TYPE.getName())) {
                 throw new BadRequestException();
             }
-            else if(showLevel.equals(FOLLOWER_TYPE.getName())
+            else if (showLevel.equals(FOLLOWER_TYPE.getName())
                     && !factory.isFollowedMe(loggedIn, author)) {
                 throw new BadRequestException();
             }
@@ -164,7 +179,7 @@ public class PostServiceImpl implements PostService {
     @SuppressWarnings("unchecked")
     private void deliverToNewsfeed(int postId, String sender, String showLevel) {
 
-        if(showLevel.equals(PRIVATE_TYPE.getName())) {
+        if (showLevel.equals(PRIVATE_TYPE.getName())) {
             factory.deliver(Newsfeed.builder()
                                     .postId(postId)
                                     .category(NEWSFEED_POST)
@@ -202,7 +217,7 @@ public class PostServiceImpl implements PostService {
     }
 
     private void isUpdateExecuted(Posts existed, PostRequest updated) {
-        if(existed.getContent().equals(updated.getContent())
+        if (existed.getContent().equals(updated.getContent())
                 && existed.getShowLevel().equals(updated.getShowLevel())) {
 
             throw new BadRequestException();

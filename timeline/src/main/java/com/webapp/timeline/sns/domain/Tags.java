@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "tags")
@@ -22,6 +23,18 @@ public class Tags {
     @Column(name = "postId", nullable = false)
     private int postId;
 
-    @Column(name = "userId", nullable = false)
-    private String userId;
+    @Column(name = "sender", nullable = false)
+    private String sender;
+
+    @Column(name = "receiver", nullable = false)
+    private String receiver;
+
+    @Column(name = "lastUpdate")
+    private Timestamp timestamp;
+
+    @Column(name = "alarm")
+    private int alarm;
+
+    @Column(name = "checked")
+    private int read;
 }
