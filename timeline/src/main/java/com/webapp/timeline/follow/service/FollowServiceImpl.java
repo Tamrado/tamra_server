@@ -86,19 +86,13 @@ public class FollowServiceImpl implements FollowService {
         }
         else friendService.matchNewRelationship(userId,fid);
     }
-    @Transactional
-    @Override
-    public void sendUnFollow(String fid, HttpServletRequest request) throws RuntimeException{
+    public void sendIsFollowingUser(HttpServletRequest request,String fid)throws RuntimeException{
         String userId = tokenService.sendIdInCookie(request);
         userService.isTrueActualUser(userId);
-        String friend = usersEntityRepository.findIdByExistingId(fid);
-        if(friend == null) throw new NoMatchPointException();
         userService.isTrueActualUser(fid);
-        try {
-            followersRepository.updateUnfollow(userId, fid);
-            followingRepository.updateUnfollow(userId, fid);
-        }catch(Exception e){
-            throw new NoStoringException();
-        }
+        String friendOne = followingRepository.selectIsFollowingUser(userId,fid);
+        String friendTwo = followersRepository.selectIsFollowingUser(userId,fid);
+        if(friendOne == null && friendTwo == null)
+            throw new NoMatchPointException();
     }
 }

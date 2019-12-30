@@ -35,6 +35,7 @@ public interface FollowersRepository extends JpaRepository<Followers, FollowId> 
     @Query("select fl.id.userId from Followers fl where fl.id.friendId = :uid and fl.isFollow = 1")
     List<String> selectFollowIdList(@Param("uid") String uid);
 
-
+    @Query("select f.id.userId from Followers f where f.id.friendId = :uid and f.isFollow = 1 and f.id.userId = :fid")
+    String selectIsFollowingUser(@Param("uid") String uid,@Param("fid")String fid);
 
 }
