@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Builder
@@ -17,9 +18,14 @@ public class NewsfeedResponse {
     @JsonProperty("feed")
     private TimelineResponse feed;
 
-    private String sender;
+    @JsonProperty("profileId")
+    private String feedAuthorId;
+
+    private Map<String, String> sender;
 
     private String category;
+
+    private String message;
 
     @JsonProperty("comment")
     private List<CommentResponse> comment;
