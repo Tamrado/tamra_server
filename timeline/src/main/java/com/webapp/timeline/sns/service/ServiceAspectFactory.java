@@ -56,7 +56,7 @@ public class ServiceAspectFactory<T> {
         this.userImagesRepository = userImagesRepository;
     }
 
-    protected String extractLoggedIn(HttpServletRequest request) {
+    public String extractLoggedIn(HttpServletRequest request) {
         String loggedIn = "";
         try {
             loggedIn = this.userSignService.extractUserFromToken(request)
@@ -69,7 +69,16 @@ public class ServiceAspectFactory<T> {
         return loggedIn;
     }
 
-    protected void checkInactiveUser(String userId) {
+    Users extractLoggedInUserInfo(HttpServletRequest request) {
+        try {
+            return this.userSignService.extractUserFromToken(request);
+        }
+        catch(NoInformationException no_user) {
+            throw new UnauthorizedUserException();
+        }
+    }
+
+    public void checkInactiveUser(String userId) {
         Users userInfo = this.userSignService.loadUserByUsername(userId);
 
         if(userInfo.getAuthority().equals(INACTIVE_USER)) {
@@ -77,7 +86,7 @@ public class ServiceAspectFactory<T> {
         }
     }
 
-    protected ProfileResponse makeSingleProfile(String userId) {
+    ProfileResponse makeSingleProfile(String userId) {
         LoggedInfo userInfo = getUserInfo(userId);
 
         return ProfileResponse.builder()
@@ -86,7 +95,7 @@ public class ServiceAspectFactory<T> {
                             .build();
     }
 
-    protected LoggedInfo getUserInfo(String userId) {
+    LoggedInfo getUserInfo(String userId) {
         String profile = this.userImagesRepository.findImageURLById(userId)
                                                 .getProfileURL();
         Users user = this.userSignService.loadUserByUsername(userId);
@@ -94,8 +103,12 @@ public class ServiceAspectFactory<T> {
         return new LoggedInfo(userId, profile, user.getName(), user.getComment());
     }
 
+    Users loadUserById(String userId) {
+        return this.userSignService.loadUserByUsername(userId);
+    }
+
     @SuppressWarnings("unchecked")
-    protected void deliverToNewsfeed(String category, Posts post, String sender, long commentId) {
+    void deliverToNewsfeed(String category, Posts post, String sender, long commentId) {
         List<String> receivers = new ArrayList<>();
 
         if(post.getAuthor().equals(sender)) {
@@ -126,23 +139,23 @@ public class ServiceAspectFactory<T> {
         });
     }
 
-    protected void deliver(Newsfeed feed) {
+    void deliver(Newsfeed feed) {
         this.newsfeedRepository.save(feed);
     }
 
-    protected void withdrawFeedByPostId(int postId) {
+    void withdrawFeedByPostId(int postId) {
         this.newsfeedRepository.deleteNewsfeedByPostId(postId);
     }
 
-    protected void withdrawFeedByComment(String sender, long commentId) {
+    void withdrawFeedByComment(String sender, long commentId) {
         this.newsfeedRepository.deleteNewsfeedByComment(sender, commentId);
     }
 
-    protected void withdrawFeedByLike(int postId, String sender) {
+    void withdrawFeedByLike(int postId, String sender) {
         this.newsfeedRepository.deleteNewsfeedByLike(postId, sender, NEWSFEED_LIKE);
     }
 
-    protected List whoFollowsMe(String me) {
+    List whoFollowsMe(String me) {
         try {
             return this.friendService.sendFollowIdList(me, false);
         }
@@ -151,7 +164,7 @@ public class ServiceAspectFactory<T> {
         }
     }
 
-    protected boolean isFollowedMe(String loggedIn, String author) {
+    boolean isFollowedMe(String loggedIn, String author) {
         try {
             return this.friendService.sendFollowIdList(author, false)
                                      .contains(loggedIn);
@@ -161,7 +174,7 @@ public class ServiceAspectFactory<T> {
         }
     }
 
-    protected Posts checkDeleteAndGetIfExist(int postId) {
+    Posts checkDeleteAndGetIfExist(int postId) {
         Posts post = this.postsRepository.findById(postId)
                                         .orElseThrow(NoInformationException::new);
         if(post.getDeleted() == DELETED_EVENT_CHECK) {
@@ -171,7 +184,7 @@ public class ServiceAspectFactory<T> {
         return post;
     }
 
-    protected Timestamp whatIsTimestampOfNow() {
+    Timestamp whatIsTimestampOfNow() {
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
         String now = LocalDateTime.now()
                 .atZone(zoneId)
@@ -180,19 +193,19 @@ public class ServiceAspectFactory<T> {
         return Timestamp.valueOf(now);
     }
 
-    protected void takeActionByQuery(int affectedRow) {
+    void takeActionByQuery(int affectedRow) {
         if(affectedRow == 0) {
             throw new NoInformationException();
         }
     }
 
-    protected void checkContentLength(String content, int maxLength) {
+    void checkContentLength(String content, int maxLength) {
         if(content.length() == 0 || content.length() > maxLength) {
             throw new NoStoringException();
         }
     }
 
-    protected boolean isPageExceed(Page<T> pagingList, Pageable pageable) {
+    boolean isPageExceed(Page<T> pagingList, Pageable pageable) {
         int current = pageable.getPageNumber();
         int lastPage = pagingList.getTotalPages() - 1;
 

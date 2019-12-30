@@ -41,7 +41,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
     private static final int ONE_MINUTE = 60;
     private static final int ONE_DAY = 24;
 
-    TimelineServiceImpl() {
+    public TimelineServiceImpl() {
     }
 
     @Autowired
@@ -170,7 +170,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         return this.likesRepository.countLikesByPostId(postId);
     }
 
-    String printEasyTimestamp(Timestamp time) {
+    public String printEasyTimestamp(Timestamp time) {
         LocalDateTime responsedItem = time.toLocalDateTime();
         LocalDateTime now = LocalDateTime.now();
         int timestamp;

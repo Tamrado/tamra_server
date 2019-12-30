@@ -22,11 +22,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import javax.transaction.Transactional;
+import java.util.*;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_COMMENT;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_LIKE;
 
 @Service
 public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<NewsfeedResponse, Newsfeed> {
@@ -51,6 +51,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
         this.factory = factory;
     }
 
+    @Transactional
     @Override
     public SnsResponse<NewsfeedResponse> dispatch(Pageable pageable,
                                                   HttpServletRequest request) {
@@ -72,7 +73,6 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
     @SuppressWarnings("unchecked")
     public NewsfeedResponse makeSingleResponse(Newsfeed newsfeed) {
         Posts post = null;
-        LinkedList<CommentResponse> selectedComments = new LinkedList<>();
 
         try {
             post = factory.checkDeleteAndGetIfExist(newsfeed.getPostId());
@@ -87,21 +87,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
         LinkedList tags = (LinkedList) timelineService.getPostTags(postId);
         String category = newsfeed.getCategory();
         List<Comments> postComments = commentsRepository.getCommentsByPostId(postId);
-
-        if(category.equals(NEWSFEED_COMMENT)) {
-            postComments.forEach(comment -> {
-                if(!comment.getAuthor().equals(newsfeed.getSender())) {
-                    return;
-                }
-
-                selectedComments.add(CommentResponse.builder()
-                                                    .postId(postId)
-                                                    .profile(factory.makeSingleProfile(newsfeed.getSender()))
-                                                    .content(comment.getContent())
-                                                    .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
-                                                    .build());
-            });
-        }
+        LinkedList<CommentResponse> selectedComments = new LinkedList<>();
 
         TimelineResponse feed = TimelineResponse.builder()
                                                 .postId(postId)
@@ -115,11 +101,43 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .totalComment(postComments.size())
                                                 .totalLike((int) timelineService.countPostLikes(postId))
                                                 .build();
+
+        String message = "";
+        Map<String, String> senderInfo = new HashMap<>(2);
+        String nicknameOfSender = factory.loadUserById(newsfeed.getSender())
+                                         .getName();
+
+        senderInfo.put("username", newsfeed.getSender());
+        senderInfo.put("nickname", nicknameOfSender);
+
+        if(category.equals(NEWSFEED_COMMENT)) {
+            postComments.forEach(comment -> {
+                if(!comment.getAuthor().equals(newsfeed.getSender())) {
+                    return;
+                }
+
+                selectedComments.add(CommentResponse.builder()
+                                .postId(postId)
+                                .profile(factory.makeSingleProfile(newsfeed.getSender()))
+                                .content(comment.getContent())
+                                .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
+                                .build());
+            });
+
+            message = nicknameOfSender + "님이 이 게시물에 댓글을 남겼습니다.";
+        }
+        else if(category.equals(NEWSFEED_LIKE)) {
+            message = nicknameOfSender + "님이 이 게시물을 좋아합니다.";
+        }
+
         return NewsfeedResponse.builder()
                                 .feed(feed)
-                                .sender(newsfeed.getSender())
+                                .feedAuthorId(post.getAuthor())
+                                .sender(senderInfo)
                                 .category(category)
+                                .message(message)
                                 .comment(selectedComments)
                                 .build();
     }
 }
+

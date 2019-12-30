@@ -1,6 +1,8 @@
 package com.webapp.timeline.sns.service;
 
+import com.webapp.timeline.event.repository.ActionRepository;
 import com.webapp.timeline.exception.*;
+import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
@@ -66,7 +68,8 @@ public class PostServiceImpl implements PostService {
 
         Map<String, Integer> responseBody = new HashMap<>(2);
         AtomicInteger count = new AtomicInteger();
-        String author = factory.extractLoggedIn(request);
+        Users authorInfo = factory.extractLoggedInUserInfo(request);
+        String author = authorInfo.getUserId();
 
         factory.checkContentLength(postRequest.getContent(), MAXIMUM_CONTENT_LENGTH);
 
@@ -75,9 +78,9 @@ public class PostServiceImpl implements PostService {
 
         postRequest.getTags().forEach(tagRequest -> {
             Tags entity = Tags.builder()
-                            .postId(postId)
-                            .userId(tagRequest.getUsername())
-                            .build();
+                              .postId(postId)
+                              .userId(tagRequest.getUsername())
+                              .build();
             tagsRepository.save(entity);
 
             count.incrementAndGet();
@@ -143,6 +146,8 @@ public class PostServiceImpl implements PostService {
         String showLevel = post.getShowLevel();
         String loggedIn = factory.extractLoggedIn(request);
         String author = post.getAuthor();
+
+        //mark read alarm
 
         if(! author.equals(loggedIn)) {
             if(showLevel.equals(PRIVATE_TYPE.getName())) {
