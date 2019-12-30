@@ -13,4 +13,5 @@ public interface TagsRepository extends JpaRepository<Tags, Long> {
 
     @Query(value = "SELECT t.userId FROM Tags t WHERE postId = :postId")
     LinkedList<String> listTagListInPost(@Param("postId") int postId);
+
 }

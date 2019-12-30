@@ -129,7 +129,7 @@ public class PostController {
         }
     }
 
-    @ApiOperation(value = "1개 글 상세보기 (request : 글 Id)",
+    @ApiOperation(value = "Post 알림 클릭 시 -> 1개 글 상세보기 (request : 글 Id)",
                 notes = "response : 200 -> 성공 " +
                                 "| 400 -> Private 글인데 본인(log-in된 Id) 글이 아닐 때/ Followers 글인데 팔로 안했을 때 " +
                                 "| 401 -> user 없을 경우 (권한 없음) " +
