@@ -69,4 +69,15 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
     @Query("select u.userId as userId, u.name as name, u.comment as comment from Users u where u.name like %:nickname% " +
             "and u.authority = 'ROLE_USER'")
     Page<Map<String,String>> findUsersBySearching(@Param("nickname")String nickname, Pageable pageable);
+
+    @Modifying
+    @Query("update Users u set u.isAlarm = 0 where u.userId = :uid")
+    void updateUserOffAlarm (@Param("uid")String uid);
+
+    @Modifying
+    @Query("update Users u set u.isAlarm = 1 where u.userId = :uid")
+    void updateUserOnAlarm (@Param("uid")String uid);
+
+    @Query("select u.isAlarm from Users u where u.userId = :uid")
+    Integer selectIsAlarmFromUid (@Param("uid")String uid);
 }

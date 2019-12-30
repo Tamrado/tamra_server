@@ -2,6 +2,7 @@ package com.webapp.timeline.membership.web;
 
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
+import com.webapp.timeline.membership.service.interfaces.AlarmService;
 import com.webapp.timeline.membership.service.interfaces.UserModifyService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
@@ -25,19 +26,20 @@ import java.util.Map;
 @CrossOrigin(origins = {"*"})
 @RestController
 public class UserController {
-
     Logger log = LoggerFactory.getLogger(this.getClass());
     private TokenService tokenService;
     private UserModifyService userModifyService;
     private UserSignService userSignService;
     private UserService userService;
+    private AlarmService alarmService;
 
     @Autowired
-    public UserController(UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
+    public UserController(AlarmService alarmService,UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
         this.userModifyService = userModifyService;
         this.tokenService = tokenService;
         this.userSignService = userSignService;
         this.userService = userService;
+        this.alarmService = alarmService;
     }
 
     public UserController(){}
@@ -85,6 +87,17 @@ public class UserController {
     @GetMapping(value="/friend/{userId}")
     public LoggedInfo sendFriendInfo(@PathVariable String userId,HttpServletRequest request) throws RuntimeException{
         return userService.setLoggedInfo(userId);
+    }
+
+    @ApiOperation(value = "알람기능 활성화", notes = "알람기능 활성화 (response : 200 -성공 401- 비활성화 혹은 없는 유저 409- 저장 안됨) ")
+    @PutMapping(value = "/alarm/uid")
+    public void changeActiveAlarm(HttpServletRequest request) throws RuntimeException{
+        alarmService.changeAlarm(true,request);
+    }
+    @ApiOperation(value = "알람기능 비활성화", notes ="알람기능 비활성화 (response : 200 -성공 401- 비활성화 혹은 없는 유저 409- 저장 안됨)")
+    @PutMapping(value = "/alarm/uid/off")
+    public void changeInactiveAlarm(HttpServletRequest request) throws RuntimeException{
+        alarmService.changeAlarm(false,request);
     }
 
     /*@ApiOperation(value="활성화",notes = "유저가 활성화 함 (response : 200 - 성공 411 - 맞는 정보가 없어서 활성화 실패)")

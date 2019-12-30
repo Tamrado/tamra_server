@@ -33,6 +33,7 @@ public class Users implements UserDetails {
     private String address;
     private String comment;
     private Date timestamp;
+    private Boolean isAlarm;
 
     public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
                  String address, String comment, Date timestamp) {
