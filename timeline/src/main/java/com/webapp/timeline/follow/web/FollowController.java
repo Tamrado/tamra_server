@@ -3,6 +3,7 @@ package com.webapp.timeline.follow.web;
 import com.webapp.timeline.follow.service.interfaces.FollowService;
 import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.follow.service.interfaces.SearchService;
+import com.webapp.timeline.follow.service.interfaces.UnFollowService;
 import com.webapp.timeline.follow.service.response.FollowInfo;
 import com.webapp.timeline.follow.service.response.PostProfileInfo;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
@@ -24,13 +25,15 @@ import java.util.Map;
 public class FollowController {
     private FollowService followService;
     private FriendService friendService;
+    private UnFollowService unFollowService;
 
     Logger log = LoggerFactory.getLogger(this.getClass());
     public FollowController(){}
     @Autowired
-    public FollowController(FollowService followService, FriendService friendService){
+    public FollowController(UnFollowService unFollowService,FollowService followService, FriendService friendService){
         this.followService = followService;
         this.friendService = friendService;
+        this.unFollowService= unFollowService;
     }
     @ApiOperation(value = "내 follow follower 개수" , notes = "마이 포스트 내 개수 리턴 (response : 200 - 성공, 404 - 아이디가 없는 아이디임 401 - 유저가 비활함 )")
     @GetMapping(value="/post/num")
@@ -47,7 +50,7 @@ public class FollowController {
             " 411 - 친구 아이디가 존재하지 않음 401 - 친구나 유저가 비활함 409 - 저장되지 않음")
     @PutMapping(value = "/no")
     public void clickUnfollow(@RequestBody Map<String,String> friendId, HttpServletRequest request) throws RuntimeException{
-        followService.sendUnFollow(friendId.get("friendId"), request);
+        unFollowService.sendUnFollow(friendId.get("friendId"), request);
     }
 
     @ApiOperation(value = "follow 버튼 클릭" , notes = "팔로우 신청 (response : 200 -성공 404 - userId 존재하지 않는 아이디" +
@@ -76,6 +79,11 @@ public class FollowController {
         return friendService.sendFriendList(httpServletRequest);
     }
 
+    @ApiOperation(value = "유저가 팔로우 하는 사람인지 아닌지", notes = "response: 200 성공 411 - 팔로우 하는 사람이 아님 401 - 비활성한 유저 ")
+    @GetMapping(value = "/{fid}/isfollow")
+    public void getIsFollowUser(HttpServletRequest request,String fid) throws RuntimeException{
+        followService.sendIsFollowingUser(request, fid);
+    }
 
 }
 
