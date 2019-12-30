@@ -28,19 +28,5 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
-
-    @Bean
-    public MessageSourceAccessor eventMessageSourceAccessor(MessageSource messageSource) {
-        return new MessageSourceAccessor(eventMessageSource());
-    }
-
-    @Bean
-    public MessageSource eventMessageSource() {
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename("classpath:event");
-        messageSource.setDefaultEncoding("UTF-8");
-        messageSource.setCacheSeconds(60);
-
-        return messageSource;
-    }
+    
 }

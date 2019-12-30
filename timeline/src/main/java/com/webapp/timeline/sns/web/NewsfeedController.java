@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 @Api(tags = {"6. Timeline"})
 @RestController
 @CrossOrigin(origins = {"*"})
-@RequestMapping(value = "/api")
+@RequestMapping(value = "/api/post")
 public class NewsfeedController {
 
     private static final Logger logger = LoggerFactory.getLogger(NewsfeedController.class);
