@@ -69,13 +69,21 @@ public class ServiceAspectFactory<T> {
         return loggedIn;
     }
 
-    Users extractLoggedInUserInfo(HttpServletRequest request) {
+    Users extractLoggedInAndActiveUser(HttpServletRequest request) {
+        Users userInfo = null;
+
         try {
-            return this.userSignService.extractUserFromToken(request);
+            userInfo = this.userSignService.extractUserFromToken(request);
         }
         catch(NoInformationException no_user) {
             throw new UnauthorizedUserException();
         }
+
+        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
+            throw new NoInformationException();
+        }
+
+        return userInfo;
     }
 
     public void checkInactiveUser(String userId) {
@@ -97,7 +105,7 @@ public class ServiceAspectFactory<T> {
 
     LoggedInfo getUserInfo(String userId) {
         String profile = this.userImagesRepository.findImageURLById(userId)
-                                                .getProfileURL();
+                                                  .getProfileURL();
         Users user = this.userSignService.loadUserByUsername(userId);
 
         return new LoggedInfo(userId, profile, user.getName(), user.getComment());

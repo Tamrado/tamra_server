@@ -1,7 +1,6 @@
 package com.webapp.timeline.sns.domain;
 
 import lombok.*;
-import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

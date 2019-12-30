@@ -36,6 +36,7 @@ public class PostController {
     @ApiOperation(value = "글쓰기 : 무슨 일이 있으셨나요? (request : 글 내용, show-level)",
                 notes = "response : 201 -> 성공 " +
                                 "| 401 -> user 없을 경우 (권한 없음) " +
+                                "| 404 -> 비활성 계정으로 로그인함 " +
                                 "| 409 -> 글 내용 글자수가 0이거나 1000글자 초과 시")
     @PostMapping(value = "/upload", consumes = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity create(@RequestBody PostRequest postRequest,
@@ -52,6 +53,11 @@ public class PostController {
             logger.error("[PostController] No user.");
 
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        catch(NoInformationException inactive_user) {
+            logger.warn("[NewsfeedController] Inactive User.");
+
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         catch(NoStoringException too_long_or_short_content) {
             logger.error("[PostController] The content is empty or too long.");

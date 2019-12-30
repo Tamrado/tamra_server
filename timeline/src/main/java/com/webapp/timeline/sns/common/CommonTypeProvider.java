@@ -15,4 +15,12 @@ public final class CommonTypeProvider {
     public static final String NEWSFEED_LIKE = "like";
 
     public static final long NOT_COMMENT = 0;
+
+    public static final int DISALLOW_ALARM = 0;
+
+    public static final int ALLOW_ALARM = 1;
+
+    public static final int NOT_READ_ALARM = 0;
+
+    public static final int READ_ALARM = 1;
 }
