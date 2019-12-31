@@ -40,7 +40,7 @@ public interface FollowingRepository extends JpaRepository<Followings, FollowId>
     List<String> findSecondFriendList(@Param("uid")String uid);
 
     @Modifying
-    @Query("update Followers f set f.isFollow = 0,f.isAlarm = 0 where f.id.friendId = :uid and f.id.userId = :fid")
+    @Query("update Followings f set f.isFollow = 0,f.isAlarm = 0 where f.id.friendId = :uid and f.id.userId = :fid")
     void updateUnfollow(@Param("uid")String uid, @Param("fid")String fid);
 
     @Query("select f.id.userId from Followings f where f.id.friendId = :uid and f.isFollow = 1")

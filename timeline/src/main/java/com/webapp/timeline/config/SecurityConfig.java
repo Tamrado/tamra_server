@@ -73,6 +73,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/auth/*").hasAuthority("ROLE_USER")
                 .antMatchers("/api/friend/*").hasAuthority("ROLE_USER")
                 .antMatchers("/api/list/*").hasAuthority("ROLE_USER")
+                .antMatchers("/api/post/*").hasAuthority("ROLE_USER")
+                .antMatchers("/api/newsfeed").hasAuthority("ROLE_USER")
+
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .and()
                 .cors().configurationSource(corsConfigurationSource())

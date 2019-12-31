@@ -81,7 +81,7 @@ public class FollowController {
 
     @ApiOperation(value = "유저가 팔로우 하는 사람인지 아닌지", notes = "response: 200 성공 411 - 팔로우 하는 사람이 아님 401 - 비활성한 유저 ")
     @GetMapping(value = "/{fid}/isfollow")
-    public void getIsFollowUser(HttpServletRequest request,String fid) throws RuntimeException{
+    public void getIsFollowUser(HttpServletRequest request,@PathVariable String fid) throws RuntimeException{
         followService.sendIsFollowingUser(request, fid);
     }
 

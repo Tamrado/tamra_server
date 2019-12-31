@@ -15,7 +15,7 @@ public class CustomAccessDeniedHandler extends AccessDeniedHandlerImpl {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException exception) throws IOException,
             ServletException {
-        log.error("access denied");
+        log.error(exception.toString());
         response.sendRedirect("/auth/login?expired");
     }
 }
