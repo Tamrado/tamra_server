@@ -4,6 +4,7 @@ import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.sns.domain.Comments;
+import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.CommentResponse;
@@ -11,6 +12,7 @@ import com.webapp.timeline.sns.dto.response.NewsfeedResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
+import com.webapp.timeline.sns.repository.LikesRepository;
 import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import com.webapp.timeline.sns.service.interfaces.NewsfeedService;
 import com.webapp.timeline.sns.service.interfaces.SnsResponseHelper;
@@ -34,6 +36,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
     private static final Logger logger = LoggerFactory.getLogger(NewsfeedServiceImpl.class);
     private NewsfeedRepository newsfeedRepository;
     private CommentsRepository commentsRepository;
+    private LikesRepository likesRepository;
     private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Newsfeed> factory;
 
@@ -43,10 +46,12 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
     @Autowired
     NewsfeedServiceImpl(NewsfeedRepository newsfeedRepository,
                         CommentsRepository commentsRepository,
+                        LikesRepository likesRepository,
                         TimelineServiceImpl timelineService,
                         ServiceAspectFactory<Newsfeed> factory) {
         this.newsfeedRepository = newsfeedRepository;
         this.commentsRepository = commentsRepository;
+        this.likesRepository = likesRepository;
         this.timelineService = timelineService;
         this.factory = factory;
     }
@@ -57,8 +62,8 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                   HttpServletRequest request) {
         logger.info("[NewsfeedService] dispatch list.");
 
-        String loggedIn = factory.extractLoggedIn(request);
-        factory.checkInactiveUser(loggedIn);
+        String loggedIn = factory.extractLoggedInAndActiveUser(request)
+                                 .getUserId();
 
         Page<Newsfeed> feedList = newsfeedRepository.getNewsfeedByReceiver(pageable, loggedIn);
 
@@ -66,12 +71,12 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
             throw new BadRequestException();
         }
 
-        return makeSnsResponse(feedList);
+        return makeSnsResponse(feedList, loggedIn);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public NewsfeedResponse makeSingleResponse(Newsfeed newsfeed) {
+    public NewsfeedResponse makeSingleResponse(Newsfeed newsfeed, String loggedIn) {
         Posts post = null;
 
         try {
@@ -88,6 +93,16 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
         String category = newsfeed.getCategory();
         List<Comments> postComments = commentsRepository.getCommentsByPostId(postId);
         LinkedList<CommentResponse> selectedComments = new LinkedList<>();
+        boolean isLoggedInUserLikeIt = false;
+        Likes likeObject = Likes.builder()
+                .postId(postId)
+                .owner(loggedIn)
+                .build();
+
+        if(this.likesRepository.isUserLikedPost(likeObject) != null &&
+                this.likesRepository.isUserLikedPost(likeObject) > 0) {
+            isLoggedInUserLikeIt = true;
+        }
 
         TimelineResponse feed = TimelineResponse.builder()
                                                 .postId(postId)
@@ -100,6 +115,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .totalTag(tags.size())
                                                 .totalComment(postComments.size())
                                                 .totalLike((int) timelineService.countPostLikes(postId))
+                                                .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                                                 .build();
 
         String message = "";

@@ -173,7 +173,7 @@ public class PostServiceImpl implements PostService {
                 throw new BadRequestException();
             }
         }
-        return timelineService.makeSingleResponse(post);
+        return timelineService.makeSingleResponse(post, loggedIn);
     }
 
     @SuppressWarnings("unchecked")
