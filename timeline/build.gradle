@@ -20,6 +20,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     compile 'commons-io:commons-io:2.6'
     implementation 'org.springframework.session:spring-session-jdbc'
@@ -48,12 +49,6 @@ dependencies {
     compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
     compile group: 'org.springframework', name: 'spring-context-support', version: '5.2.1.RELEASE'
     compile('org.springframework.boot:spring-boot-configuration-processor')
-
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    compile("org.webjars:webjars-locator-core")
-    compile group: 'org.webjars', name: 'stomp-websocket', version: '2.3.3-1'
-    compile group: 'org.webjars', name: 'sockjs-client', version: '1.1.2'
-    compile("org.springframework.security:spring-security-messaging")
 }
 dependencyManagement {
     imports {

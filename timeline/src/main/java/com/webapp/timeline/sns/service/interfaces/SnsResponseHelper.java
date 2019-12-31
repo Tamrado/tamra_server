@@ -7,13 +7,13 @@ import java.util.LinkedList;
 
 public interface SnsResponseHelper<T, M> {
 
-    T makeSingleResponse(M item);
+    T makeSingleResponse(M item, String loggedIn);
 
-    default SnsResponse<T> makeSnsResponse(Page<M> pagedList) {
+    default SnsResponse<T> makeSnsResponse(Page<M> pagedList, String loggedIn) {
         LinkedList<T> eventList = new LinkedList<>();
 
         pagedList.forEach(item -> {
-            eventList.add(makeSingleResponse(item));
+            eventList.add(makeSingleResponse(item, loggedIn));
         });
 
         return SnsResponse.<T>builder()

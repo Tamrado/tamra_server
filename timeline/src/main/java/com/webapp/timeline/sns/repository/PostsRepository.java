@@ -35,11 +35,8 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
             nativeQuery = false)
     Page<Posts> showTimelineByUser(Pageable pageable, @Param("author") String author, @Param("scope") String scope);
 
-    @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author",
+    @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author AND list.showLevel < 3",
             nativeQuery = false)
     Long showPostNumberByUser(@Param("author") String author);
 
-    @Query(value = "SELECT list.postId FROM Posts list WHERE list.deleted = 1",
-            nativeQuery = false)
-    List<Integer> getDeletedPostList();
 }
