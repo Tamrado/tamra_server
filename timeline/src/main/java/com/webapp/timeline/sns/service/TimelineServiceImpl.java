@@ -3,6 +3,7 @@ package com.webapp.timeline.sns.service;
 import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
+import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.dto.response.ImageResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
@@ -64,14 +65,15 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                                                             Pageable pageable,
                                                             HttpServletRequest request) {
         logger.info("[TimelineService] get post-list by user-id.");
-        factory.checkInactiveUser(userId);
-        Page<Posts> userTimeline = dispatchByAccessScope(userId, pageable, request);
+        String loggedIn = factory.extractLoggedInAndActiveUser(request)
+                                 .getUserId();
+        Page<Posts> userTimeline = dispatchByAccessScope(userId, pageable, loggedIn);
 
         if(factory.isPageExceed(userTimeline, pageable)) {
             throw new BadRequestException();
         }
 
-        return makeSnsResponse(userTimeline);
+        return makeSnsResponse(userTimeline, loggedIn);
     }
 
     @Override
@@ -86,11 +88,8 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
 
 
 
-    private Page<Posts> dispatchByAccessScope(String author, Pageable pageable, HttpServletRequest request) {
-        String loggedIn = "";
+    private Page<Posts> dispatchByAccessScope(String author, Pageable pageable, String loggedIn) {
         String subscribe = "";
-
-        loggedIn = factory.extractLoggedIn(request);
 
         if(author.equals(loggedIn)) {
             subscribe = PRIVATE_TYPE.getName();
@@ -107,9 +106,20 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
 
     @Override
     @SuppressWarnings("unchecked")
-    public TimelineResponse makeSingleResponse(Posts item) {
+    public TimelineResponse makeSingleResponse(Posts item, String loggedIn) {
         int postId = item.getPostId();
         List tags = getPostTags(postId);
+        boolean isLoggedInUserLikeIt = false;
+        Likes likeObject = Likes.builder()
+                                .postId(postId)
+                                .owner(loggedIn)
+                                .build();
+
+        if(this.likesRepository.isUserLikedPost(likeObject) != null &&
+                this.likesRepository.isUserLikedPost(likeObject) > 0) {
+            isLoggedInUserLikeIt = true;
+        }
+
 
         return TimelineResponse.builder()
                             .postId(postId)
@@ -122,6 +132,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .totalTag(tags.size())
                             .totalComment((int) countPostComments(postId))
                             .totalLike((int) countPostLikes(postId))
+                            .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                             .build();
     }
 

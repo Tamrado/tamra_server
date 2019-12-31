@@ -98,6 +98,7 @@ public class ServiceAspectFactory<T> {
         LoggedInfo userInfo = getUserInfo(userId);
 
         return ProfileResponse.builder()
+                            .id(userId)
                             .name(userInfo.getNickname())
                             .profile(userInfo.getThumbnail())
                             .build();
