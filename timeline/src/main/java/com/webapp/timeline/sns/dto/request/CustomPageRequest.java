@@ -21,7 +21,7 @@ public class CustomPageRequest {
     private Sort.Direction direction;
 
     private static final int DEFAULT_SIZE = 10;
-    private static final Sort.Direction DEFAULT_DIRECTION = Sort.Direction.ASC;
+    private static final Sort.Direction DEFAULT_DIRECTION = Sort.Direction.DESC;
 
     public void setPage(int page) {
         this.page = page <= 0 ? 1 : page;
