@@ -1,11 +1,9 @@
 package com.webapp.timeline.sns.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "newsfeed")
@@ -31,7 +29,11 @@ public class Newsfeed {
     @Column(name = "receiver", nullable = false)
     private String receiver;
 
-    @Column(name = "commentId")
-    private long commentId;
+    @Setter
+    @Column(name = "frequency")
+    private int frequency;
+
+    @Column(name = "lastUpdate")
+    private Timestamp lastUpdate;
 
 }

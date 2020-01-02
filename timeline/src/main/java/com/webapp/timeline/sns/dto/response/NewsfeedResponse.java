@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,8 @@ public class NewsfeedResponse {
     @JsonProperty("profileId")
     private String feedAuthorId;
 
-    private Map<String, String> sender;
+    @JsonProperty("sender")
+    private LinkedList<Map<String, String>> sender;
 
     private String category;
 
