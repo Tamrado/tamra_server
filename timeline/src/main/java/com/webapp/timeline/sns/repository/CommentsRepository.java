@@ -43,7 +43,9 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     Long countCommentsByPostId(@Param("postId") int postId);
 
     @Transactional
-    @Query(value = "SELECT list FROM Comments list WHERE list.deleted = 0 AND list.postId = :postId",
+    @Query(value = "SELECT list FROM Comments list " +
+                    "WHERE list.deleted = 0 AND list.postId = :postId ORDER BY list.commentId DESC",
             nativeQuery = false)
     List<Comments> getCommentsByPostId(@Param("postId") int postId);
+
 }

@@ -81,7 +81,11 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         logger.info("[TimelineService] get total post-number by user-id.");
 
         factory.checkInactiveUser(userId);
-        factory.extractLoggedIn(request);
+        String loggedIn = factory.extractLoggedIn(request);
+
+        if(userId.equals(loggedIn)) {
+            return this.postsRepository.showPostNumberByUserWhenMyId(userId);
+        }
 
         return this.postsRepository.showPostNumberByUser(userId);
     }

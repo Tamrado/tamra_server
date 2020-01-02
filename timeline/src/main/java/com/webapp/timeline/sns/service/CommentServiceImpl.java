@@ -42,6 +42,7 @@ public class CommentServiceImpl implements CommentService {
         this.factory = factory;
     }
 
+    @Transactional
     @Override
     public CommentResponse registerComment(int postId, Comments comment, HttpServletRequest request) {
         logger.info("[CommentService] register comment.");
@@ -53,7 +54,7 @@ public class CommentServiceImpl implements CommentService {
         factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
         Comments newComment = commentsRepository.save(makeObjectForComment(postId, content, loggedIn));
-        factory.deliverToNewsfeed(NEWSFEED_COMMENT, post, loggedIn, newComment.getCommentId());
+        factory.deliverToNewsfeed(NEWSFEED_COMMENT, post, loggedIn);
 
         return makeSingleResponse(newComment);
     }
@@ -78,7 +79,12 @@ public class CommentServiceImpl implements CommentService {
             comment.setDeleted(DELETED_EVENT_CHECK);
             factory.takeActionByQuery(this.commentsRepository.markDeleteByCommentId(comment));
 
-            factory.withdrawFeedByComment(loggedIn, commentId);
+            try {
+                Posts relatedPost = factory.checkDeleteAndGetIfExist(comment.getPostId());
+                factory.withdrawFeedByLikeOrComment(NEWSFEED_COMMENT, relatedPost, loggedIn);
+            }
+            catch (NoInformationException ignored) {
+            }
 
             return Collections.singletonMap("commentId", (int)commentId);
         }
