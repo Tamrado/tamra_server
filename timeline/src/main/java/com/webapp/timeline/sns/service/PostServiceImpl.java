@@ -146,7 +146,6 @@ public class PostServiceImpl implements PostService {
 
         existedPost.setContent(postRequest.getContent());
         existedPost.setShowLevel(postRequest.getShowLevel());
-        existedPost.setLastUpdate(factory.whatIsTimestampOfNow());
 
         factory.takeActionByQuery(this.postsRepository.updatePostByPostId(existedPost));
         return Collections.singletonMap("postId", postId);
