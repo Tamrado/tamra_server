@@ -81,7 +81,11 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         logger.info("[TimelineService] get total post-number by user-id.");
 
         factory.checkInactiveUser(userId);
-        factory.extractLoggedIn(request);
+        String loggedIn = factory.extractLoggedIn(request);
+
+        if(userId.equals(loggedIn)) {
+            return this.postsRepository.showPostNumberByUserWhenMyId(userId);
+        }
 
         return this.postsRepository.showPostNumberByUser(userId);
     }
@@ -109,7 +113,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
     public TimelineResponse makeSingleResponse(Posts item, String loggedIn) {
         int postId = item.getPostId();
         List tags = getPostTags(postId);
-        boolean isLoggedInUserLikeIt = false;
+        String isLoggedInUserLikeIt = "block";
         Likes likeObject = Likes.builder()
                                 .postId(postId)
                                 .owner(loggedIn)
@@ -117,7 +121,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
 
         if(this.likesRepository.isUserLikedPost(likeObject) != null &&
                 this.likesRepository.isUserLikedPost(likeObject) > 0) {
-            isLoggedInUserLikeIt = true;
+            isLoggedInUserLikeIt = "none";
         }
 
 

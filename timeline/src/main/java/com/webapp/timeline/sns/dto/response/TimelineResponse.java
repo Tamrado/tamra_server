@@ -38,5 +38,5 @@ public class TimelineResponse {
     private int totalLike;
 
     @JsonProperty("islike")
-    private boolean isLoggedInUserLikeIt;
+    private String isLoggedInUserLikeIt;
 }

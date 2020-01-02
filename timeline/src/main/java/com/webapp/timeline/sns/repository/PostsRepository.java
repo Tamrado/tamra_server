@@ -24,7 +24,7 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Posts p " +
-                "SET p.content = :#{#post.content}, p.showLevel = :#{#post.showLevel}, p.lastUpdate = :#{#post.lastUpdate} " +
+                "SET p.content = :#{#post.content}, p.showLevel = :#{#post.showLevel} " +
                 "WHERE p.postId = :#{#post.postId}",
             nativeQuery = false)
     Integer updatePostByPostId(@Param("post") Posts post);
@@ -38,5 +38,9 @@ public interface PostsRepository extends JpaRepository<Posts, Integer> {
     @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author AND list.showLevel < 3",
             nativeQuery = false)
     Long showPostNumberByUser(@Param("author") String author);
+
+    @Query(value = "SELECT COUNT(list) FROM Posts list WHERE list.deleted = 0 AND list.author = :author",
+            nativeQuery = false)
+    Long showPostNumberByUserWhenMyId(@Param("author") String author);
 
 }
