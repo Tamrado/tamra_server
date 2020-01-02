@@ -184,7 +184,8 @@ public class PostServiceImpl implements PostService {
                                     .category(NEWSFEED_POST)
                                     .sender(sender)
                                     .receiver(sender)
-                                    .commentId(NOT_COMMENT)
+                                    .frequency(DEFAULT_FREQUENCY)
+                                    .lastUpdate(factory.whatIsTimestampOfNow())
                                     .build());
             return;
         }
@@ -198,7 +199,8 @@ public class PostServiceImpl implements PostService {
                                     .category(NEWSFEED_POST)
                                     .sender(sender)
                                     .receiver(follower)
-                                    .commentId(NOT_COMMENT)
+                                    .frequency(DEFAULT_FREQUENCY)
+                                    .lastUpdate(factory.whatIsTimestampOfNow())
                                     .build();
             factory.deliver(feed);
         });
