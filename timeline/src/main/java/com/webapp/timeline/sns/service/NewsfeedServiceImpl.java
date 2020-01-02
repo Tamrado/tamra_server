@@ -93,7 +93,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
         String category = newsfeed.getCategory();
         List<Comments> postComments = commentsRepository.getCommentsByPostId(postId);
         LinkedList<CommentResponse> selectedComments = new LinkedList<>();
-        boolean isLoggedInUserLikeIt = false;
+        String isLoggedInUserLikeIt = "block";
         Likes likeObject = Likes.builder()
                 .postId(postId)
                 .owner(loggedIn)
@@ -101,7 +101,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
         if(this.likesRepository.isUserLikedPost(likeObject) != null &&
                 this.likesRepository.isUserLikedPost(likeObject) > 0) {
-            isLoggedInUserLikeIt = true;
+            isLoggedInUserLikeIt = "none";
         }
 
         TimelineResponse feed = TimelineResponse.builder()
