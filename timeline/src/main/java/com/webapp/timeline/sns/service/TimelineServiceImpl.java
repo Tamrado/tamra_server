@@ -109,7 +109,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
     public TimelineResponse makeSingleResponse(Posts item, String loggedIn) {
         int postId = item.getPostId();
         List tags = getPostTags(postId);
-        boolean isLoggedInUserLikeIt = false;
+        String isLoggedInUserLikeIt = "block";
         Likes likeObject = Likes.builder()
                                 .postId(postId)
                                 .owner(loggedIn)
@@ -117,7 +117,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
 
         if(this.likesRepository.isUserLikedPost(likeObject) != null &&
                 this.likesRepository.isUserLikedPost(likeObject) > 0) {
-            isLoggedInUserLikeIt = true;
+            isLoggedInUserLikeIt = "none";
         }
 
 
