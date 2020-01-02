@@ -62,7 +62,7 @@ public class ServiceAspectFactory<T> {
             loggedIn = this.userSignService.extractUserFromToken(request)
                                         .getUserId();
         }
-        catch(NoInformationException no_user) {
+        catch (NoInformationException no_user) {
             throw new UnauthorizedUserException();
         }
 
@@ -75,11 +75,11 @@ public class ServiceAspectFactory<T> {
         try {
             userInfo = this.userSignService.extractUserFromToken(request);
         }
-        catch(NoInformationException no_user) {
+        catch (NoInformationException no_user) {
             throw new UnauthorizedUserException();
         }
 
-        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
+        if (userInfo.getAuthority().equals(INACTIVE_USER)) {
             throw new NoInformationException();
         }
 
@@ -89,7 +89,7 @@ public class ServiceAspectFactory<T> {
     public void checkInactiveUser(String userId) {
         Users userInfo = this.userSignService.loadUserByUsername(userId);
 
-        if(userInfo.getAuthority().equals(INACTIVE_USER)) {
+        if (userInfo.getAuthority().equals(INACTIVE_USER)) {
             throw new NoInformationException();
         }
     }
@@ -116,59 +116,73 @@ public class ServiceAspectFactory<T> {
         return this.userSignService.loadUserByUsername(userId);
     }
 
-    @SuppressWarnings("unchecked")
-    void deliverToNewsfeed(String category, Posts post, String sender, long commentId) {
-        List<String> receivers = new ArrayList<>();
+    void deliverToNewsfeed(String category, Posts post, String sender) {
 
-        if(post.getAuthor().equals(sender)) {
-            return;
-        }
-
-        List<String> followers = whoFollowsMe(sender);
-
-        if(post.getShowLevel().equals(PUBLIC_TYPE.getName())) {
-            receivers = followers;
-        }
-        else if(post.getShowLevel().equals(FOLLOWER_TYPE.getName())) {
-            List<String> followersOfAuthor = whoFollowsMe(post.getAuthor());
-            followersOfAuthor.retainAll(followers);
-
-            receivers = followersOfAuthor;
-        }
-
-        receivers.forEach(follower -> {
+        computeReceivers(sender, post).forEach(follower -> {
             Newsfeed feed = Newsfeed.builder()
                                     .postId(post.getPostId())
                                     .category(category)
                                     .sender(sender)
                                     .receiver(follower)
-                                    .commentId(commentId)
+                                    .lastUpdate(whatIsTimestampOfNow())
                                     .build();
             deliver(feed);
         });
     }
 
+    @SuppressWarnings("unchecked")
+    List<String> computeReceivers(String sender, Posts post) {
+        List<String> receivers = new ArrayList<>();
+        List<String> followers = whoFollowsMe(sender);
+
+        if (post.getAuthor().equals(sender)) {
+            receivers = followers;
+        }
+        else {
+            if (post.getShowLevel().equals(FOLLOWER_TYPE.getName())) {
+                List<String> followersOfAuthor = whoFollowsMe(post.getAuthor());
+                followersOfAuthor.retainAll(followers);
+
+                receivers = followersOfAuthor;
+            }
+            else if (post.getShowLevel().equals(PUBLIC_TYPE.getName())) {
+                receivers = followers;
+            }
+        }
+
+        return receivers;
+    }
+
     void deliver(Newsfeed feed) {
-        this.newsfeedRepository.save(feed);
+        int affectedRow = this.newsfeedRepository.deliverLikeOrCommentNews(feed);
+
+        if (affectedRow == 0) {
+            feed.setFrequency(DEFAULT_FREQUENCY);
+            newsfeedRepository.save(feed);
+        }
     }
 
     void withdrawFeedByPostId(int postId) {
         this.newsfeedRepository.deleteNewsfeedByPostId(postId);
     }
 
-    void withdrawFeedByComment(String sender, long commentId) {
-        this.newsfeedRepository.deleteNewsfeedByComment(sender, commentId);
-    }
+    void withdrawFeedByLikeOrComment(String category, Posts post, String sender) {
 
-    void withdrawFeedByLike(int postId, String sender) {
-        this.newsfeedRepository.deleteNewsfeedByLike(postId, sender, NEWSFEED_LIKE);
+        computeReceivers(sender, post).forEach(follower -> {
+            Newsfeed feed = Newsfeed.builder()
+                                    .postId(post.getPostId())
+                                    .category(category)
+                                    .receiver(follower)
+                                    .build();
+            this.newsfeedRepository.withdrawLikeOrCommentNews(feed);
+        });
     }
 
     List whoFollowsMe(String me) {
         try {
             return this.friendService.sendFollowIdList(me, false);
         }
-        catch(NoMatchPointException no_one) {
+        catch (NoMatchPointException no_one) {
             return Collections.EMPTY_LIST;
         }
     }
@@ -178,15 +192,24 @@ public class ServiceAspectFactory<T> {
             return this.friendService.sendFollowIdList(author, false)
                                      .contains(loggedIn);
         }
-        catch(NoMatchPointException no_friend) {
+        catch (NoMatchPointException no_friend) {
             return false;
+        }
+    }
+
+    List followsWho(String me) {
+        try {
+            return this.friendService.sendFollowIdList(me, true);
+        }
+        catch (NoMatchPointException no_one) {
+            return Collections.EMPTY_LIST;
         }
     }
 
     Posts checkDeleteAndGetIfExist(int postId) {
         Posts post = this.postsRepository.findById(postId)
                                         .orElseThrow(NoInformationException::new);
-        if(post.getDeleted() == DELETED_EVENT_CHECK) {
+        if (post.getDeleted() == DELETED_EVENT_CHECK) {
             throw new NoInformationException();
         }
 
@@ -203,13 +226,13 @@ public class ServiceAspectFactory<T> {
     }
 
     void takeActionByQuery(int affectedRow) {
-        if(affectedRow == 0) {
+        if (affectedRow == 0) {
             throw new NoInformationException();
         }
     }
 
     void checkContentLength(String content, int maxLength) {
-        if(content.length() == 0 || content.length() > maxLength) {
+        if (content.length() == 0 || content.length() > maxLength) {
             throw new NoStoringException();
         }
     }
@@ -218,7 +241,7 @@ public class ServiceAspectFactory<T> {
         int current = pageable.getPageNumber();
         int lastPage = pagingList.getTotalPages() - 1;
 
-        if(current > lastPage) {
+        if (current > lastPage) {
             return true;
         }
         return false;
