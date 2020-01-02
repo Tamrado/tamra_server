@@ -103,6 +103,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
         if(this.likesRepository.isUserLikedPost(likeObject) != null
                 && this.likesRepository.isUserLikedPost(likeObject) > 0) {
+
             isLoggedInUserLikeIt = "none";
         }
 
