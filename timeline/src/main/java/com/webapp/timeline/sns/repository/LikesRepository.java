@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface LikesRepository extends JpaRepository<Likes, Long> {
 
@@ -20,4 +22,9 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     @Query(value = "SELECT COUNT(heart.likeId) FROM Likes heart WHERE heart.postId = :postId")
     Long countLikesByPostId(@Param("postId") int postId);
+
+    @Query(value = "SELECT list.owner FROM Likes list " +
+                    "WHERE list.postId = :postId ORDER BY list.likeId DESC",
+            nativeQuery = false)
+    List<String> getLikesByPostId(@Param("postId") int postId);
 }
