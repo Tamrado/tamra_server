@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static com.webapp.timeline.sns.common.CommonTypeProvider.COMMENT_STATE;
 import static com.webapp.timeline.sns.common.CommonTypeProvider.TOTAL_IMAGE_MAX;
 import static com.webapp.timeline.sns.common.ShowTypeProvider.*;
 
@@ -137,6 +138,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .totalComment((int) countPostComments(postId))
                             .totalLike((int) countPostLikes(postId))
                             .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
+                            .commentState(COMMENT_STATE)
                             .build();
     }
 

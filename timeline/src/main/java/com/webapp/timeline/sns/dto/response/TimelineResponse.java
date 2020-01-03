@@ -39,4 +39,6 @@ public class TimelineResponse {
 
     @JsonProperty("islike")
     private String isLoggedInUserLikeIt;
+
+    private String commentState;
 }

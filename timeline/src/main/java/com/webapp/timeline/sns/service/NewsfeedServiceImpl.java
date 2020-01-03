@@ -27,8 +27,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_COMMENT;
-import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_LIKE;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
 
 @Service
 public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<NewsfeedResponse, Newsfeed> {
@@ -118,6 +117,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .totalComment(postComments.size())
                                                 .totalLike(postLikes.size())
                                                 .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
+                                                .commentState(COMMENT_STATE)
                                                 .build();
 
         AtomicInteger index = new AtomicInteger();
