@@ -8,7 +8,7 @@ import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
 import com.webapp.timeline.sns.domain.Tags;
 import com.webapp.timeline.sns.dto.request.PostRequest;
-import com.webapp.timeline.sns.dto.response.TimelineResponse;
+import com.webapp.timeline.sns.dto.response.NewsfeedResponse;
 import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.repository.TagsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
@@ -153,7 +150,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public TimelineResponse getOnePostByPostId(int postId, HttpServletRequest request) {
+    public NewsfeedResponse getOnePostByPostId(int postId, HttpServletRequest request) {
         logger.info("[PostService] get one post by post-id.");
 
         Posts post = factory.checkDeleteAndGetIfExist(postId);
@@ -172,7 +169,19 @@ public class PostServiceImpl implements PostService {
                 throw new BadRequestException();
             }
         }
-        return timelineService.makeSingleResponse(post, loggedIn);
+        return makeSingleFeed(post, loggedIn);
+    }
+
+    private NewsfeedResponse makeSingleFeed(Posts post, String loggedIn) {
+
+        return NewsfeedResponse.builder()
+                               .feed(timelineService.makeSingleResponse(post, loggedIn))
+                               .feedAuthorId(post.getAuthor())
+                               .sender(new LinkedList<>())
+                               .category(NEWSFEED_POST)
+                               .message("")
+                               .comment(new LinkedList<>())
+                               .build();
     }
 
     @SuppressWarnings("unchecked")
