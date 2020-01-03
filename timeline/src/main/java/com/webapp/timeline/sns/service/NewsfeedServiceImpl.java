@@ -117,7 +117,8 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .totalComment(postComments.size())
                                                 .totalLike(postLikes.size())
                                                 .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
-                                                .commentState(COMMENT_STATE)
+                                                .commentState(DEFAULT_COMMENT_STATE)
+                                                .commentPage(DEFAULT_COMMENT_PAGE)
                                                 .build();
 
         AtomicInteger index = new AtomicInteger();
