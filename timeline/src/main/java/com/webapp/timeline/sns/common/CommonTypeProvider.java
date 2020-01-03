@@ -27,4 +27,6 @@ public final class CommonTypeProvider {
     public static final String DEFAULT_COMMENT_STATE = "none";
 
     public static final int DEFAULT_COMMENT_PAGE = 1;
+
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 }

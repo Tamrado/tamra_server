@@ -29,7 +29,7 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE Comments item " +
-                    "SET item.content = :#{#comment.content}, item.lastUpdate = :#{#comment.lastUpdate} " +
+                    "SET item.content = :#{#comment.content} " +
                     "WHERE item.commentId = :#{#comment.commentId} AND item.deleted = 0",
             nativeQuery = false)
     Integer editCommentByCommentId(@Param("comment") Comments comment);
