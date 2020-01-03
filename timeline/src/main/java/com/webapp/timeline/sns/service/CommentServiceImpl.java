@@ -7,6 +7,8 @@ import com.webapp.timeline.sns.dto.response.CommentResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
@@ -26,7 +29,6 @@ public class CommentServiceImpl implements CommentService {
 
     private static final Logger logger = LoggerFactory.getLogger(CommentServiceImpl.class);
     private CommentsRepository commentsRepository;
-    private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Comments> factory;
     private static final int MAXIMUM_CONTENT_LENGTH = 300;
 
@@ -35,10 +37,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     public CommentServiceImpl(CommentsRepository commentsRepository,
-                              TimelineServiceImpl timelineService,
                               ServiceAspectFactory<Comments> factory) {
         this.commentsRepository = commentsRepository;
-        this.timelineService = timelineService;
         this.factory = factory;
     }
 
@@ -107,7 +107,6 @@ public class CommentServiceImpl implements CommentService {
             factory.checkContentLength(comment.getContent(), MAXIMUM_CONTENT_LENGTH);
 
             existedComment.setContent(comment.getContent());
-            existedComment.setLastUpdate(factory.whatIsTimestampOfNow());
 
             factory.takeActionByQuery(this.commentsRepository.editCommentByCommentId(existedComment));
             return makeSingleResponse(existedComment);
@@ -156,7 +155,8 @@ public class CommentServiceImpl implements CommentService {
                             .postId(comment.getPostId())
                             .profile(factory.makeSingleProfile(comment.getAuthor()))
                             .content(comment.getContent())
-                            .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate()))
+                            .dateString("")
                             .build();
     }
 }

@@ -90,8 +90,6 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         return this.postsRepository.showPostNumberByUser(userId);
     }
 
-
-
     private Page<Posts> dispatchByAccessScope(String author, Pageable pageable, String loggedIn) {
         String subscribe = "";
 
@@ -130,7 +128,8 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .profile(factory.makeSingleProfile(item.getAuthor()))
                             .content(item.getContent())
                             .showLevel(item.getShowLevel())
-                            .timestamp(printEasyTimestamp(item.getLastUpdate()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate()))
+                            .dateString("")
                             .files(getPostImages(postId))
                             .tags(tags)
                             .totalTag(tags.size())
@@ -187,7 +186,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         return this.likesRepository.countLikesByPostId(postId);
     }
 
-    public String printEasyTimestamp(Timestamp time) {
+    String printEasyTimestamp(Timestamp time) {
         LocalDateTime responsedItem = time.toLocalDateTime();
         LocalDateTime now = LocalDateTime.now();
         int timestamp;

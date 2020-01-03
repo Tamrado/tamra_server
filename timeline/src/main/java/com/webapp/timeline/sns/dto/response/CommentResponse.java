@@ -19,4 +19,6 @@ public class CommentResponse {
     private String content;
 
     private String timestamp;
+
+    private String dateString;
 }
