@@ -98,10 +98,10 @@ public class ServiceAspectFactory<T> {
         LoggedInfo userInfo = getUserInfo(userId);
 
         return ProfileResponse.builder()
-                            .id(userId)
-                            .name(userInfo.getNickname())
-                            .profile(userInfo.getThumbnail())
-                            .build();
+                             .id(userId)
+                             .name(userInfo.getNickname())
+                             .profile(userInfo.getThumbnail())
+                             .build();
     }
 
     LoggedInfo getUserInfo(String userId) {
@@ -219,8 +219,8 @@ public class ServiceAspectFactory<T> {
     Timestamp whatIsTimestampOfNow() {
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
         String now = LocalDateTime.now()
-                .atZone(zoneId)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                                  .atZone(zoneId)
+                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         return Timestamp.valueOf(now);
     }

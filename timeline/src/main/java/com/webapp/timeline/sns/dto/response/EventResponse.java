@@ -20,6 +20,8 @@ public class EventResponse {
 
     private String timestamp;
 
+    private String dateString;
+
     private String link;
 
     private boolean isRead;

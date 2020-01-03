@@ -25,6 +25,8 @@ public class TimelineResponse {
 
     private String timestamp;
 
+    private String dateString;
+
     @JsonProperty("files")
     private List<ImageResponse> files;
 

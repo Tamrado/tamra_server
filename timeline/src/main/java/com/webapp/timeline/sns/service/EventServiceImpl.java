@@ -3,7 +3,6 @@ package com.webapp.timeline.sns.service;
 import com.webapp.timeline.sns.domain.Tags;
 import com.webapp.timeline.sns.dto.response.EventResponse;
 import com.webapp.timeline.sns.dto.response.ProfileResponse;
-import com.webapp.timeline.sns.repository.PostsRepository;
 import com.webapp.timeline.sns.repository.TagsRepository;
 import com.webapp.timeline.sns.service.interfaces.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +10,18 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static com.webapp.timeline.sns.common.CommonTypeProvider.DEFAULT_DATE_FORMAT;
 import static com.webapp.timeline.sns.common.CommonTypeProvider.READ_ALARM;
 
 @Service
 public class EventServiceImpl implements EventService {
 
     private TagsRepository tagsRepository;
-    private TimelineServiceImpl timelineService;
     private ServiceAspectFactory factory;
     private static final int MAXIMUM_OF_OLD_ACTIVITIES = 20;
 
@@ -30,10 +30,8 @@ public class EventServiceImpl implements EventService {
 
     @Autowired
     public EventServiceImpl(TagsRepository tagsRepository,
-                            TimelineServiceImpl timelineService,
                             ServiceAspectFactory factory) {
         this.tagsRepository = tagsRepository;
-        this.timelineService = timelineService;
         this.factory = factory;
     }
 
@@ -70,7 +68,8 @@ public class EventServiceImpl implements EventService {
         return EventResponse.builder()
                             .sender(profile)
                             .message(profile.getName() + "님이 게시물에서 회원님을 언급하셨습니다.")
-                            .timestamp(timelineService.printEasyTimestamp(activity.getTimestamp()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(activity.getTimestamp()))
+                            .dateString("")
                             .link("api/post/" + activity.getPostId() + "/detail")
                             .isRead(isRead)
                             .build();

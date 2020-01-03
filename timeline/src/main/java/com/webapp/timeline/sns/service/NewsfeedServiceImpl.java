@@ -1,6 +1,5 @@
 package com.webapp.timeline.sns.service;
 
-import com.amazonaws.services.s3.model.Owner;
 import com.webapp.timeline.exception.BadRequestException;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
@@ -14,6 +13,8 @@ import com.webapp.timeline.sns.repository.LikesRepository;
 import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import com.webapp.timeline.sns.service.interfaces.NewsfeedService;
 import com.webapp.timeline.sns.service.interfaces.SnsResponseHelper;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -110,7 +112,8 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .profile(factory.makeSingleProfile(post.getAuthor()))
                                                 .content(post.getContent())
                                                 .showLevel(post.getShowLevel())
-                                                .timestamp(timelineService.printEasyTimestamp(post.getLastUpdate()))
+                                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(post.getLastUpdate()))
+                                                .dateString("")
                                                 .files(timelineService.getPostImages(postId))
                                                 .tags(tags)
                                                 .totalTag(tags.size())
@@ -143,7 +146,8 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                 .postId(postId)
                                 .profile(profile)
                                 .content(comment.getContent())
-                                .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
+                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate()))
+                                .dateString("")
                                 .build());
 
                 if (tempList.size() > 0 && tempList.contains(comment.getAuthor())) {
