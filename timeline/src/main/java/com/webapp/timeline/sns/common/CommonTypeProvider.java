@@ -24,5 +24,7 @@ public final class CommonTypeProvider {
 
     public static final int READ_ALARM = 1;
 
-    public static final String COMMENT_STATE = "none";
+    public static final String DEFAULT_COMMENT_STATE = "none";
+
+    public static final int DEFAULT_COMMENT_PAGE = 1;
 }

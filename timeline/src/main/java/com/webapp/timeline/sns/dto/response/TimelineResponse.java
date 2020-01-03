@@ -41,4 +41,6 @@ public class TimelineResponse {
     private String isLoggedInUserLikeIt;
 
     private String commentState;
+
+    private int commentPage;
 }
