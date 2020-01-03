@@ -103,7 +103,6 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
         if(this.likesRepository.isUserLikedPost(likeObject) != null
                 && this.likesRepository.isUserLikedPost(likeObject) > 0) {
-
             isLoggedInUserLikeIt = "none";
         }
 
@@ -127,14 +126,14 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
         String message = "";
         List<String> myFollowList = factory.followsWho(loggedIn);
         LinkedList<Map<String, String>> senderInfoList = new LinkedList<>();
-        Map<String, String> senderInfo = new HashMap<>(MAX_PRINTED_USERS);
+        Map<String, String> senderInfo;
 
         if(category.equals(NEWSFEED_COMMENT)) {
             LinkedList<String> tempList = new LinkedList<>();
 
-            postComments.forEach(comment -> {
-                if(!myFollowList.contains(comment.getAuthor())) {
-                    return;
+            for (Comments comment : postComments) {
+                if (!myFollowList.contains(comment.getAuthor())) {
+                    continue;
                 }
 
                 ProfileResponse profile = factory.makeSingleProfile(comment.getAuthor());
@@ -146,9 +145,11 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                 .timestamp(timelineService.printEasyTimestamp(comment.getLastUpdate()))
                                 .build());
 
-                if(tempList.size() > 0 && tempList.contains(comment.getAuthor())) {
-                    return;
+                if (tempList.size() > 0 && tempList.contains(comment.getAuthor())) {
+                    continue;
                 }
+
+                senderInfo = new HashMap<>(MAX_PRINTED_USERS);
 
                 senderInfo.put("username", comment.getAuthor());
                 senderInfo.put("nickname", profile.getName());
@@ -156,48 +157,50 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
                 tempList.add(comment.getAuthor());
 
-            });
+            }
 
-            senderInfoList.forEach(info -> {
-                if(index.get() == MAX_PRINTED_USERS-1 && senderInfoList.size() > MAX_PRINTED_USERS-1) {
+            for (Map<String, String> info : senderInfoList) {
+                if (index.get() == MAX_PRINTED_USERS - 1 && senderInfoList.size() > MAX_PRINTED_USERS - 1) {
                     senderNames.set(senderNames + ", ");
                 }
 
                 senderNames.set(senderNames + info.get("nickname") + "님");
                 index.incrementAndGet();
-            });
+            }
 
             if (senderInfoList.size() <= MAX_PRINTED_USERS) {
                 message = senderNames.get() + "이 이 게시물에 댓글을 남겼습니다.";
             }
             else {
-                message = senderNames.get() + "외 " + (senderInfoList.size() - MAX_PRINTED_USERS) + "명이 이 게시물에 댓글을 남겼습니다.";
+                message = senderNames.get() + " 외 " + (senderInfoList.size() - MAX_PRINTED_USERS) + "명이 이 게시물에 댓글을 남겼습니다.";
             }
         }
         else if (category.equals(NEWSFEED_LIKE)) {
 
-            postLikes.forEach(owner -> {
+            for (String owner : postLikes) {
                 if (!myFollowList.contains(owner)) {
-                    return;
+                    continue;
                 }
 
-                if (index.get() == MAX_PRINTED_USERS-1) {
+                if (index.get() == MAX_PRINTED_USERS - 1) {
                     senderNames.set(senderNames + ", ");
                 }
 
                 String nickname = factory.loadUserById(owner)
                                          .getName();
 
+                senderInfo = new HashMap<>(MAX_PRINTED_USERS);
+
                 senderInfo.put("username", owner);
                 senderInfo.put("nickname", nickname);
-                senderInfoList.add(senderInfo);
+                senderInfoList.addLast(senderInfo);
 
-                if (index.get() <= MAX_PRINTED_USERS-1) {
+                if (index.get() <= MAX_PRINTED_USERS - 1) {
                     senderNames.set(senderNames + nickname + "님");
                 }
 
                 index.getAndIncrement();
-            });
+            }
 
             if (newsfeed.getFrequency() <= MAX_PRINTED_USERS) {
                 message = senderNames.get() + "이 이 게시물을 좋아합니다.";
