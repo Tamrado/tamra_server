@@ -15,8 +15,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 
-import static com.webapp.timeline.sns.common.CommonTypeProvider.DEFAULT_DATE_FORMAT;
-import static com.webapp.timeline.sns.common.CommonTypeProvider.READ_ALARM;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -68,7 +67,7 @@ public class EventServiceImpl implements EventService {
         return EventResponse.builder()
                             .sender(profile)
                             .message(profile.getName() + "님이 게시물에서 회원님을 언급하셨습니다.")
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(activity.getTimestamp()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(activity.getTimestamp().getTime() + NINE_HOURS))
                             .dateString("")
                             .link("api/post/" + activity.getPostId() + "/detail")
                             .isRead(isRead)

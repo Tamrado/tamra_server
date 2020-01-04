@@ -122,13 +122,12 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
             isLoggedInUserLikeIt = "none";
         }
 
-
         return TimelineResponse.builder()
                             .postId(postId)
                             .profile(factory.makeSingleProfile(item.getAuthor()))
                             .content(item.getContent())
                             .showLevel(item.getShowLevel())
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate().getTime() + NINE_HOURS))
                             .dateString("")
                             .files(getPostImages(postId))
                             .tags(tags)

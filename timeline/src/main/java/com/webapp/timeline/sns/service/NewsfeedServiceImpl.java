@@ -110,7 +110,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .profile(factory.makeSingleProfile(post.getAuthor()))
                                                 .content(post.getContent())
                                                 .showLevel(post.getShowLevel())
-                                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(post.getLastUpdate()))
+                                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(post.getLastUpdate().getTime() + NINE_HOURS))
                                                 .dateString("")
                                                 .files(timelineService.getPostImages(postId))
                                                 .tags(tags)
@@ -144,8 +144,9 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                 selectedComments.add(CommentResponse.builder()
                                 .postId(postId)
                                 .profile(profile)
+                                .commentId(comment.getCommentId())
                                 .content(comment.getContent())
-                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate()))
+                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime() + NINE_HOURS))
                                 .dateString("")
                                 .build());
 

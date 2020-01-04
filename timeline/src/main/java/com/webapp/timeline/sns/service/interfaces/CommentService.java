@@ -19,4 +19,6 @@ public interface CommentService {
     CommentResponse editComment(long commentId, Comments comment, HttpServletRequest request);
 
     SnsResponse<CommentResponse> listAllCommentsByPostId(Pageable pageable, int postId);
+
+    long countCommentsByPostId(int postId);
 }

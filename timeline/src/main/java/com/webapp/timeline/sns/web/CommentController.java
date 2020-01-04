@@ -169,4 +169,15 @@ public class CommentController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @ApiOperation(value = "댓글 : 게시글 내 댓글 개수 (request : 글 Id)")
+    @GetMapping(value = "/{postId}/comment/count")
+    public ResponseEntity count(@PathVariable("postId") int postId) {
+        logger.info("[CommentController] Count comments by postId.");
+
+        header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        return new ResponseEntity<>(this.commentService.countCommentsByPostId(postId), header, HttpStatus.OK);
+    }
 }
