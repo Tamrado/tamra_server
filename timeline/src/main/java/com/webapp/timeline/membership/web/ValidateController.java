@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Api(tags = {"1. Validate"})
 @RequestMapping(value = "/api/member")
+@CrossOrigin(origins = {"*"})
 @RestController
 public class ValidateController {
     private ValidateService validateService;
