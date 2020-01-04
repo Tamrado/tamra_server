@@ -7,8 +7,6 @@ import com.webapp.timeline.sns.dto.response.CommentResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.repository.CommentsRepository;
 import com.webapp.timeline.sns.service.interfaces.CommentService;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,9 +152,17 @@ public class CommentServiceImpl implements CommentService {
         return CommentResponse.builder()
                             .postId(comment.getPostId())
                             .profile(factory.makeSingleProfile(comment.getAuthor()))
+                            .commentId(comment.getCommentId())
                             .content(comment.getContent())
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate()))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime() + NINE_HOURS))
                             .dateString("")
                             .build();
+    }
+
+    @Override
+    public long countCommentsByPostId(int postId) {
+        logger.info("[CommentService] count comments.");
+
+        return commentsRepository.countCommentsByPostId(postId);
     }
 }
