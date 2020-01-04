@@ -16,6 +16,8 @@ public class CommentResponse {
     @JsonProperty("profile")
     private ProfileResponse profile;
 
+    private long commentId;
+
     private String content;
 
     private String timestamp;
