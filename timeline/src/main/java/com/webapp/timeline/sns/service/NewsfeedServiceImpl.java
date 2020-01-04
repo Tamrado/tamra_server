@@ -13,8 +13,6 @@ import com.webapp.timeline.sns.repository.LikesRepository;
 import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import com.webapp.timeline.sns.service.interfaces.NewsfeedService;
 import com.webapp.timeline.sns.service.interfaces.SnsResponseHelper;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,6 +120,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                                                 .commentState(DEFAULT_COMMENT_STATE)
                                                 .commentPage(DEFAULT_COMMENT_PAGE)
+                                                .isTrueComment(true)
                                                 .build();
 
         AtomicInteger index = new AtomicInteger();
