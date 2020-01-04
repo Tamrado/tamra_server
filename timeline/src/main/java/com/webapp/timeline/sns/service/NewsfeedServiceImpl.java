@@ -13,8 +13,6 @@ import com.webapp.timeline.sns.repository.LikesRepository;
 import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import com.webapp.timeline.sns.service.interfaces.NewsfeedService;
 import com.webapp.timeline.sns.service.interfaces.SnsResponseHelper;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +110,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .profile(factory.makeSingleProfile(post.getAuthor()))
                                                 .content(post.getContent())
                                                 .showLevel(post.getShowLevel())
-                                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(post.getLastUpdate()))
+                                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(post.getLastUpdate().getTime() + NINE_HOURS))
                                                 .dateString("")
                                                 .files(timelineService.getPostImages(postId))
                                                 .tags(tags)
@@ -123,6 +121,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .commentState(DEFAULT_COMMENT_STATE)
                                                 .commentPage(DEFAULT_COMMENT_PAGE)
                                                 .commentList(new ArrayList<CommentResponse>())
+                                                .isTrueComment(true)
                                                 .build();
 
         AtomicInteger index = new AtomicInteger();
@@ -146,8 +145,9 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                 selectedComments.add(CommentResponse.builder()
                                 .postId(postId)
                                 .profile(profile)
+                                .commentId(comment.getCommentId())
                                 .content(comment.getContent())
-                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate()))
+                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime() + NINE_HOURS))
                                 .dateString("")
                                 .build());
 

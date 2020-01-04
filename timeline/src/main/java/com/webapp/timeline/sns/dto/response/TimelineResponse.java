@@ -48,4 +48,7 @@ public class TimelineResponse {
 
     @JsonProperty("commentList")
     private List<CommentResponse> commentList;
+
+    @JsonProperty("isTrueComment")
+    private boolean isTrueComment;
 }
