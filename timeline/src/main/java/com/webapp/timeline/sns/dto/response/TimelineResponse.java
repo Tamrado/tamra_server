@@ -45,4 +45,7 @@ public class TimelineResponse {
     private String commentState;
 
     private int commentPage;
+
+    @JsonProperty("isTrueComment")
+    private boolean isTrueComment;
 }
