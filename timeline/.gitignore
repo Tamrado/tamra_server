@@ -5,7 +5,7 @@ jwt.yml
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/test/**
-timelinekey.ppk
+timeline.ppk
 
 ### STS ###
 *.apt_generated

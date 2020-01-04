@@ -45,4 +45,7 @@ public class TimelineResponse {
     private String commentState;
 
     private int commentPage;
+
+    @JsonProperty("commentList")
+    private List<CommentResponse> commentList;
 }

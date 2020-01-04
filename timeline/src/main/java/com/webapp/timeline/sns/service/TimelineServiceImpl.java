@@ -5,6 +5,7 @@ import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Images;
 import com.webapp.timeline.sns.domain.Likes;
 import com.webapp.timeline.sns.domain.Posts;
+import com.webapp.timeline.sns.dto.response.CommentResponse;
 import com.webapp.timeline.sns.dto.response.ImageResponse;
 import com.webapp.timeline.sns.dto.response.SnsResponse;
 import com.webapp.timeline.sns.dto.response.TimelineResponse;
@@ -138,6 +139,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                             .commentState(DEFAULT_COMMENT_STATE)
                             .commentPage(DEFAULT_COMMENT_PAGE)
+                            .commentList(new ArrayList<CommentResponse>())
                             .build();
     }
 
