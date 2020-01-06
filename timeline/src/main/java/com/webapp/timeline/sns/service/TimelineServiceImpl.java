@@ -133,7 +133,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .profile(factory.makeSingleProfile(item.getAuthor()))
                             .content(item.getContent())
                             .showLevel(item.getShowLevel())
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate().getTime() + NINE_HOURS))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate().getTime()))
                             .dateString("")
                             .files(getPostImages(postId))
                             .tags(tags)
