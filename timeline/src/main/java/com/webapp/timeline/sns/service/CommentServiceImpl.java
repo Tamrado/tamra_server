@@ -154,7 +154,7 @@ public class CommentServiceImpl implements CommentService {
                             .profile(factory.makeSingleProfile(comment.getAuthor()))
                             .commentId(comment.getCommentId())
                             .content(comment.getContent())
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime() + NINE_HOURS))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime()))
                             .dateString("")
                             .build();
     }

@@ -123,23 +123,29 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
             isLoggedInUserLikeIt = "none";
         }
 
+	int totalComment = (int) countPostComments(postId);
+	Boolean trueComment;
+	if(totalComment == 0) trueComment = false;
+	else trueComment = true;
+
         return TimelineResponse.builder()
                             .postId(postId)
                             .profile(factory.makeSingleProfile(item.getAuthor()))
                             .content(item.getContent())
                             .showLevel(item.getShowLevel())
-                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate().getTime() + NINE_HOURS))
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(item.getLastUpdate().getTime()))
                             .dateString("")
                             .files(getPostImages(postId))
                             .tags(tags)
                             .totalTag(tags.size())
-                            .totalComment((int) countPostComments(postId))
+                            .totalComment(totalComment)
                             .totalLike((int) countPostLikes(postId))
                             .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                             .commentState(DEFAULT_COMMENT_STATE)
                             .commentPage(DEFAULT_COMMENT_PAGE)
-                            .commentList(new ArrayList<>())
-                            .isTrueComment(true)
+                            .commentList(new ArrayList<CommentResponse>())
+                            .isTrueComment(trueComment)
+
                             .build();
     }
 
