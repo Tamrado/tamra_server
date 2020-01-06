@@ -123,6 +123,11 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
             isLoggedInUserLikeIt = "none";
         }
 
+	int totalComment = (int) countPostComments(postId);
+	Boolean trueComment;
+	if(totalComment == 0) trueComment = false;
+	else trueComment = true;
+
         return TimelineResponse.builder()
                             .postId(postId)
                             .profile(factory.makeSingleProfile(item.getAuthor()))
@@ -133,13 +138,13 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .files(getPostImages(postId))
                             .tags(tags)
                             .totalTag(tags.size())
-                            .totalComment((int) countPostComments(postId))
+                            .totalComment(totalComment)
                             .totalLike((int) countPostLikes(postId))
                             .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                             .commentState(DEFAULT_COMMENT_STATE)
                             .commentPage(DEFAULT_COMMENT_PAGE)
                             .commentList(new ArrayList<CommentResponse>())
-                            .isTrueComment(true)
+                            .isTrueComment(trueComment)
                             .build();
     }
 
