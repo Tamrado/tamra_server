@@ -138,7 +138,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                             .commentState(DEFAULT_COMMENT_STATE)
                             .commentPage(DEFAULT_COMMENT_PAGE)
-                            .commentList(new ArrayList<CommentResponse>())
+                            .commentList(new ArrayList<>())
                             .isTrueComment(true)
                             .build();
     }
