@@ -51,4 +51,8 @@ public class TimelineResponse {
 
     @JsonProperty("isTrueComment")
     private boolean isTrueComment;
+
+    private String MenuVisible;
+
+    private String showMenuVisible;
 }
