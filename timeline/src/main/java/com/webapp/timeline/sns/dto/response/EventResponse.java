@@ -22,7 +22,7 @@ public class EventResponse {
 
     private String dateString;
 
-    private String link;
+    private Integer postId;
 
     private boolean isRead;
 }

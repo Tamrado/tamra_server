@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = {"7. Alarm"})
 @RestController
+@CrossOrigin(origins = {"*"})
 @RequestMapping(value = "/api/post/event")
 public class EventController {
 
