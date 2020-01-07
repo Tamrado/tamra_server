@@ -3,7 +3,6 @@ package com.webapp.timeline.sns.service;
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.exception.UnauthorizedUserException;
-import com.webapp.timeline.exception.WrongCodeException;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.sns.domain.Images;
@@ -15,11 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
+import javax.transaction.Transactional;
 import java.io.IOException;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
@@ -28,15 +24,12 @@ import static com.webapp.timeline.sns.common.CommonTypeProvider.NEW_EVENT_CHECK;
 
 @Service
 public class ImageServiceImpl implements ImageService {
+
     private static final Logger logger = LoggerFactory.getLogger(ImageServiceImpl.class);
     private ImageS3Uploader imageUploader;
     private ImagesRepository imagesRepository;
     private UserSignService userSignService;
     private ServiceAspectFactory<Images> factory;
-    private final int THUMBNAIL_HEIGHT = 250;
-    private final int THUMBNAIL_WIDTH = 250;
-    private final String IMAGE_FORMAT = "png";
-    private final String TEMP_FILEPATH = "src/main/resources/thumbnail.png";
 
     ImageServiceImpl() {
     }
@@ -52,6 +45,7 @@ public class ImageServiceImpl implements ImageService {
         this.factory = factory;
     }
 
+    @Transactional
     @Override
     public void uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
         logger.info("[ImageService] Upload Original Image.");
@@ -59,17 +53,14 @@ public class ImageServiceImpl implements ImageService {
         String email = this.userSignService.extractUserFromToken(request)
                                            .getEmail();
         String url = "";
-        File originalFile = null;
 
         try {
             url = this.imageUploader.upload(multipartFile, email);
-            originalFile = this.imageUploader.getOriginalFile();
 
             if(! url.equals("")) {
                 saveImage(Images.builder()
                                 .postId(postId)
                                 .url(url)
-                                .thumbnail(makeThumbNail(originalFile, email))
                                 .deleted(NEW_EVENT_CHECK)
                                 .build());
             }
@@ -115,36 +106,4 @@ public class ImageServiceImpl implements ImageService {
         return this.imagesRepository.markDeleteByPostId(postId);
     }
 
-    private String makeThumbNail(File original, String email) {
-        logger.info("[ImageService] Try to make thumbnail..");
-
-        File thumbnail = new File(TEMP_FILEPATH);
-        String thumbnailUrl = "";
-
-        try {
-            BufferedImage originalBuffer = ImageIO.read(original);
-            BufferedImage thumbnailBuffer = new BufferedImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, BufferedImage.TYPE_3BYTE_BGR);
-
-            Graphics2D graphic = thumbnailBuffer.createGraphics();
-            graphic.drawImage(originalBuffer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, null);
-
-            if(ImageIO.write(thumbnailBuffer, IMAGE_FORMAT, thumbnail)) {
-                thumbnailUrl = uploadThumbnail(thumbnail, email);
-                this.imageUploader.removeFileInLocal(original);
-                this.imageUploader.removeFileInLocal(thumbnail);
-
-                return thumbnailUrl;
-            }
-            else{
-                throw new WrongCodeException();
-            }
-        }
-        catch(IOException thumbnail_exception) {
-            throw new WrongCodeException();
-        }
-    }
-
-    private String uploadThumbnail(File thumbnail, String email) {
-        return this.imageUploader.upload(thumbnail, email);
-    }
 }
