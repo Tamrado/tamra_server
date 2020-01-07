@@ -28,6 +28,7 @@ public class Followers {
     public Followers(FollowId id, int isFollow) {
         this.id = id;
         this.isFollow = isFollow;
+        this.isAlarm = 1;
     }
 
     public Followers() {}
