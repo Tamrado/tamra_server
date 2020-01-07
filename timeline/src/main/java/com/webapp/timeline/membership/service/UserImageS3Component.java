@@ -38,7 +38,7 @@ public class UserImageS3Component extends SuperS3Uploader {
                     .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File로 전환이 실패했습니다."));
             return upload(uploadFile, userName);
         }
-        else return "https://timelines3bucket.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
+        else return "https://repotimeline.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
     }
 
     private String upload(File uploadFile, String userName){
