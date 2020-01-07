@@ -81,7 +81,7 @@ public class EventController {
     @ApiOperation(value = "태그 알림 개수 받기",
             notes = "response : 200 -> 성공 " +
                     "| 401 -> 로그인 안함/ 접근 권한 없을 때 " )
-    @PostMapping("/count")
+    @GetMapping("/count")
     public ResponseEntity countTagAlarm(HttpServletRequest request) {
         logger.info("[EventController] Count new tag-activities.");
         try {
