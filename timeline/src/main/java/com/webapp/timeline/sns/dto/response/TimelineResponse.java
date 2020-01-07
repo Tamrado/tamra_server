@@ -53,4 +53,6 @@ public class TimelineResponse {
     private boolean isTrueComment;
 
     private String MenuVisible;
+
+    private String showMenuVisible;
 }
