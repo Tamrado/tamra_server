@@ -69,7 +69,7 @@ public class EventServiceImpl implements EventService {
                             .message(profile.getName() + "님이 게시물에서 회원님을 언급하셨습니다.")
                             .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(activity.getTimestamp().getTime()))
                             .dateString("")
-                            .link("api/post/" + activity.getPostId() + "/detail")
+                            .postId(activity.getPostId())
                             .isRead(isRead)
                             .build();
     }
