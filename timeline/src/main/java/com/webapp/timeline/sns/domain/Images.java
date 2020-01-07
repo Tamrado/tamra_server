@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 
@@ -22,9 +21,6 @@ public class Images {
 
     @Column(name = "postId", nullable = false)
     private int postId;
-
-    @Column(name = "thumbnail", nullable = false)
-    private String thumbnail;
 
     @Column(name = "url", nullable = false)
     private String url;

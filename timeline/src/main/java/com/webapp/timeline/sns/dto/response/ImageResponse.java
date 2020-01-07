@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImageResponse {
     private String original;
-    private String thumbnail;
 }
