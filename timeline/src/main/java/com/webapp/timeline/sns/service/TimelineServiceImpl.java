@@ -164,6 +164,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
             }
 
             imageResponses.add(ImageResponse.builder()
+                                        .imageId(object.getId())
                                         .original(object.getUrl())
                                         .build());
         });
