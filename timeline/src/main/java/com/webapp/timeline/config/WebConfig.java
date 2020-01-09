@@ -6,13 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 @EnableWebMvc
+@EnableAsync
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
@@ -27,5 +26,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
-    
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(10);
+        taskExecutor.setMaxPoolSize(20);
+        taskExecutor.setQueueCapacity(50);
+        configurer.setTaskExecutor(taskExecutor);
+    }
 }
