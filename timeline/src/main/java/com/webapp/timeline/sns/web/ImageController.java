@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.Callable;
 
 @Api(tags = {"3. Post"})
 @RestController
@@ -45,25 +46,29 @@ public class ImageController {
                                 "| 409 -> AWS S3에서 오류" +
                                 "| 422 -> 썸네일 만들기 실패")
     @PostMapping(value = "upload/{postId}/image")
-    public ResponseEntity upload(@PathVariable("postId") int postId,
-                                 MultipartFile file,
-                                 HttpServletRequest request) {
+    public Callable<ResponseEntity> upload(@PathVariable("postId") int postId,
+                                           MultipartFile file,
+                                           HttpServletRequest request) {
 
         logger.info("[ImageController] upload image.");
 
         try {
             this.imageService.uploadImage(postId, file, request);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return()-> {
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            };
         }
         catch(NoStoringException original_aws_exception) {
             logger.error("[ImageController] AWS S3 IOException while upload original multipartfile.");
-
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return () -> {
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
+            };
         }
         catch(WrongCodeException thumbnail_exception) {
             logger.error("[ImageController] Can not make thumbnail.");
-
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+            return () -> {
+                return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+            };
         }
     }
 

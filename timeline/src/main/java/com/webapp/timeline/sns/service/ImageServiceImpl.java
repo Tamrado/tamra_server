@@ -11,12 +11,14 @@ import com.webapp.timeline.sns.service.interfaces.ImageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.DELETED_EVENT_CHECK;
 import static com.webapp.timeline.sns.common.CommonTypeProvider.NEW_EVENT_CHECK;
@@ -47,7 +49,7 @@ public class ImageServiceImpl implements ImageService {
 
     @Transactional
     @Override
-    public void uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
+    public Images uploadImage(int postId, MultipartFile multipartFile, HttpServletRequest request) {
         logger.info("[ImageService] Upload Original Image.");
 
         String email = this.userSignService.extractUserFromToken(request)
@@ -58,7 +60,7 @@ public class ImageServiceImpl implements ImageService {
             url = this.imageUploader.upload(multipartFile, email);
 
             if(! url.equals("")) {
-                saveImage(Images.builder()
+               return saveImage(Images.builder()
                                 .postId(postId)
                                 .url(url)
                                 .deleted(NEW_EVENT_CHECK)
@@ -68,13 +70,15 @@ public class ImageServiceImpl implements ImageService {
         catch(IOException aws_IO_exception) {
             throw new NoStoringException();
         }
+        return null;
     }
 
     @Override
-    public void saveImage(Images entity) {
+    public Images saveImage(Images entity) {
         logger.info("[ImageService] Save image to database.");
 
         imagesRepository.save(entity);
+        return entity;
     }
 
     @Override
