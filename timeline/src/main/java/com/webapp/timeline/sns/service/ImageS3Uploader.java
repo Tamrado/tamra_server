@@ -27,17 +27,18 @@ public class ImageS3Uploader extends SuperS3Uploader {
         logger.info("[ImageS3Uploader] Start to upload image file in post.");
 
         logger.error(multipartFile.toString());
-        logger.error(multipartFile.getOriginalFilename());
+        String originalFileName = multipartFile.getOriginalFilename();
+        logger.error(originalFileName);
 
         File uploadFile = super.convert(multipartFile)
                                 .orElseThrow(() -> new IllegalArgumentException("FAIL : Convert MultipartFile -> File"));
 
-        return upload(uploadFile, dirName);
+        return upload(uploadFile, dirName,originalFileName);
     }
 
-    private String upload(File uploadFile, String dirName) {
+    public String upload(File uploadFile, String dirName,String originalFileName) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss"));
-        String fileName = dirName + "/" + timestamp;
+        String fileName = dirName + "/" + timestamp + originalFileName;
         String uploadImageUrl = super.putS3(uploadFile, fileName);
 
         super.removeNewFile(uploadFile);

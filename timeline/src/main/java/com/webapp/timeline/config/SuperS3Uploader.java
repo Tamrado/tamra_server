@@ -30,14 +30,14 @@ public class SuperS3Uploader {
     @Value("${cloud.aws.s3.bucket}")
     protected String bucket;
 
-    protected String putS3(File uploadFile, String fileName) {
+    public String putS3(File uploadFile, String fileName) {
         amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
 
         return amazonS3Client.getUrl(bucket, fileName).toString();
     }
 
-    protected void removeNewFile(File targetFile) {
+    public void removeNewFile(File targetFile) {
         if (targetFile.delete()) {
             logger.info("파일이 삭제되었습니다.");
         } else {
@@ -45,7 +45,7 @@ public class SuperS3Uploader {
         }
     }
 
-    protected Optional<File> convert(MultipartFile file) throws IOException {
+    public Optional<File> convert(MultipartFile file) throws IOException {
         File convertFile = new File(file.getOriginalFilename());
         if(convertFile.createNewFile()) {
 
