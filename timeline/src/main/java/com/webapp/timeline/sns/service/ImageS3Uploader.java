@@ -26,6 +26,7 @@ public class ImageS3Uploader extends SuperS3Uploader {
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
         logger.info("[ImageS3Uploader] Start to upload image file in post.");
         logger.error(multipartFile.toString());
+        multipartFile.getOriginalFilename();
         File uploadFile = super.convert(multipartFile)
                                 .orElseThrow(() -> new IllegalArgumentException("FAIL : Convert MultipartFile -> File"));
 

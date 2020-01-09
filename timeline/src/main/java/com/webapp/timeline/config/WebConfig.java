@@ -13,7 +13,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-@EnableAsync
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
