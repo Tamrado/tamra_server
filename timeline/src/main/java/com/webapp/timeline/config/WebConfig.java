@@ -33,6 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
         taskExecutor.setCorePoolSize(10);
         taskExecutor.setMaxPoolSize(20);
         taskExecutor.setQueueCapacity(50);
+	taskExecutor.initialize();
         configurer.setTaskExecutor(taskExecutor);
     }
 }
