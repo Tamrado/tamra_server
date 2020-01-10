@@ -46,7 +46,7 @@ public class ImageController {
                                 "| 409 -> AWS S3에서 오류" +
                                 "| 422 -> 썸네일 만들기 실패")
     @PostMapping(value = "upload/{postId}/image")
-    public Callable<ResponseEntity> upload(@PathVariable("postId") int postId,
+    public ResponseEntity upload(@PathVariable("postId") int postId,
                                            MultipartFile file,
                                            HttpServletRequest request) {
 
@@ -54,21 +54,15 @@ public class ImageController {
 
         try {
             this.imageService.uploadImage(postId, file, request);
-            return()-> {
-                return new ResponseEntity<>(HttpStatus.CREATED);
-            };
+            return new ResponseEntity<>(HttpStatus.CREATED);
         }
         catch(NoStoringException original_aws_exception) {
             logger.error("[ImageController] AWS S3 IOException while upload original multipartfile.");
-            return () -> {
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
-            };
         }
         catch(WrongCodeException thumbnail_exception) {
             logger.error("[ImageController] Can not make thumbnail.");
-            return () -> {
                 return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-            };
         }
     }
 

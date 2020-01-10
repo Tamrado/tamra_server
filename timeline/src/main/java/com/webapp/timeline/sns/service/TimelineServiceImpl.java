@@ -147,6 +147,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .isTrueComment(trueComment)
                             .MenuVisible("none")
                             .showMenuVisible("none")
+                            .ModifyVisible("none")
                             .build();
     }
 
