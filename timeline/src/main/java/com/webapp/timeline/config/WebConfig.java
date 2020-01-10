@@ -30,9 +30,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(10);
-        taskExecutor.setMaxPoolSize(20);
-        taskExecutor.setQueueCapacity(50);
+        taskExecutor.setCorePoolSize(3);
+        taskExecutor.setMaxPoolSize(5);
+        taskExecutor.setQueueCapacity(10);
 	taskExecutor.initialize();
         configurer.setTaskExecutor(taskExecutor);
     }

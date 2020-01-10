@@ -55,4 +55,6 @@ public class TimelineResponse {
     private String MenuVisible;
 
     private String showMenuVisible;
+
+    private String ModifyVisible;
 }
