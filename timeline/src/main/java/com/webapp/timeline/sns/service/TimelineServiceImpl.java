@@ -145,9 +145,10 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
                             .commentPage(DEFAULT_COMMENT_PAGE)
                             .commentList(new ArrayList<CommentResponse>())
                             .isTrueComment(trueComment)
-                            .MenuVisible("none")
+                            .menuVisible("none")
                             .showMenuVisible("none")
-                            .ModifyVisible("none")
+                            .modifyVisible("none")
+                            .modifyText("")
                             .build();
     }
 
