@@ -11,18 +11,18 @@ import org.springframework.data.repository.query.Param;
 public interface NewsfeedRepository extends JpaRepository<Newsfeed, Long> {
 
     @Modifying
-    @Query(value = "UPDATE Newsfeed news SET news.frequency = news.frequency+1, news.lastUpdate = :#{#news.lastUpdate} " +
-                    "WHERE news.postId = :#{#news.postId} AND news.category = :#{#news.category} " +
-                    "AND news.receiver = :#{#news.receiver} AND news.frequency >= 0")
-    Integer deliverLikeOrCommentNews(@Param("news") Newsfeed news);
+    @Query(value = "DELETE FROM Newsfeed list " +
+            "WHERE list.postId = :#{#news.postId} AND list.category = :#{#news.category} AND list.sender = :#{#news.sender}")
+    void deleteNewsfeedOfLike(@Param("news") Newsfeed news);
 
     @Modifying
-    @Query(value = "UPDATE Newsfeed news SET news.frequency = news.frequency-1 " +
-            "WHERE news.postId = :#{#news.postId} AND news.category = :#{#news.category} AND news.receiver = :#{#news.receiver}")
-    Integer withdrawLikeOrCommentNews(@Param("news") Newsfeed news);
+    @Query(value = "DELETE FROM Newsfeed list " +
+            "WHERE list.category = :#{#news.category} AND list.commentId = :#{#news.commentId}")
+    void deleteNewsfeedOfComment(@Param("news") Newsfeed news);
 
     @Query(value = "SELECT list FROM Newsfeed list " +
-                    "WHERE list.receiver = :receiver AND list.frequency > 0 ORDER BY list.lastUpdate DESC",
+            "WHERE list.id IN (SELECT MAX(f.id) FROM Newsfeed f WHERE f.receiver = :receiver GROUP BY f.postId) " +
+            "ORDER BY list.lastUpdate DESC",
             nativeQuery = false)
     Page<Newsfeed> getNewsfeedByReceiver(Pageable pageable, @Param("receiver") String receiver);
 
