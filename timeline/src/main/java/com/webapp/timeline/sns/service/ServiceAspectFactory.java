@@ -27,8 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.*;
-import static com.webapp.timeline.sns.common.ShowTypeProvider.FOLLOWER_TYPE;
-import static com.webapp.timeline.sns.common.ShowTypeProvider.PUBLIC_TYPE;
+import static com.webapp.timeline.sns.common.ShowTypeProvider.*;
 
 @Service
 public class ServiceAspectFactory<T> {
@@ -116,7 +115,7 @@ public class ServiceAspectFactory<T> {
         return this.userSignService.loadUserByUsername(userId);
     }
 
-    void deliverToNewsfeed(String category, Posts post, String sender) {
+    void deliverToNewsfeed(String category, Posts post, String sender, long commentId) {
 
         computeReceivers(sender, post).forEach(follower -> {
             Newsfeed feed = Newsfeed.builder()
@@ -125,6 +124,7 @@ public class ServiceAspectFactory<T> {
                                     .sender(sender)
                                     .receiver(follower)
                                     .lastUpdate(whatIsTimestampOfNow())
+                                    .commentId(commentId)
                                     .build();
             deliver(feed);
         });
@@ -135,7 +135,7 @@ public class ServiceAspectFactory<T> {
         List<String> receivers = new ArrayList<>();
         List<String> followers = whoFollowsMe(sender);
 
-        if (post.getAuthor().equals(sender)) {
+        if (post.getAuthor().equals(sender) && !post.getShowLevel().equals(PRIVATE_TYPE.getName())) {
             receivers = followers;
         }
         else {
@@ -154,28 +154,28 @@ public class ServiceAspectFactory<T> {
     }
 
     void deliver(Newsfeed feed) {
-        int affectedRow = this.newsfeedRepository.deliverLikeOrCommentNews(feed);
-
-        if (affectedRow == 0) {
-            feed.setFrequency(DEFAULT_FREQUENCY);
-            newsfeedRepository.save(feed);
-        }
+        this.newsfeedRepository.save(feed);
     }
 
     void withdrawFeedByPostId(int postId) {
         this.newsfeedRepository.deleteNewsfeedByPostId(postId);
     }
 
-    void withdrawFeedByLikeOrComment(String category, Posts post, String sender) {
-
-        computeReceivers(sender, post).forEach(follower -> {
-            Newsfeed feed = Newsfeed.builder()
-                                    .postId(post.getPostId())
-                                    .category(category)
-                                    .receiver(follower)
+    void withdrawFeedByLike(int postId, String sender) {
+        Newsfeed newsfeed = Newsfeed.builder()
+                                    .postId(postId)
+                                    .category(NEWSFEED_LIKE)
+                                    .sender(sender)
                                     .build();
-            this.newsfeedRepository.withdrawLikeOrCommentNews(feed);
-        });
+        this.newsfeedRepository.deleteNewsfeedOfLike(newsfeed);
+    }
+
+    void withdrawFeedByComment(long commentId) {
+        Newsfeed newsfeed = Newsfeed.builder()
+                                    .category(NEWSFEED_COMMENT)
+                                    .commentId(commentId)
+                                    .build();
+        this.newsfeedRepository.deleteNewsfeedOfComment(newsfeed);
     }
 
     List whoFollowsMe(String me) {
