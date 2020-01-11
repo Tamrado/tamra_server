@@ -31,4 +31,7 @@ public interface NewsfeedRepository extends JpaRepository<Newsfeed, Long> {
             nativeQuery = false)
     void deleteNewsfeedByPostId(@Param("postId") int postId);
 
+    @Modifying
+    @Query(value = "DELETE FROM Newsfeed list WHERE list.sender = :sender AND list.receiver = :receiver")
+    void deleteNewsfeedWhenUnfollow(@Param("sender") String sender, @Param("receiver") String receiver);
 }
