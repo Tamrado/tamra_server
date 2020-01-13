@@ -160,7 +160,12 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
             senderInfo.put("nickname", profile.getName());
             senderInfoList.add(senderInfo);
 
-            message = profile.getName() + "님이 이 게시물에 댓글을 남겼습니다.";
+            if (comment.get().getAuthor().equals(loggedIn)) {
+                message = "회원님이 이 게시물에 댓글을 남겼습니다.";
+            }
+            else {
+                message = profile.getName() + "님이 이 게시물에 댓글을 남겼습니다.";
+            }
         }
         else if (category.equals(NEWSFEED_LIKE)) {
             String nickname = factory.loadUserById(newsfeed.getSender())
@@ -170,7 +175,12 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
             senderInfo.put("username", newsfeed.getSender());
             senderInfo.put("nickname", nickname);
 
-            message = nickname + "님이 이 게시물을 좋아합니다.";
+            if(newsfeed.getSender().equals(loggedIn)) {
+                message = "회원님이 이 게시물을 좋아합니다.";
+            }
+            else {
+                message = nickname + "님이 이 게시물을 좋아합니다.";
+            }
         }
 
         return NewsfeedResponse.builder()

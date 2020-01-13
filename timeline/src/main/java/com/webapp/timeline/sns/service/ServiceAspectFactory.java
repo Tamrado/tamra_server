@@ -149,6 +149,7 @@ public class ServiceAspectFactory<T> {
                 receivers = followers;
             }
         }
+        receivers.add(sender);
 
         return receivers;
     }
