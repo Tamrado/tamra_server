@@ -16,6 +16,7 @@ public class RefreshToken {
     @Column(name="refresh_token")
     private String refreshToken;
 
+    public RefreshToken(){}
     public RefreshToken(String uid, String refreshToken){
         this.uid = uid;
         this.refreshToken = refreshToken;

@@ -72,13 +72,13 @@ public class SignController {
 
     @ApiOperation(value = "카카오 로그인", notes = "response : 200 - 성공, 411 - 이미 가입되어있음")
     @PostMapping(value = "/auth/kakao")
-    public void kakaoLogin(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
+    public void kakaoLogin(@RequestBody KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
         userKakaoSignService.login(kakaoFirstInfo,httpServletResponse);
     }
 
     @ApiOperation(value = "카카오 로그인 다음 단계",notes = "response : 200 - 성공, 411 - 이미 존재하는 이메일, 409 - comment길이 너무 김")
     @PostMapping(value = "/auth/kakao/next/{id}")
-    public LoggedInfo kakaoSignUp(KakaoSecondInfo kakaoSecondInfo,@PathVariable Long id) throws RuntimeException{
+    public LoggedInfo kakaoSignUp(@RequestBody KakaoSecondInfo kakaoSecondInfo,@PathVariable Long id) throws RuntimeException{
         return userKakaoSignService.loginNext(kakaoSecondInfo,id);
     }
 

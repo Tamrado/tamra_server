@@ -45,6 +45,7 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws RuntimeException {
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
+        log.error(request.getRequestURI());
         if(request.getRequestURI().matches(".*/api/member.*")) {
             log.error("login");
             return new JwtAuthenticationToken("ismember", null, null);
@@ -66,6 +67,7 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
                throw new AuthenticationCredentialsNotFoundException("error");
             chain.doFilter(req,res);
         }catch(AuthenticationException e){
+            log.error(e.toString());
             log.error("dofilter error");
             unsuccessfulAuthentication(request,response,e);
         }

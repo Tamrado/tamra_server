@@ -12,6 +12,8 @@ public interface UserKakaoSignService {
     void login(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException;
     void firstSignUp(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException;
     LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException;
-    LoggedInfo secondSignUp(Users user, KakaoSecondInfo kakaoSecondInfo) throws RuntimeException;
-    void saveRefreshToken(RefreshToken refreshToken) throws RuntimeException;
+    LoggedInfo secondSignUp(String uid,KakaoSecondInfo kakaoSecondInfo) throws RuntimeException;
+    void saveRefreshToken(KakaoFirstInfo kakaoFirstInfo) throws RuntimeException;
+
+
 }

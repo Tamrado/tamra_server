@@ -46,7 +46,6 @@ public class Users implements UserDetails {
         this.gender = gender;
         this.address = address;
         this.comment = comment;
-
     }
 
     public Users() {}
