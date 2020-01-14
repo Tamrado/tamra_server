@@ -71,14 +71,14 @@ public class JwtTokenProvider {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
         Stream<Cookie> kakaoCookieStream = this.checkIsToken("kakaoAccesstoken",cookieList);
         Stream<Cookie> basicCookieStream = this.checkIsToken("accesstoken",cookieList);
-        return extractTokenValue(kakaoCookieStream,basicCookieStream);
+        return extractTokenValue(kakaoCookieStream,basicCookieStream,cookieList);
     }
 
-    public String extractTokenValue(Stream<Cookie> kakaoCookieStream,Stream<Cookie> basicCookieStream){
+    public String extractTokenValue(Stream<Cookie> kakaoCookieStream,Stream<Cookie> basicCookieStream,List<Cookie> cookieList){
         return kakaoCookieStream.count() > 0 ?
-                kakaoCookieStream.iterator().next().getValue() :
+                this.checkIsToken("kakaoAccesstoken",cookieList).iterator().next().getValue() :
                 (basicCookieStream.count() > 0 ?
-                        basicCookieStream.iterator().next().getValue() :
+                        this.checkIsToken("accesstoken",cookieList).iterator().next().getValue() :
                         null);
     }
     public Date getExpirationToken(String jwtToken){
