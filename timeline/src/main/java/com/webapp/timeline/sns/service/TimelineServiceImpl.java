@@ -189,7 +189,7 @@ public class TimelineServiceImpl implements TimelineService, SnsResponseHelper<T
         return tagResponses;
     }
 
-    private long countPostComments(int postId) {
+    long countPostComments(int postId) {
         return this.commentsRepository.countCommentsByPostId(postId);
     }
 

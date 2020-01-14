@@ -52,7 +52,7 @@ public class CommentServiceImpl implements CommentService {
         factory.checkContentLength(content, MAXIMUM_CONTENT_LENGTH);
 
         Comments newComment = commentsRepository.save(makeObjectForComment(postId, content, loggedIn));
-        factory.deliverToNewsfeed(NEWSFEED_COMMENT, post, loggedIn);
+        factory.deliverToNewsfeed(NEWSFEED_COMMENT, post, loggedIn, newComment.getCommentId());
 
         return makeSingleResponse(newComment);
     }
@@ -77,12 +77,7 @@ public class CommentServiceImpl implements CommentService {
             comment.setDeleted(DELETED_EVENT_CHECK);
             factory.takeActionByQuery(this.commentsRepository.markDeleteByCommentId(comment));
 
-            try {
-                Posts relatedPost = factory.checkDeleteAndGetIfExist(comment.getPostId());
-                factory.withdrawFeedByLikeOrComment(NEWSFEED_COMMENT, relatedPost, loggedIn);
-            }
-            catch (NoInformationException ignored) {
-            }
+            factory.withdrawFeedByComment(commentId);
 
             return Collections.singletonMap("commentId", (int)commentId);
         }

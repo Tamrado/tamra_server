@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.webapp.timeline.sns.common.CommonTypeProvider.NEWSFEED_LIKE;
+import static com.webapp.timeline.sns.common.CommonTypeProvider.NOT_COMMENT;
 
 @Service
 public class LikeServiceImpl implements LikeService {
@@ -55,7 +56,7 @@ public class LikeServiceImpl implements LikeService {
         if(likesRepository.isUserLikedPost(like) != null) {
             throw new BadRequestException();
         }
-        factory.deliverToNewsfeed(NEWSFEED_LIKE, post, loggedIn);
+        factory.deliverToNewsfeed(NEWSFEED_LIKE, post, loggedIn, NOT_COMMENT);
 
         likesRepository.save(like);
     }
@@ -76,13 +77,7 @@ public class LikeServiceImpl implements LikeService {
             throw new BadRequestException();
         }
 
-        try {
-            Posts relatedPost = factory.checkDeleteAndGetIfExist(postId);
-            factory.withdrawFeedByLikeOrComment(NEWSFEED_LIKE, relatedPost, loggedIn);
-        }
-        catch (NoInformationException ignored) {
-        }
-
+        factory.withdrawFeedByLike(postId, loggedIn);
         likesRepository.deleteById(likeId);
     }
 

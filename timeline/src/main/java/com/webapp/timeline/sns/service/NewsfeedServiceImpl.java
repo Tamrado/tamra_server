@@ -38,7 +38,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
     private LikesRepository likesRepository;
     private TimelineServiceImpl timelineService;
     private ServiceAspectFactory<Newsfeed> factory;
-    private static final int MAX_PRINTED_USERS = 2;
+    private static final int MAX_PRINTED_USERS = 1;
 
     NewsfeedServiceImpl() {
     }
@@ -91,8 +91,6 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
         LinkedList tags = (LinkedList) timelineService.getPostTags(postId);
         String category = newsfeed.getCategory();
-        List<Comments> postComments = commentsRepository.getCommentsByPostId(postId);
-        List<String> postLikes = likesRepository.getLikesByPostId(postId);
         LinkedList<CommentResponse> selectedComments = new LinkedList<>();
         String isLoggedInUserLikeIt = "block";
         Likes likeObject = Likes.builder()
@@ -105,10 +103,16 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
             isLoggedInUserLikeIt = "none";
         }
 
-	int totalComment = postComments.size();
-	Boolean trueComment;
-	if(totalComment == 0) trueComment = false;
-	else trueComment = true;	
+        int totalComment = (int) timelineService.countPostComments(postId);
+	    boolean trueComment;
+
+	    if(totalComment == 0) {
+	        trueComment = false;
+        }
+	    else {
+	        trueComment = true;
+        }
+
         TimelineResponse feed = TimelineResponse.builder()
                                                 .postId(postId)
                                                 .profile(factory.makeSingleProfile(post.getAuthor()))
@@ -120,7 +124,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .tags(tags)
                                                 .totalTag(tags.size())
                                                 .totalComment(totalComment)
-                                                .totalLike(postLikes.size())
+                                                .totalLike((int) timelineService.countPostLikes(postId))
                                                 .isLoggedInUserLikeIt(isLoggedInUserLikeIt)
                                                 .commentState(DEFAULT_COMMENT_STATE)
                                                 .commentPage(DEFAULT_COMMENT_PAGE)
@@ -128,95 +132,54 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
                                                 .isTrueComment(trueComment)
                                                 .build();
 
-        AtomicInteger index = new AtomicInteger();
-        AtomicReference senderNames = new AtomicReference("");
-
         String message = "";
-        List<String> myFollowList = factory.followsWho(loggedIn);
         LinkedList<Map<String, String>> senderInfoList = new LinkedList<>();
         Map<String, String> senderInfo;
 
         if(category.equals(NEWSFEED_COMMENT)) {
-            LinkedList<String> tempList = new LinkedList<>();
 
-            for (Comments comment : postComments) {
-                if (!myFollowList.contains(comment.getAuthor())) {
-                    continue;
-                }
-
-                ProfileResponse profile = factory.makeSingleProfile(comment.getAuthor());
-
-                selectedComments.add(CommentResponse.builder()
-                                .postId(postId)
-                                .profile(profile)
-                                .commentId(comment.getCommentId())
-                                .content(comment.getContent())
-                                .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.getLastUpdate().getTime()))
-                                .dateString("")
-                                .build());
-
-                if (tempList.size() > 0 && tempList.contains(comment.getAuthor())) {
-                    continue;
-                }
-
-                senderInfo = new HashMap<>(MAX_PRINTED_USERS);
-
-                senderInfo.put("username", comment.getAuthor());
-                senderInfo.put("nickname", profile.getName());
-                senderInfoList.add(senderInfo);
-
-                tempList.add(comment.getAuthor());
-
+            Optional<Comments> comment = commentsRepository.findById(newsfeed.getCommentId());
+            if(! comment.isPresent()) {
+                return null;
             }
 
-            for (Map<String, String> info : senderInfoList) {
-                if (index.get() == MAX_PRINTED_USERS - 1 && senderInfoList.size() > MAX_PRINTED_USERS - 1) {
-                    senderNames.set(senderNames + ", ");
-                }
+            ProfileResponse profile = factory.makeSingleProfile(comment.get().getAuthor());
 
-                senderNames.set(senderNames + info.get("nickname") + "님");
-                index.incrementAndGet();
-            }
+            selectedComments.add(CommentResponse.builder()
+                            .postId(postId)
+                            .profile(profile)
+                            .commentId(newsfeed.getCommentId())
+                            .content(comment.get().getContent())
+                            .timestamp(new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(comment.get().getLastUpdate().getTime()))
+                            .dateString("")
+                            .build());
 
-            if (senderInfoList.size() <= MAX_PRINTED_USERS) {
-                message = senderNames.get() + "이 이 게시물에 댓글을 남겼습니다.";
+            senderInfo = new HashMap<>(MAX_PRINTED_USERS);
+
+            senderInfo.put("username", comment.get().getAuthor());
+            senderInfo.put("nickname", profile.getName());
+            senderInfoList.add(senderInfo);
+
+            if (comment.get().getAuthor().equals(loggedIn)) {
+                message = "회원님이 이 게시물에 댓글을 남겼습니다.";
             }
             else {
-                message = senderNames.get() + " 외 " + (senderInfoList.size() - MAX_PRINTED_USERS) + "명이 이 게시물에 댓글을 남겼습니다.";
+                message = profile.getName() + "님이 이 게시물에 댓글을 남겼습니다.";
             }
         }
         else if (category.equals(NEWSFEED_LIKE)) {
+            String nickname = factory.loadUserById(newsfeed.getSender())
+                                    .getName();
+            senderInfo = new HashMap<>(MAX_PRINTED_USERS);
 
-            for (String owner : postLikes) {
-                if (!myFollowList.contains(owner)) {
-                    continue;
-                }
+            senderInfo.put("username", newsfeed.getSender());
+            senderInfo.put("nickname", nickname);
 
-                if (index.get() == MAX_PRINTED_USERS - 1) {
-                    senderNames.set(senderNames + ", ");
-                }
-
-                String nickname = factory.loadUserById(owner)
-                                         .getName();
-
-                senderInfo = new HashMap<>(MAX_PRINTED_USERS);
-
-                senderInfo.put("username", owner);
-                senderInfo.put("nickname", nickname);
-                senderInfoList.addLast(senderInfo);
-
-                if (index.get() <= MAX_PRINTED_USERS - 1) {
-                    senderNames.set(senderNames + nickname + "님");
-                }
-
-                index.getAndIncrement();
+            if(newsfeed.getSender().equals(loggedIn)) {
+                message = "회원님이 이 게시물을 좋아합니다.";
             }
-
-            if (newsfeed.getFrequency() <= MAX_PRINTED_USERS) {
-                message = senderNames.get() + "이 이 게시물을 좋아합니다.";
-            }
-            else if (newsfeed.getFrequency() > MAX_PRINTED_USERS) {
-                message = senderNames.get() + "외 " + (newsfeed.getFrequency() - MAX_PRINTED_USERS) + "명이 이 게시물을 좋아합니다.";
+            else {
+                message = nickname + "님이 이 게시물을 좋아합니다.";
             }
         }
 

@@ -29,11 +29,10 @@ public class Newsfeed {
     @Column(name = "receiver", nullable = false)
     private String receiver;
 
-    @Setter
-    @Column(name = "frequency")
-    private int frequency;
-
     @Column(name = "lastUpdate")
     private Timestamp lastUpdate;
+
+    @Column(name = "commentId", nullable = true)
+    private long commentId;
 
 }

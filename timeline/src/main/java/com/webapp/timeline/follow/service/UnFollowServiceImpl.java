@@ -10,11 +10,13 @@ import com.webapp.timeline.follow.service.interfaces.UnFollowService;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
+import com.webapp.timeline.sns.repository.NewsfeedRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+
 @Service
 public class UnFollowServiceImpl implements UnFollowService {
     private TokenService tokenService;
@@ -23,16 +25,25 @@ public class UnFollowServiceImpl implements UnFollowService {
     private FollowingRepository followingRepository;
     private FollowersRepository followersRepository;
     private FriendService friendService;
+    private NewsfeedRepository newsfeedRepository;
     @Autowired
-    public UnFollowServiceImpl(FriendService friendService,TokenService tokenService,UserService userService,UsersEntityRepository usersEntityRepository,FollowersRepository followersRepository,FollowingRepository followingRepository){
+    public UnFollowServiceImpl(TokenService tokenService,
+                               UserService userService,
+                               UsersEntityRepository usersEntityRepository,
+                               FollowersRepository followersRepository,
+                               FollowingRepository followingRepository,
+                               NewsfeedRepository newsfeedRepository){
         this.followersRepository = followersRepository;
         this.followingRepository = followingRepository;
         this.tokenService = tokenService;
         this.userService = userService;
         this.usersEntityRepository =usersEntityRepository;
         this.friendService = friendService;
+        this.newsfeedRepository = newsfeedRepository;
+
     }
     public UnFollowServiceImpl(){}
+    
     @Transactional
     @Override
     public void sendUnFollow(String fid, HttpServletRequest request) throws RuntimeException{
@@ -43,6 +54,8 @@ public class UnFollowServiceImpl implements UnFollowService {
         try {
             followersRepository.updateUnfollow(userId, fid);
             followingRepository.updateUnfollow(userId, fid);
+
+            newsfeedRepository.deleteNewsfeedWhenUnfollow(fid, userId);
         }catch(Exception e){
             throw new NoStoringException();
         }
