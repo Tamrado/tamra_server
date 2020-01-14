@@ -63,7 +63,7 @@ public class TokenService {
         if (cookieList.isEmpty()) throw new NoInformationException();
         Stream<Cookie> cookieStream = jwtTokenProvider.checkIsToken(name,cookieList);
         if(cookieStream.count() == 0) return null;
-        return jwtTokenProvider.extractUserIdFromToken(cookieStream.iterator().next().getValue());
+        return jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.checkIsToken(name,cookieList).iterator().next().getValue());
     }
 
     public void checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws RuntimeException{

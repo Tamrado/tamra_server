@@ -100,7 +100,7 @@ public class PostController {
                                 "| 401 -> 로그인된 Id와 글 쓴 사람 Id가 다를 때 or user 없을 때 (권한 없음) " +
                                 "| 404 -> 삭제됐거나 찾을 수 없는 post " +
                                 "| 409 -> 수정한 글 내용이 0글자 or 1000글자 초과일 때 (사진 있을 경우 0 허용)" )
-    @PatchMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+    @PutMapping(value = "/{postId}/update", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public ResponseEntity update(@PathVariable("postId") int postId,
                                  @RequestBody PostRequest postRequest,
                                  HttpServletRequest request) {
