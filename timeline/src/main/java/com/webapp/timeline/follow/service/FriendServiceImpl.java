@@ -1,9 +1,11 @@
 package com.webapp.timeline.follow.service;
 
+import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.follow.repository.FollowersRepository;
 import com.webapp.timeline.follow.repository.FollowingRepository;
+import com.webapp.timeline.follow.service.interfaces.FollowService;
 import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
@@ -17,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -47,7 +50,7 @@ public class FriendServiceImpl implements FriendService {
     }
     @Override
     public ArrayList<LoggedInfo> sendFriendApplyList(HttpServletRequest request) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
+        String userId = this.sendLoginUserId(request).get();
         userService.isTrueActualUser(userId);
 
         List<String> friendApplyList = followingRepository.findFriendApplyList(userId);
@@ -60,7 +63,7 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     @Override
     public void invalidateFriendApplyAlarm(HttpServletRequest request,String fid) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
+        String userId = this.sendLoginUserId(request).get();
         userService.isTrueActualUser(userId);
         try {
             followingRepository.updateAlarmtoInvalidate(userId, fid);
@@ -71,9 +74,7 @@ public class FriendServiceImpl implements FriendService {
     }
     @Override
     public ArrayList<LoggedInfo> sendFriendList(HttpServletRequest request) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
-
+        String userId = this.sendLoginUserId(request).get();
         List<String> friendList = followingRepository.findFirstFriendList(userId);
         friendList.addAll(followingRepository.findSecondFriendList(userId));
         ArrayList<LoggedInfo> friendListContents = this.createFriendInfo(friendList);
@@ -108,5 +109,14 @@ public class FriendServiceImpl implements FriendService {
         }
         if(friendListContents.isEmpty()) throw new NoMatchPointException();
         return friendListContents;
+    }
+    @Override
+    public Optional<String> sendLoginUserId(HttpServletRequest request) throws RuntimeException{
+        Optional<String> userId = tokenService.sendIdInCookie("accesstoken",request);
+        userId.orElse(
+                tokenService.sendIdInCookie("kakaoAccesstoken",request)
+                        .orElseThrow(()-> new NoInformationException()));
+        userService.isTrueActualUser(userId.get());
+        return userId;
     }
 }

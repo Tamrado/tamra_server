@@ -41,11 +41,12 @@ public class UserImageS3Component extends SuperS3Uploader {
         else return "https://repotimeline.s3.ap-northeast-2.amazonaws.com/userImage/default_thumbnail.png";
     }
 
-    private String upload(File uploadFile, String userName){
+    private String upload(File uploadFile, String userName) throws RuntimeException{
         if(userName == null) return null;
         String fileName = "userImage/" + userName;
         String uploadImageUrl = super.putS3(uploadFile, fileName);
         super.removeNewFile(uploadFile);
+        if(uploadImageUrl == null) throw new NoInformationException();
         return uploadImageUrl;
     }
 

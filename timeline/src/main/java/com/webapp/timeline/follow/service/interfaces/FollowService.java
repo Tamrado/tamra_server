@@ -5,6 +5,7 @@ import com.webapp.timeline.follow.service.response.PostProfileInfo;
 
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 public interface FollowService {
     FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException;
