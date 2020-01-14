@@ -1,5 +1,7 @@
 package com.webapp.timeline.membership.service;
 
+import com.webapp.timeline.exception.NoStoringException;
+import com.webapp.timeline.membership.domain.Profiles;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignImageService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
@@ -35,6 +37,16 @@ public class UserSignImageServiceImpl implements UserSignImageService {
     @Override
     public void userImageUpload(MultipartFile multipartFile, String userId) throws RuntimeException,IOException{
         userSignServiceImpl.loadUserByUsername(userId);
-        userService.saveImageURL(userId,userImageS3Component.upload(multipartFile, userId));
+        userService.isThereAnyProfileId(userId);
+        userService.saveImageURL(new Profiles(userId,this.uploadImageToS3(multipartFile,userId)));
+    }
+
+    @Override
+    public String uploadImageToS3(MultipartFile file, String userId) throws RuntimeException{
+        try{
+           return userImageS3Component.upload(file, userId);
+        } catch (IOException e) {
+            throw new NoStoringException();
+        }
     }
 }

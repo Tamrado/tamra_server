@@ -59,6 +59,11 @@ public class UserController {
     public void checkAccessToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException{
         tokenService.checkCookieAndRenew(httpServletRequest,httpServletResponse);
     }
+    @ApiOperation(value="kakaoAccesstoken 확인", notes="kakaoAccesstoken 확인 후 있으면 갱신 (response : 200 성공, 404 유저 없음)")
+    @GetMapping(value="/kakao/token/id")
+    public void checkKakaoAccesstoken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException{
+
+    }
     @ApiOperation(value="개인정보 수정",notes = "회원의 개인정보를 수정함 (response : 200 - 성공 404 - 유저 아님 409 - 유저 id 존재하지 않음 )")
     @PutMapping(value="")
     public void modify(@ApiParam(value= "수정하고자 하는 값") @RequestBody Users user,HttpServletRequest request) throws RuntimeException{

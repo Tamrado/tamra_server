@@ -29,14 +29,14 @@ public class Users implements UserDetails {
     private String phone;
     private String email;
     private Date birthday;
-    private int gender;
+    private Integer gender;
     private String address;
     private String comment;
     private Date timestamp;
     private int isAlarm;
 
-    public Users(String userId, String password, String name, String phone, String email, Date birthday, int gender,
-                 String address, String comment, Date timestamp) {
+    public Users(String userId, String password, String name, String phone, String email, Date birthday, Integer gender,
+                 String address, String comment) {
         this.userId = userId;
         this.password = password;
         this.name = name;
@@ -46,8 +46,6 @@ public class Users implements UserDetails {
         this.gender = gender;
         this.address = address;
         this.comment = comment;
-        this.timestamp = timestamp;
-
     }
 
     public Users() {}

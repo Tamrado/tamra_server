@@ -5,7 +5,9 @@ import com.webapp.timeline.follow.service.FriendServiceImpl;
 import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
+import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
+import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import com.webapp.timeline.sns.domain.Newsfeed;
 import com.webapp.timeline.sns.domain.Posts;
@@ -36,6 +38,7 @@ public class ServiceAspectFactory<T> {
     private NewsfeedRepository newsfeedRepository;
     private PostsRepository postsRepository;
     private UserImagesRepository userImagesRepository;
+    private UserService userService;
 
     private static final String INACTIVE_USER = "ROLE_INACTIVEUSER";
 
@@ -47,12 +50,14 @@ public class ServiceAspectFactory<T> {
                                  FriendServiceImpl friendService,
                                  NewsfeedRepository newsfeedRepository,
                                  PostsRepository postsRepository,
-                                 UserImagesRepository userImagesRepository) {
+                                 UserImagesRepository userImagesRepository,
+                                 UserService userService) {
         this.userSignService = userSignService;
         this.friendService = friendService;
         this.newsfeedRepository = newsfeedRepository;
         this.postsRepository = postsRepository;
         this.userImagesRepository = userImagesRepository;
+        this.userService = userService;
     }
 
     public String extractLoggedIn(HttpServletRequest request) {
@@ -108,7 +113,8 @@ public class ServiceAspectFactory<T> {
                                                   .getProfileURL();
         Users user = this.userSignService.loadUserByUsername(userId);
 
-        return new LoggedInfo(userId, profile, user.getName(), user.getComment());
+        return new LoggedInfo(userId, profile, user.getName(), user.getComment()
+                ,userService.sendTokenCategory(userId));
     }
 
     Users loadUserById(String userId) {
@@ -149,6 +155,7 @@ public class ServiceAspectFactory<T> {
                 receivers = followers;
             }
         }
+        receivers.add(sender);
 
         return receivers;
     }

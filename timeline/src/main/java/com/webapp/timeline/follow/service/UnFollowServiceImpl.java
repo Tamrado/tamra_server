@@ -4,6 +4,8 @@ import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.follow.repository.FollowersRepository;
 import com.webapp.timeline.follow.repository.FollowingRepository;
+import com.webapp.timeline.follow.service.interfaces.FollowService;
+import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.follow.service.interfaces.UnFollowService;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
@@ -22,8 +24,8 @@ public class UnFollowServiceImpl implements UnFollowService {
     private UsersEntityRepository usersEntityRepository;
     private FollowingRepository followingRepository;
     private FollowersRepository followersRepository;
+    private FriendService friendService;
     private NewsfeedRepository newsfeedRepository;
-
     @Autowired
     public UnFollowServiceImpl(TokenService tokenService,
                                UserService userService,
@@ -35,16 +37,17 @@ public class UnFollowServiceImpl implements UnFollowService {
         this.followingRepository = followingRepository;
         this.tokenService = tokenService;
         this.userService = userService;
-        this.usersEntityRepository = usersEntityRepository;
+        this.usersEntityRepository =usersEntityRepository;
+        this.friendService = friendService;
         this.newsfeedRepository = newsfeedRepository;
+
     }
     public UnFollowServiceImpl(){}
     
     @Transactional
     @Override
     public void sendUnFollow(String fid, HttpServletRequest request) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
+        String userId = friendService.sendLoginUserId(request).get();
         String friend = usersEntityRepository.findIdByExistingId(fid);
         if(friend == null) throw new NoMatchPointException();
         userService.isTrueActualUser(fid);

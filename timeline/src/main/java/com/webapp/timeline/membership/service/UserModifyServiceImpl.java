@@ -11,6 +11,7 @@ import com.webapp.timeline.membership.security.CustomPasswordEncoder;
 import com.webapp.timeline.membership.security.SignUpValidator;
 import com.webapp.timeline.membership.service.interfaces.UserModifyService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
+import com.webapp.timeline.membership.service.interfaces.UserSignImageService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.slf4j.Logger;
@@ -36,8 +37,9 @@ public class UserModifyServiceImpl implements UserModifyService {
     private TokenService tokenService;
     private UserSignServiceImpl userSignServiceImpl;
     private UserImagesRepository userImagesRepository;
+    private UserSignImageService userSignImageService;
     @Autowired
-    public UserModifyServiceImpl(UserSignServiceImpl userSignServiceImpl,UserImagesRepository userImagesRepository,UserSignService userSignService, UserService userService, UserImageS3Component userImageS3Component, SignUpValidator signUpValidator, CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository, TokenService tokenService){
+    public UserModifyServiceImpl(UserSignImageService userSignImageService,UserSignServiceImpl userSignServiceImpl,UserImagesRepository userImagesRepository,UserSignService userSignService, UserService userService, UserImageS3Component userImageS3Component, SignUpValidator signUpValidator, CustomPasswordEncoder customPasswordEncoder, UsersEntityRepository usersEntityRepository, TokenService tokenService){
         this.signUpValidator = signUpValidator;
         this.userSignService = userSignService;
         this.userImageS3Component = userImageS3Component;
@@ -47,6 +49,7 @@ public class UserModifyServiceImpl implements UserModifyService {
         this.userService = userService;
         this.userImagesRepository = userImagesRepository;
         this.userSignServiceImpl = userSignServiceImpl;
+        this.userSignImageService = userSignImageService;
     }
     @Override
     public void modifyUser(Users user) throws RuntimeException{
@@ -64,14 +67,10 @@ public class UserModifyServiceImpl implements UserModifyService {
     public LoggedInfo modifyImage(HttpServletRequest req, MultipartFile file)throws RuntimeException{
         Users user = userSignService.extractUserFromToken(req);
         if(user == null) throw new NoInformationException();
-        String url = null;
-        try{
-            url = userImageS3Component.upload(file, user.getUserId());
-            } catch (IOException e) {
-            throw new NoStoringException();
-        }
-        if(url == null) throw new NoMatchPointException();
+
+        String url = userSignImageService.uploadImageToS3(file,user.getUserId());
         userImagesRepository.updateProfile(user.getUserId(), url);
+
         return userService.setLoggedInfo(user.getUserId());
     }
     @Override
@@ -83,7 +82,7 @@ public class UserModifyServiceImpl implements UserModifyService {
         }catch(Exception e){
             throw new NoMatchPointException();
         }
-        tokenService.removeCookie(request,response);
+        tokenService.removeCookies(request,response);
 
     }
 
