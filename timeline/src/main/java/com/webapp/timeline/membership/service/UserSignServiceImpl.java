@@ -54,8 +54,9 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     @Override
     public Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException{
         jwtTokenProvider = new JwtTokenProvider();
-        Optional<String> username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
-        Users user = loadUserByUsername(username.orElseThrow(()->new NoMatchPointException()));
+        String username = Optional.of(jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest)))
+                .orElseThrow(()->new NoMatchPointException());
+        Users user = loadUserByUsername(username);
         return user;
     }
     @Override

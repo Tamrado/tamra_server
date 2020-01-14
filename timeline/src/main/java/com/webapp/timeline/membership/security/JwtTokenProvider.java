@@ -57,10 +57,10 @@ public class JwtTokenProvider {
 
         return accessToken;
     }
-    public Optional<String> extractUserIdFromToken(String token) throws RuntimeException {
+    public String extractUserIdFromToken(String token) throws RuntimeException {
         log.info("JwtTokenProvider.extractUserIdFromToken ::::");
         try {
-            return Optional.of(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject());
+            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
             throw new NoInformationException();
         }

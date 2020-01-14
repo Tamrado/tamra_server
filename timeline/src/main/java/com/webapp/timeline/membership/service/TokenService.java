@@ -57,13 +57,13 @@ public class TokenService {
         userSignService.findUser(user);
         return addCookie(response,user.get("id").toString());
     }
-    public Optional<String> sendIdInCookie(String name, HttpServletRequest httpServletRequest) throws RuntimeException {
+    public String sendIdInCookie(String name, HttpServletRequest httpServletRequest) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
 
         if (cookieList.isEmpty()) throw new NoInformationException();
         Stream<Cookie> cookieStream = jwtTokenProvider.checkIsToken(name,cookieList);
         if(cookieStream.count() == 0) return null;
-        return jwtTokenProvider.extractUserIdFromToken(cookieStream.iterator().next().getValue());
+        return jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.checkIsToken(name,cookieList).iterator().next().getValue());
     }
 
     public void checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws RuntimeException{
@@ -78,10 +78,10 @@ public class TokenService {
     private void cookieRenew(List<Cookie> cookieList,HttpServletResponse httpServletResponse){
         jwtTokenProvider.checkIsToken("accesstoken",cookieList)
                 .forEach(cookie->{
-                    Optional<String> id = jwtTokenProvider.extractUserIdFromToken(cookie.getValue());
+                    String id = jwtTokenProvider.extractUserIdFromToken(cookie.getValue());
                     cookie.setMaxAge(0);
                     httpServletResponse.addCookie(cookie);
-                    httpServletResponse.addCookie(this.makeCookie(jwtTokenProvider.createToken(id.get()),"accesstoken"));
+                    httpServletResponse.addCookie(this.makeCookie(jwtTokenProvider.createToken(id),"accesstoken"));
                 });
     }
     private void removeCookie(String name, List<Cookie> cookieList, HttpServletResponse httpServletResponse) {
@@ -96,10 +96,10 @@ public class TokenService {
 
     public LoggedInfo sendInfo(String userId,HttpServletRequest httpServletRequest) throws RuntimeException{
         String name = userService.sendTokenCategory(userId);
-        Optional<String> id = sendIdInCookie(name,httpServletRequest);
-        id.orElseThrow(()-> new NoMatchPointException());
+        String id = Optional.of(sendIdInCookie(name,httpServletRequest))
+                .orElseThrow(()-> new NoMatchPointException());
         if(id.equals(userId))
-            return userService.setLoggedInfo(id.get());
+            return userService.setLoggedInfo(id);
         else throw new NoMatchPointException();
     }
 }
