@@ -12,6 +12,8 @@ import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 @Service
 public class FriendServiceImpl implements FriendService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     FollowingRepository followingRepository;
     FollowersRepository followersRepository;
     UsersEntityRepository usersEntityRepository;
@@ -112,11 +115,9 @@ public class FriendServiceImpl implements FriendService {
     }
     @Override
     public Optional<String> sendLoginUserId(HttpServletRequest request) throws RuntimeException{
-        Optional<String> userId = tokenService.sendIdInCookie("accesstoken",request);
-        userId.orElse(
-                tokenService.sendIdInCookie("kakaoAccesstoken",request)
-                        .orElseThrow(()-> new NoInformationException()));
-        userService.isTrueActualUser(userId.get());
-        return userId;
+        String userId = Optional.of(tokenService.sendIdInCookie("accesstoken",request))
+                .orElse(tokenService.sendIdInCookie("kakaoAccesstoken",request));
+        userService.isTrueActualUser(userId);
+        return Optional.of(userId);
     }
 }

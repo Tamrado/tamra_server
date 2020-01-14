@@ -38,7 +38,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
 
          String token = authentication1.getToken();
         if (token != null && jwtTokenProvider.validateExpirationToken(token)) {
-            String userId = jwtTokenProvider.extractUserIdFromToken(token).get();
+            String userId = jwtTokenProvider.extractUserIdFromToken(token);
             Users user = null;
             if (!StringUtils.isEmpty(userId)) {
                 user = userSignServiceImpl.loadUserByUsername(userId);

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 public class AlarmServiceImpl implements AlarmService {
@@ -30,8 +31,8 @@ public class AlarmServiceImpl implements AlarmService {
     @Transactional
     @Override
     public void changeAlarm(Boolean isActive, HttpServletRequest request)throws RuntimeException{
-        String userId = tokenService.sendIdInCookie("kakaoAccesstoken",request)
-                .orElse(tokenService.sendIdInCookie("accesstoken",request).get());
+        String userId = Optional.of(tokenService.sendIdInCookie("kakaoAccesstoken",request))
+                .orElse(tokenService.sendIdInCookie("accesstoken",request));
         userService.isTrueActualUser(userId);
         try {
             if (isActive)
