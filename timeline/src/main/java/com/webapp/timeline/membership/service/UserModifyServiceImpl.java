@@ -83,7 +83,7 @@ public class UserModifyServiceImpl implements UserModifyService {
         }catch(Exception e){
             throw new NoMatchPointException();
         }
-        tokenService.removeCookie(request,response);
+        tokenService.removeCookies(request,response);
 
     }
 

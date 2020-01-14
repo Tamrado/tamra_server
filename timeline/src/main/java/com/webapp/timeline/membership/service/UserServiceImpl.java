@@ -55,6 +55,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public ArrayList<String> sendActualUserFromList(ArrayList<String> userList) throws RuntimeException{
+        if(userList.isEmpty()) throw new NoMatchPointException();
         for(Iterator<String> it = userList.iterator(); it.hasNext() ; ){
             String id = it.next();
             Map<String,String> friendInfo= usersEntityRepository.findUserInfo(id);
@@ -62,7 +63,6 @@ public class UserServiceImpl implements UserService {
             if(!friendInfo.get("authority").equals("ROLE_USER"))
                 it.remove();
         }
-        if(userList == null) throw new NoMatchPointException();
         return userList;
     }
 
