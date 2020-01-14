@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,11 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
     @Modifying
     @Query("update Users u set u.isAlarm = 1 where u.userId = :uid")
     void updateUserOnAlarm (@Param("uid")String uid);
+
+    @Modifying
+    @Transactional
+    @Query("update Users u set u.email = :email, u.comment = :comment where u.userId = :uid")
+    void updateSecondSignUp(@Param("email")String email, @Param("comment") String comment,@Param("uid")String uid);
 
     @Query("select u.isAlarm from Users u where u.userId = :uid")
     Integer selectIsAlarmFromUid (@Param("uid")String uid);

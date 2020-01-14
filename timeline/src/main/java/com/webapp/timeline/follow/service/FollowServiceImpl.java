@@ -1,5 +1,6 @@
 package com.webapp.timeline.follow.service;
 
+import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
 import com.webapp.timeline.follow.domain.FollowId;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 public class FollowServiceImpl implements FollowService {
@@ -39,60 +41,72 @@ public class FollowServiceImpl implements FollowService {
         this.usersEntityRepository = usersEntityRepository;
     }
     @Override
-    public FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
-
-        FollowInfo followInfo = sendFollowFollowerNum(userId);
+    public FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException {
+        String userId = friendService.sendLoginUserId(request).get();
+        FollowInfo followInfo = sendFollowerNum(userId,sendFollowNum(userId));
         return followInfo;
     }
     @Override
     public PostProfileInfo sendFriendInfo(String fid) throws RuntimeException{
         PostProfileInfo postProfileInfo = new PostProfileInfo();
         postProfileInfo.setUserInfo(userService.setLoggedInfo(fid));
-        postProfileInfo.setFollowInfo(sendFollowFollowerNum(fid));
+        postProfileInfo.setFollowInfo(sendFollowerNum(fid,sendFollowNum(fid)));
         return postProfileInfo;
     }
-    private FollowInfo sendFollowFollowerNum(String uid){
+    private FollowInfo sendFollowNum(String uid){
         FollowInfo followInfo = new FollowInfo();
-        int followerNum = 0,followNum = 0;
-        followerNum += followersRepository.findFollowerNum(uid);
-        followerNum += followingRepository.findFollowerNum(uid);
+        int followNum = 0;
         followNum += followersRepository.findFollowNum(uid);
         followNum += followingRepository.findFollowNum(uid);
         followInfo.setFollowNum(followNum);
+        return followInfo;
+    }
+    private FollowInfo sendFollowerNum(String uid,FollowInfo followInfo){
+        int followerNum = 0;
+        followerNum += followersRepository.findFollowerNum(uid);
+        followerNum += followingRepository.findFollowerNum(uid);
+
         followInfo.setFollowerNum(followerNum);
         return followInfo;
     }
     @Override
     @Transactional
     public void sendFollow(String fid,HttpServletRequest request)throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
+        String userId = friendService.sendLoginUserId(request).get();
         String friend = usersEntityRepository.findIdByExistingId(fid);
-        if(friend == null) throw new NoMatchPointException();
         userService.isTrueActualUser(friend);
         if(followersRepository.isThisMyFollower(userId,fid) == 0){
-            FollowId followingId = new FollowId(userId,fid);
-            Followings followings = new Followings(followingId,0);
-            FollowId followerId = new FollowId(fid,userId);
-            Followers followers = new Followers(followerId,1);
-            try {
-                followingRepository.saveAndFlush(followings);
-                followersRepository.saveAndFlush(followers);
-            }catch(Exception e){
-               throw new NoStoringException();
-            }
+            this.makeFollowInFollowers(userId,fid);
+            this.makeFollowInFollowings(userId,fid);
         }
         else friendService.matchNewRelationship(userId,fid);
     }
+    private void makeFollowInFollowings(String userId,String fid) throws RuntimeException{
+        FollowId followingId = new FollowId(userId,fid);
+        Followings followings = new Followings(followingId,0);
+        try {
+            followingRepository.saveAndFlush(followings);
+        }catch(Exception e){
+            throw new NoStoringException();
+        }
+    }
+    private void makeFollowInFollowers(String userId, String fid) throws RuntimeException {
+        FollowId followerId = new FollowId(fid,userId);
+        Followers followers = new Followers(followerId,1);
+        try {
+            followersRepository.saveAndFlush(followers);
+        }catch(Exception e){
+            throw new NoStoringException();
+        }
+    }
+    @Override
     public void sendIsFollowingUser(HttpServletRequest request,String fid)throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
+        String userId = friendService.sendLoginUserId(request).get();
         userService.isTrueActualUser(fid);
         String friendOne = followingRepository.selectIsFollowingUser(userId,fid);
         String friendTwo = followersRepository.selectIsFollowingUser(userId,fid);
         if(friendOne == null && friendTwo == null)
             throw new NoMatchPointException();
     }
+
 }

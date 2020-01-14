@@ -22,7 +22,6 @@ public class SignUpValidator{
         this.usersEntityRepository = usersEntityRepository;
     }
     public void validateForModify(Users users) throws RuntimeException{
-
         if(checkIfEmailIsWrongForm(users))
             throw new NoMatchPointException();
 

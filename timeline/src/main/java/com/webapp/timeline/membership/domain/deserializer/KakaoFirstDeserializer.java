@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 public class KakaoFirstDeserializer extends StdDeserializer<KakaoFirstInfo> {
 
@@ -28,7 +29,7 @@ public class KakaoFirstDeserializer extends StdDeserializer<KakaoFirstInfo> {
     public KakaoFirstInfo deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
         log.debug("KakaoFirstDeserializer.deserialize ::::");
         JsonNode node = parser.getCodec().readTree(parser);
-        Long id = node.get("id").asLong();
+        Long id = node.get("uid").asLong();
         String uid = Long.toString(id);
         String nickname = node.get("nickname").asText();
         String thumbnail = node.get("thumbnail").asText();

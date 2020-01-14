@@ -9,4 +9,5 @@ import java.io.IOException;
 public interface UserSignImageService {
     LoggedInfo uploadUserSignImage(MultipartFile file, String userId, HttpServletResponse response) throws IOException,RuntimeException;
     void userImageUpload(MultipartFile multipartFile, String userId) throws RuntimeException, IOException;
+    String uploadImageToS3(MultipartFile file, String userId) throws RuntimeException;
 }

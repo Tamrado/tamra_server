@@ -2,6 +2,7 @@ package com.webapp.timeline.membership.service;
 
 import com.webapp.timeline.exception.NoMatchPointException;
 import com.webapp.timeline.exception.NoStoringException;
+import com.webapp.timeline.membership.domain.Profiles;
 import com.webapp.timeline.membership.domain.RefreshToken;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.RefreshTokenRepository;
@@ -12,6 +13,8 @@ import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.response.KakaoFirstInfo;
 import com.webapp.timeline.membership.service.response.KakaoSecondInfo;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ import javax.transaction.Transactional;
 
 @Service
 public class UserKakaoSignServiceImpl implements UserKakaoSignService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     private UsersEntityRepository usersEntityRepository;
     private UserSignService userSignService;
     private UserService userService;
@@ -48,35 +52,49 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     public LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException{
         Users user = usersEntityRepository.findUsersById(id.toString()+"Kakao");
         if(user == null) throw new NoMatchPointException();
-        return this.secondSignUp(user,kakaoSecondInfo);
+        return this.secondSignUp(user.getUserId(),kakaoSecondInfo);
     }
     @Override
     public void firstSignUp(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
-        Users user = new Users(kakaoFirstInfo.getUid()+"Kakao",null,kakaoFirstInfo.getNickname(),null,
-                kakaoFirstInfo.getEmail(),null,null,null,null);
-        RefreshToken refreshToken = new RefreshToken(kakaoFirstInfo.getUid()+"Kakao",kakaoFirstInfo.getRefreshToken());
-        userSignService.saveUser(user);
-        this.saveRefreshToken(refreshToken);
+        this.saveUserImage(kakaoFirstInfo);
+        this.saveUser(kakaoFirstInfo);
+        this.saveRefreshToken(kakaoFirstInfo);
     }
 
     @Transactional
     @Override
-    public LoggedInfo secondSignUp(Users user,KakaoSecondInfo kakaoSecondInfo) throws RuntimeException{
-        user.setComment(kakaoSecondInfo.getComment());
-        if(user.getEmail() == null) user.setEmail(kakaoSecondInfo.getEmail());
-        userSignService.saveUser(user);
-        return userService.setLoggedInfo(user.getUserId());
-    }
-
-    @Transactional
-    @Override
-    public void saveRefreshToken(RefreshToken refreshToken) throws RuntimeException{
+    public LoggedInfo secondSignUp(String uid,KakaoSecondInfo kakaoSecondInfo) throws RuntimeException{
         try {
-            refreshTokenRepository.save(refreshToken);
-            refreshTokenRepository.flush();
+            usersEntityRepository.updateSecondSignUp(kakaoSecondInfo.getEmail(), kakaoSecondInfo.getComment(), uid);
         }catch(Exception e){
+            log.error(e.toString());
             throw new NoStoringException();
         }
+        return userService.setLoggedInfo(uid);
+    }
+
+    @Transactional
+    @Override
+    public void saveRefreshToken(KakaoFirstInfo kakaoFirstInfo) throws RuntimeException{
+        RefreshToken refreshToken = new RefreshToken(kakaoFirstInfo.getUid()+"Kakao",kakaoFirstInfo.getRefreshToken());
+        try {
+            refreshTokenRepository.saveAndFlush(refreshToken);
+        }catch(Exception e){
+            log.error(e.toString());
+            throw new NoStoringException();
+        }
+    }
+    private void saveUserImage(KakaoFirstInfo kakaoFirstInfo) throws RuntimeException{
+        Profiles profile = new Profiles(kakaoFirstInfo.getUid()+"Kakao",kakaoFirstInfo.getThumbnail());
+        userService.saveImageURL(profile);
+    }
+    private void saveUser(KakaoFirstInfo kakaoFirstInfo) throws RuntimeException{
+        Users user = new Users(kakaoFirstInfo.getUid()+"Kakao",null,kakaoFirstInfo.getNickname(),null,
+                kakaoFirstInfo.getEmail(),null,null,null,null);
+        user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
+        user.setIsAlarm(1);
+        user.setAuthority();
+        userSignService.saveUser(user);
     }
 
 }

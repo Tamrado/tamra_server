@@ -9,6 +9,7 @@ public class KakaoSecondInfo {
     private String email;
     private String comment;
 
+    public KakaoSecondInfo(){}
     public KakaoSecondInfo(String email, String comment){
         this.email = email;
         this.comment = comment;

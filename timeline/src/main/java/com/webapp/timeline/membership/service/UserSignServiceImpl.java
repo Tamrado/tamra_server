@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Optional;
 
 @Configurable
 @Service
@@ -52,9 +53,9 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     }
     @Override
     public Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException{
-        jwtTokenProvider = new JwtTokenProvider(new UserSignServiceImpl());
-        String username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
-        Users user = loadUserByUsername(username);
+        jwtTokenProvider = new JwtTokenProvider();
+        Optional<String> username = jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.resolveToken(httpServletRequest));
+        Users user = loadUserByUsername(username.orElseThrow(()->new NoMatchPointException()));
         return user;
     }
     @Override

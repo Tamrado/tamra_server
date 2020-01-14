@@ -2,6 +2,7 @@ package com.webapp.timeline.follow.service;
 
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.exception.NoMatchPointException;
+import com.webapp.timeline.follow.service.interfaces.FollowService;
 import com.webapp.timeline.follow.service.interfaces.FriendService;
 import com.webapp.timeline.follow.service.interfaces.SearchService;
 import com.webapp.timeline.membership.domain.Profiles;
@@ -30,19 +31,20 @@ public class SearchServiceImpl implements SearchService {
     private UsersEntityRepository usersEntityRepository;
     private UserImagesRepository userImagesRepository;
     private FriendService friendService;
+    private FollowService followService;
     @Autowired
-    public SearchServiceImpl(UserImagesRepository userImagesRepository,TokenService tokenService,UserService userService,UsersEntityRepository usersEntityRepository,FriendService friendService){
+    public SearchServiceImpl(FollowService followService, UserImagesRepository userImagesRepository, TokenService tokenService, UserService userService, UsersEntityRepository usersEntityRepository, FriendService friendService){
         this.tokenService = tokenService;
         this.userService = userService;
         this.usersEntityRepository = usersEntityRepository;
         this.friendService = friendService;
         this.userImagesRepository = userImagesRepository;
+        this.followService = followService;
     }
     @Override
     public ArrayList<LoggedInfo> searchInFriendList(String nickname, HttpServletRequest request) throws RuntimeException{
         log.error("searchInFriendList");
-        String userId = tokenService.sendIdInCookie(request);
-        userService.isTrueActualUser(userId);
+        String userId = friendService.sendLoginUserId(request).get();
 
         List<String> friendIdList = usersEntityRepository.findNameInFirstFriendList(userId,nickname);
         friendIdList.addAll(usersEntityRepository.findNameInSecondFriendList(userId,nickname));
@@ -52,15 +54,17 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public ArrayList<LoggedInfo> searchInHeader(String nickname,CustomPageRequest request) throws RuntimeException{
         ArrayList<LoggedInfo> loggedInfoArrayList = new ArrayList<>();
-        request.setSize(5);
-        Page<Map<String,String>> userPage = usersEntityRepository.findUsersBySearching(nickname,request.of("userId"));
-        List<Map<String,String>> userList = userPage.getContent();
-        for(Map<String,String> user : userList){
+        for(Map<String,String> user : this.getUserList(nickname,request)){
             Profiles profile = userImagesRepository.findImageURLById(user.get("userId"));
-            LoggedInfo loggedInfo = new LoggedInfo(user.get("userId"),profile.getProfileURL(),user.get("name"),user.get("comment"));
+            LoggedInfo loggedInfo = new LoggedInfo(user.get("userId"),profile.getProfileURL(),user.get("name"),user.get("comment"),userService.sendTokenCategory(user.get("userId")));
             loggedInfoArrayList.add(loggedInfo);
         }
         if(loggedInfoArrayList.isEmpty()) throw new NoMatchPointException();
         return loggedInfoArrayList;
+    }
+    private List<Map<String,String>> getUserList(String nickname,CustomPageRequest request){
+        request.setSize(5);
+        Page<Map<String,String>> userPage = usersEntityRepository.findUsersBySearching(nickname,request.of("userId"));
+        return userPage.getContent();
     }
 }

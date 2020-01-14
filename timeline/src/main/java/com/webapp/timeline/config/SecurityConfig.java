@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.webapp.timeline.membership.repository.UserImagesRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.security.*;
+import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserImageS3Component;
 import com.webapp.timeline.membership.service.UserServiceImpl;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
@@ -51,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure( AuthenticationManagerBuilder auth ) throws Exception {
-        jwtTokenProvider =  new JwtTokenProvider(userSignServiceImpl);
+        jwtTokenProvider =  new JwtTokenProvider();
         userSignServiceImpl = new UserSignServiceImpl(new SignUpValidator(usersEntityRepository)
                 ,usersEntityRepository
                 ,customPasswordEncoder);
@@ -141,7 +142,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     CookieAuthenticationFilter getCookieAuthenticationFilter(RequestMatcher requestMatcher ) {
-        jwtTokenProvider =  new JwtTokenProvider(userSignServiceImpl);
+        jwtTokenProvider =  new JwtTokenProvider();
         userSignServiceImpl = new UserSignServiceImpl(new SignUpValidator(usersEntityRepository)
                 ,usersEntityRepository
                 ,customPasswordEncoder);

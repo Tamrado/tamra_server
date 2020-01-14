@@ -2,6 +2,7 @@ package com.webapp.timeline.membership.security;
 
 import com.webapp.timeline.exception.NoInformationException;
 import com.webapp.timeline.membership.domain.Users;
+import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -22,8 +23,8 @@ import org.thymeleaf.util.StringUtils;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Base64;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Component
 public class JwtTokenProvider {
@@ -35,11 +36,6 @@ public class JwtTokenProvider {
         this.secret = secret;
     }
     final long tokenValidMilisecond = 1000L *60*60*24;
-    private UserSignServiceImpl userSignService;
-    @Autowired
-    public JwtTokenProvider(UserSignServiceImpl userSignService) {
-        this.userSignService = userSignService;
-    }
     public JwtTokenProvider(){}
     @PostConstruct
     protected void init() {
@@ -61,10 +57,10 @@ public class JwtTokenProvider {
 
         return accessToken;
     }
-    public String extractUserIdFromToken(String token) throws RuntimeException {
+    public Optional<String> extractUserIdFromToken(String token) throws RuntimeException {
         log.info("JwtTokenProvider.extractUserIdFromToken ::::");
         try {
-            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+            return Optional.of(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject());
         } catch (Exception e) {
             throw new NoInformationException();
         }
@@ -72,17 +68,18 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest httpServletRequest){
         log.info("JwtTokenProvider.resolveToken ::::");
-        Cookie[] cookies = httpServletRequest.getCookies();
-        if (cookies != null) {
-            for (int j = 0; j < cookies.length; ++j) {
-                log.info(cookies[j].getName());
-                if (cookies[j].getName().equals("accesstoken") && getExpirationToken(cookies[j].getValue()).getTime() - System.currentTimeMillis() > 0) {
-                    log.info("쿠키 정보");
-                    return cookies[j].getValue();
-                }
-            }
-        }
-        return null;
+        List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
+        Stream<Cookie> kakaoCookieStream = this.checkIsToken("kakaoAccesstoken",cookieList);
+        Stream<Cookie> basicCookieStream = this.checkIsToken("accesstoken",cookieList);
+        return extractTokenValue(kakaoCookieStream,basicCookieStream);
+    }
+
+    public String extractTokenValue(Stream<Cookie> kakaoCookieStream,Stream<Cookie> basicCookieStream){
+        return kakaoCookieStream.count() > 0 ?
+                kakaoCookieStream.iterator().next().getValue() :
+                (basicCookieStream.count() > 0 ?
+                        basicCookieStream.iterator().next().getValue() :
+                        null);
     }
     public Date getExpirationToken(String jwtToken){
         try{
@@ -102,6 +99,11 @@ public class JwtTokenProvider {
         catch (Exception e) {
             return false;
         }
+    }
+    public Stream<Cookie> checkIsToken(String name,List<Cookie> cookieList){
+        return cookieList.stream()
+                .filter(cookie->cookie.getName().equals(name))
+                .filter(cookie->this.getExpirationToken(cookie.getValue()).getTime() - System.currentTimeMillis() > 0);
     }
 
 }

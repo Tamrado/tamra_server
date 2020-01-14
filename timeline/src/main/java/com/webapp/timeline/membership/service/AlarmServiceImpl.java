@@ -30,7 +30,8 @@ public class AlarmServiceImpl implements AlarmService {
     @Transactional
     @Override
     public void changeAlarm(Boolean isActive, HttpServletRequest request)throws RuntimeException{
-        String userId = tokenService.sendIdInCookie(request);
+        String userId = tokenService.sendIdInCookie("kakaoAccesstoken",request)
+                .orElse(tokenService.sendIdInCookie("accesstoken",request).get());
         userService.isTrueActualUser(userId);
         try {
             if (isActive)

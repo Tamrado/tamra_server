@@ -2,6 +2,7 @@ HELP.md
 *.gradle
 aws.yml
 jwt.yml
+kakao.yml
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/test/**
