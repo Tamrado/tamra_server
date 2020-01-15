@@ -13,13 +13,17 @@ import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
 import com.webapp.timeline.membership.service.response.KakaoFirstInfo;
 import com.webapp.timeline.membership.service.response.KakaoSecondInfo;
+import com.webapp.timeline.membership.service.response.KakaoTimeInfo;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 
@@ -30,14 +34,16 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     private UserSignService userSignService;
     private UserService userService;
     private RefreshTokenRepository refreshTokenRepository;
+    private TokenService tokenService;
 
     public UserKakaoSignServiceImpl(){}
     @Autowired
-    public UserKakaoSignServiceImpl(RefreshTokenRepository refreshTokenRepository,UserService userService,UserSignService userSignService,UsersEntityRepository usersEntityRepository){
+    public UserKakaoSignServiceImpl(TokenService tokenService,RefreshTokenRepository refreshTokenRepository,UserService userService,UserSignService userSignService,UsersEntityRepository usersEntityRepository){
         this.usersEntityRepository = usersEntityRepository;
         this.userSignService = userSignService;
         this.userService = userService;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -49,8 +55,7 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
 
     @Override
     public void makeKakaoCookie(HttpServletResponse httpServletResponse,String accesstoken){
-        Cookie cookie = new Cookie("kakaoAccesstoken",accesstoken);
-        httpServletResponse.addCookie(cookie);
+        httpServletResponse.addCookie(tokenService.makeCookie(accesstoken,"kakaoAccesstoken"));
     }
     @Override
     public LoggedInfo login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
