@@ -96,12 +96,7 @@ public class JwtTokenProvider {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.add("Authorization", "Bearer "
                 + this.resolveKakaoCookie(request));
-        try{
-            return restTemplate.exchange("https://kapi.kakao.com/v1/user/access_token_info", HttpMethod.GET, new HttpEntity<String>(headers), String.class);
-        } catch (Exception e) {
-            log.error(e.toString());
-            throw new NoMatchPointException();
-        }
+        return restTemplate.exchange("https://kapi.kakao.com/v1/user/access_token_info", HttpMethod.GET, new HttpEntity<String>(headers), String.class);
     }
     public String resolveToken(HttpServletRequest request){
         log.info("JwtTokenProvider.resolveToken ::::");
