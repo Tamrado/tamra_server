@@ -59,7 +59,7 @@ public class UserController {
     public void checkAccessToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException{
         tokenService.checkCookieAndRenew(httpServletRequest,httpServletResponse);
     }
-    @ApiOperation(value="kakaoAccesstoken 확인", notes="kakaoAccesstoken 확인 후 있으면 갱신 (response : 200 성공, 404 유저 없음)")
+    @ApiOperation(value="kakaoAccesstoken 확인", notes="kakaoAccesstoken 확인 후 지났으면 갱신 그 외엔 그냥 냅둠 (response : 200 성공, 404 유저 없음)")
     @GetMapping(value="/kakao/token/id")
     public void checkKakaoAccesstoken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException{
 
