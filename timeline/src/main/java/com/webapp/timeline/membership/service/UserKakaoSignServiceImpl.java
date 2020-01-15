@@ -43,8 +43,8 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     @Override
     public Boolean isUserTrue(String uid){
         String userId = usersEntityRepository.findIdByExistingId(uid);
-        if(userId != null) return false;
-        else return true;
+        if(userId != null) return true;
+        else return false;
     }
 
     @Override
@@ -54,10 +54,10 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     }
     @Override
     public Boolean login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
-       Users user = usersEntityRepository.findUsersById(kakaoFirstInfo.getUid()+"Kakao");
-       if(user == null) this.firstSignUp(kakaoFirstInfo, httpServletResponse);
-       else this.makeKakaoCookie(httpServletResponse,kakaoFirstInfo.getAccessToken());
-       return this.isUserTrue(kakaoFirstInfo.getUid()+"Kakao");
+        this.makeKakaoCookie(httpServletResponse,kakaoFirstInfo.getAccessToken());
+        if(!this.isUserTrue(kakaoFirstInfo.getUid()+"Kakao")) this.firstSignUp(kakaoFirstInfo, httpServletResponse);
+        else return false;
+        return true;
     }
     @Override
     public LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException{
