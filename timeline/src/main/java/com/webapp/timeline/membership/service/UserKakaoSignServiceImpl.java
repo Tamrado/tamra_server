@@ -53,11 +53,11 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
         httpServletResponse.addCookie(cookie);
     }
     @Override
-    public Boolean login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
+    public LoggedInfo login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
         this.makeKakaoCookie(httpServletResponse,kakaoFirstInfo.getAccessToken());
         if(!this.isUserTrue(kakaoFirstInfo.getUid()+"Kakao")) this.firstSignUp(kakaoFirstInfo, httpServletResponse);
-        else return false;
-        return true;
+        else return userService.setLoggedInfo(kakaoFirstInfo.getUid()+"Kakao");
+        return null;
     }
     @Override
     public LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException{

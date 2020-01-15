@@ -9,7 +9,7 @@ import com.webapp.timeline.membership.service.response.LoggedInfo;
 import javax.servlet.http.HttpServletResponse;
 
 public interface UserKakaoSignService {
-    Boolean login(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException;
+    LoggedInfo login(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException;
     void firstSignUp(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException;
     LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException;
     LoggedInfo secondSignUp(String uid,KakaoSecondInfo kakaoSecondInfo) throws RuntimeException;
