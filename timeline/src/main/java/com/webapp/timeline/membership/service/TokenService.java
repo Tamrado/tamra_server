@@ -65,11 +65,14 @@ public class TokenService {
     }
 
     public String sendIdInCookie(String name, HttpServletRequest httpServletRequest) throws RuntimeException {
+        log.info("TokenService.sendIdInCookie::::");
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
         if (cookieList.isEmpty()) throw new NoInformationException();
         if (this.makeStreamForName(name,cookieList,httpServletRequest).count() == 0) return null;
-        return jwtTokenProvider.extractUserIdFromToken(this.makeStreamForName(name,cookieList,httpServletRequest)
-                .iterator().next().getValue());
+        return Optional.ofNullable(jwtTokenProvider.extractUserIdFromAccessToken(
+                this.makeStreamForName(name,cookieList,httpServletRequest)
+                .iterator().next().getValue())).orElseGet(()->jwtTokenProvider.extractUserIdFromKakaoToken(
+                        jwtTokenProvider.resolveKakaoCookie(httpServletRequest)));
     }
 
     public void checkCookieAndRenew(String name,HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
@@ -84,7 +87,7 @@ public class TokenService {
     private void cookieRenew(String name,List<Cookie> cookieList, HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
         this.makeStreamForName(name,cookieList,httpServletRequest)
                 .forEach(cookie -> {
-                    String id = jwtTokenProvider.extractUserIdFromToken(cookie.getValue());
+                    String id = jwtTokenProvider.extractUserIdFromAccessToken(cookie.getValue());
                     cookie.setMaxAge(0);
                     httpServletResponse.addCookie(cookie);
                     httpServletResponse.addCookie(this.makeCookie(jwtTokenProvider.createToken(id), "accesstoken"));
@@ -111,7 +114,7 @@ public class TokenService {
     }
     public Stream<Cookie> makeStreamForName(String name,List<Cookie> cookieList,HttpServletRequest request) throws RuntimeException{
         if(name.equals("kakaoAccesstoken"))
-           return jwtTokenProvider.makeKakaoCookieStream(cookieList, request);
+            return jwtTokenProvider.makeKakaoCookieStream(cookieList, request);
         return jwtTokenProvider.makeBasicCookieStream(cookieList);
 
     }

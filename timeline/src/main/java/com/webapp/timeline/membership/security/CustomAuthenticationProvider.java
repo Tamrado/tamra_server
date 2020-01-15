@@ -37,8 +37,21 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
         JwtAuthenticationToken authentication1 = (JwtAuthenticationToken)SecurityContextHolder.getContext().getAuthentication();
 
          String token = authentication1.getToken();
-        if (token != null && jwtTokenProvider.validateExpirationToken(token)) {
-            String userId = jwtTokenProvider.extractUserIdFromToken(token);
+        if (token != null && jwtTokenProvider.validateExpirationAccessToken(token)) {
+            String userId = jwtTokenProvider.extractUserIdFromAccessToken(token);
+            Users user = null;
+            if (!StringUtils.isEmpty(userId)) {
+                user = userSignServiceImpl.loadUserByUsername(userId);
+            }
+            if (ObjectUtils.isEmpty(user))
+                throw new UsernameNotFoundException("Invalid username");
+
+
+            return new JwtAuthenticationToken(token, user, user.getAuthorities());
+
+        }
+        else if(token != null && jwtTokenProvider.validateExpirationKakaoToken(token)){
+            String userId = jwtTokenProvider.extractUserIdFromKakaoToken(token);
             Users user = null;
             if (!StringUtils.isEmpty(userId)) {
                 user = userSignServiceImpl.loadUserByUsername(userId);

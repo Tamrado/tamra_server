@@ -115,8 +115,10 @@ public class FriendServiceImpl implements FriendService {
     }
     @Override
     public Optional<String> sendLoginUserId(HttpServletRequest request) throws RuntimeException{
+        log.info("FriendServiceImpl.sendLoginUserId::::");
         String userId = Optional.ofNullable(tokenService.sendIdInCookie("accesstoken",request))
                 .orElseGet(()->tokenService.sendIdInCookie("kakaoAccesstoken",request));
+        log.info(userId);
         userService.isTrueActualUser(userId);
         return Optional.ofNullable(userId);
     }
