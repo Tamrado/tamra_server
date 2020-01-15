@@ -33,7 +33,6 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
     Logger log = LoggerFactory.getLogger(this.getClass());
     private JwtTokenProvider jwtTokenProvider;
 
-
     public CookieAuthenticationFilter(RequestMatcher requestMatcher) {
         super(requestMatcher);
         setAuthenticationManager( super.getAuthenticationManager() );
@@ -47,8 +46,8 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
         if(request.getRequestURI().matches(".*/api/member.*"))
             return new JwtAuthenticationToken("ismember", null, null);
-
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = Optional.of(jwtTokenProvider.resolveToken(request))
+                .orElseGet(()->jwtTokenProvider.resolveKakaoCookie(request));
         return new JwtAuthenticationToken(token,null,null);
     }
     @Override
