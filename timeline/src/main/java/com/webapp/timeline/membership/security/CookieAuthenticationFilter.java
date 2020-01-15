@@ -44,6 +44,7 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws RuntimeException {
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
+	log.error(request.getRequestURI());
         if(request.getRequestURI().matches(".*/api/member.*"))
             return new JwtAuthenticationToken("ismember", null, null);
         String token = Optional.ofNullable(jwtTokenProvider.resolveToken(request))
