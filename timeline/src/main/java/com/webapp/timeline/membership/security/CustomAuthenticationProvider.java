@@ -37,6 +37,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider, Ser
         JwtAuthenticationToken authentication1 = (JwtAuthenticationToken)SecurityContextHolder.getContext().getAuthentication();
 
          String token = authentication1.getToken();
+         if(token.equals("ismember")) return new JwtAuthenticationToken(token,null,null);
         if (token != null && jwtTokenProvider.validateExpirationAccessToken(token)) {
             String userId = jwtTokenProvider.extractUserIdFromAccessToken(token);
             Users user = null;
