@@ -103,7 +103,7 @@ public class TokenService {
 
     public LoggedInfo sendInfo(String userId, HttpServletRequest httpServletRequest) throws RuntimeException {
         String name = userService.sendTokenCategory(userId);
-        String id = Optional.of(sendIdInCookie(name, httpServletRequest))
+        String id = Optional.ofNullable(sendIdInCookie(name, httpServletRequest))
                 .orElseThrow(() -> new NoMatchPointException());
         if (id.equals(userId))
             return userService.setLoggedInfo(id);
