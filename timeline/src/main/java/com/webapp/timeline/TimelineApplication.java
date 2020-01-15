@@ -18,7 +18,8 @@ public class TimelineApplication {
             + "classpath:application.yml, "
             + "classpath:aws.yml, "
             + "classpath:jwt.yml, "
-            + "classpath:scheduler.yml";
+            + "classpath:scheduler.yml,"
+            + "classpath:kakao.yml";
 
     public static void main(String[] args) {
         try {

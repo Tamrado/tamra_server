@@ -6,6 +6,7 @@ import com.webapp.timeline.membership.service.response.KakaoFirstInfo;
 import com.webapp.timeline.membership.service.response.KakaoSecondInfo;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public interface UserKakaoSignService {

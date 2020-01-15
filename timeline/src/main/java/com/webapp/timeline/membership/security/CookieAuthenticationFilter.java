@@ -26,6 +26,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 public class CookieAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -41,15 +42,12 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
     public void setJwtTokenProvider(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
     }
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws RuntimeException {
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
-        log.error(request.getRequestURI());
-        if(request.getRequestURI().matches(".*/api/member.*")) {
-            log.error("login");
+        if(request.getRequestURI().matches(".*/api/member.*"))
             return new JwtAuthenticationToken("ismember", null, null);
-        }
+
         String token = jwtTokenProvider.resolveToken(request);
         return new JwtAuthenticationToken(token,null,null);
     }
