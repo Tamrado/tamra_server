@@ -2,10 +2,7 @@ package com.webapp.timeline.membership.web;
 
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
-import com.webapp.timeline.membership.service.interfaces.AlarmService;
-import com.webapp.timeline.membership.service.interfaces.UserModifyService;
-import com.webapp.timeline.membership.service.interfaces.UserService;
-import com.webapp.timeline.membership.service.interfaces.UserSignService;
+import com.webapp.timeline.membership.service.interfaces.*;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +29,7 @@ public class UserController {
     private UserSignService userSignService;
     private UserService userService;
     private AlarmService alarmService;
+    private KakaoService kakaoService;
 
     @Autowired
     public UserController(AlarmService alarmService,UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
@@ -62,7 +60,7 @@ public class UserController {
     @ApiOperation(value="kakaoAccesstoken 확인", notes="kakaoAccesstoken 확인 후 지났으면 갱신 그 외엔 그냥 냅둠 (response : 200 성공, 404 유저 없음)")
     @GetMapping(value="/kakao/token/id")
     public void checkKakaoAccesstoken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException{
-
+        kakaoService.checkExpiredTokenAndRefresh(httpServletRequest,httpServletResponse);
     }
     @ApiOperation(value="개인정보 수정",notes = "회원의 개인정보를 수정함 (response : 200 - 성공 404 - 유저 아님 409 - 유저 id 존재하지 않음 )")
     @PutMapping(value="")

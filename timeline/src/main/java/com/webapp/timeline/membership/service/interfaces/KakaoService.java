@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface KakaoService {
 
     void refreshExpiredKakaoToken(String uid, HttpServletResponse response) throws RuntimeException;
-
-    KakaoRefreshInfo requestRefreshRestAPI(HttpEntity<MultiValueMap<String, String>> httpEntity, String url) throws RuntimeException;
-
-    void dealResponseCodeInTimeRestAPI(ResponseEntity<String> response, HttpServletResponse httpServletResponse, HttpServletRequest request);
+    KakaoRefreshInfo requestRefreshRestAPI(HttpEntity<MultiValueMap<String, String>> httpEntity) throws RuntimeException;
+    void checkExpiredTokenAndRefresh(HttpServletRequest request,HttpServletResponse response) throws RuntimeException;
 }
