@@ -72,7 +72,7 @@ public class SignController {
 
     @ApiOperation(value = "카카오 로그인", notes = "response : 200 - 성공, 411 - 이미 가입되어있음")
     @PostMapping(value = "/auth/kakao")
-    public Boolean kakaoLogin(@RequestBody KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
+    public LoggedInfo kakaoLogin(@RequestBody KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
         return userKakaoSignService.login(kakaoFirstInfo,httpServletResponse);
     }
 
