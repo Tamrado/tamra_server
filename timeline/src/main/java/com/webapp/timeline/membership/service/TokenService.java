@@ -26,64 +26,72 @@ public class TokenService {
     private JwtTokenProvider jwtTokenProvider;
     private UserService userService;
     private UserSignService userSignService;
+
     @Autowired
-    public TokenService(JwtTokenProvider jwtTokenProvider, UserService userService, UserSignService userSignService){
+    public TokenService(JwtTokenProvider jwtTokenProvider, UserService userService, UserSignService userSignService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
         this.userSignService = userSignService;
     }
-    public TokenService(){
+
+    public TokenService() {
 
     }
-    public Cookie makeCookie(String accesstoken,String name) throws RuntimeException{
-        Cookie cookie = new Cookie(name,accesstoken);
-        cookie.setMaxAge( 60 * 60*24);
+
+    public Cookie makeCookie(String accesstoken, String name) throws RuntimeException {
+        Cookie cookie = new Cookie(name, accesstoken);
+        cookie.setMaxAge(60 * 60 * 24);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         return cookie;
     }
-    public void removeCookies(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws RuntimeException{
+
+    public void removeCookies(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
-        if(cookieList.isEmpty()) return;
-        this.removeCookie("accesstoken",cookieList,httpServletResponse);
-        this.removeCookie("kakaoAccesstoken",cookieList,httpServletResponse);
+        if (cookieList.isEmpty()) return;
+        this.removeCookie("accesstoken", cookieList, httpServletResponse);
+        this.removeCookie("kakaoAccesstoken", cookieList, httpServletResponse);
     }
-    public LoggedInfo addCookie(HttpServletResponse response,String userId) throws RuntimeException{
+
+    public LoggedInfo addCookie(HttpServletResponse response, String userId) throws RuntimeException {
         String accesstoken = jwtTokenProvider.createToken(userId);
-        response.addCookie(this.makeCookie(accesstoken,"accesstoken"));
+        response.addCookie(this.makeCookie(accesstoken, "accesstoken"));
         return userService.setLoggedInfo(userId);
     }
-    public LoggedInfo findUserAndAddCookie(Map<String,Object> user,HttpServletResponse response) throws RuntimeException{
+
+    public LoggedInfo findUserAndAddCookie(Map<String, Object> user, HttpServletResponse response) throws RuntimeException {
         userSignService.findUser(user);
-        return addCookie(response,user.get("id").toString());
+        return addCookie(response, user.get("id").toString());
     }
+
     public String sendIdInCookie(String name, HttpServletRequest httpServletRequest) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
 
         if (cookieList.isEmpty()) throw new NoInformationException();
-        Stream<Cookie> cookieStream = jwtTokenProvider.checkIsToken(name,cookieList);
-        if(cookieStream.count() == 0) return null;
-        return jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.checkIsToken(name,cookieList).iterator().next().getValue());
+        Stream<Cookie> cookieStream = jwtTokenProvider.checkIsToken(name, cookieList);
+        if (cookieStream.count() == 0) return null;
+        return jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.checkIsToken(name, cookieList).iterator().next().getValue());
     }
 
-    public void checkCookieAndRenew(HttpServletRequest httpServletRequest,HttpServletResponse httpServletResponse) throws RuntimeException{
+    public void checkCookieAndRenew(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
 
-        if(cookieList.isEmpty()) throw new NoStoringException();
-        if(jwtTokenProvider.checkIsToken("accesstoken",cookieList).count() == 0) throw new NoMatchPointException();
+        if (cookieList.isEmpty()) throw new NoStoringException();
+        if (jwtTokenProvider.checkIsToken("accesstoken", cookieList).count() == 0) throw new NoMatchPointException();
 
-        this.cookieRenew(cookieList,httpServletResponse);
+        this.cookieRenew(cookieList, httpServletResponse);
     }
 
-    private void cookieRenew(List<Cookie> cookieList,HttpServletResponse httpServletResponse){
-        jwtTokenProvider.checkIsToken("accesstoken",cookieList)
-                .forEach(cookie->{
+    private void cookieRenew(List<Cookie> cookieList, HttpServletResponse httpServletResponse) {
+        jwtTokenProvider.checkIsToken("accesstoken", cookieList)
+                .forEach(cookie -> {
                     String id = jwtTokenProvider.extractUserIdFromToken(cookie.getValue());
                     cookie.setMaxAge(0);
                     httpServletResponse.addCookie(cookie);
-                    httpServletResponse.addCookie(this.makeCookie(jwtTokenProvider.createToken(id),"accesstoken"));
+                    httpServletResponse.addCookie(this.makeCookie(jwtTokenProvider.createToken(id), "accesstoken"));
                 });
     }
+
     private void removeCookie(String name, List<Cookie> cookieList, HttpServletResponse httpServletResponse) {
         jwtTokenProvider.checkIsToken(name, cookieList)
                 .forEach(cookie -> {
@@ -94,11 +102,11 @@ public class TokenService {
                 });
     }
 
-    public LoggedInfo sendInfo(String userId,HttpServletRequest httpServletRequest) throws RuntimeException{
+    public LoggedInfo sendInfo(String userId, HttpServletRequest httpServletRequest) throws RuntimeException {
         String name = userService.sendTokenCategory(userId);
-        String id = Optional.of(sendIdInCookie(name,httpServletRequest))
-                .orElseThrow(()-> new NoMatchPointException());
-        if(id.equals(userId))
+        String id = Optional.of(sendIdInCookie(name, httpServletRequest))
+                .orElseThrow(() -> new NoMatchPointException());
+        if (id.equals(userId))
             return userService.setLoggedInfo(id);
         else throw new NoMatchPointException();
     }

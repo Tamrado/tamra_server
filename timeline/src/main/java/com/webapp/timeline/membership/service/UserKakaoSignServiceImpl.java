@@ -7,6 +7,7 @@ import com.webapp.timeline.membership.domain.RefreshToken;
 import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.repository.RefreshTokenRepository;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
+import com.webapp.timeline.membership.service.interfaces.KakaoService;
 import com.webapp.timeline.membership.service.interfaces.UserKakaoSignService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.interfaces.UserSignService;
@@ -40,13 +41,23 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     }
 
     @Override
-    public void login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
-       Users user = usersEntityRepository.findUsersById(kakaoFirstInfo.getUid());
+    public Boolean isUserTrue(String uid){
+        String userId = usersEntityRepository.findIdByExistingId(uid);
+        if(userId != null) return false;
+        else return true;
+    }
+
+    @Override
+    public void makeKakaoCookie(HttpServletResponse httpServletResponse,String accesstoken){
+        Cookie cookie = new Cookie("kakaoAccesstoken",accesstoken);
+        httpServletResponse.addCookie(cookie);
+    }
+    @Override
+    public Boolean login(KakaoFirstInfo kakaoFirstInfo,HttpServletResponse httpServletResponse) throws RuntimeException{
+       Users user = usersEntityRepository.findUsersById(kakaoFirstInfo.getUid()+"Kakao");
        if(user == null) this.firstSignUp(kakaoFirstInfo, httpServletResponse);
-       else{
-           Cookie cookie = new Cookie("kakaoAccesstoken",kakaoFirstInfo.getAccessToken());
-           httpServletResponse.addCookie(cookie);
-       }
+       else this.makeKakaoCookie(httpServletResponse,kakaoFirstInfo.getAccessToken());
+       return this.isUserTrue(kakaoFirstInfo.getUid()+"Kakao");
     }
     @Override
     public LoggedInfo loginNext(KakaoSecondInfo kakaoSecondInfo,Long id) throws RuntimeException{
@@ -58,7 +69,7 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
     public void firstSignUp(KakaoFirstInfo kakaoFirstInfo, HttpServletResponse httpServletResponse) throws RuntimeException{
         this.saveUserImage(kakaoFirstInfo);
         this.saveUser(kakaoFirstInfo);
-        this.saveRefreshToken(kakaoFirstInfo);
+        this.saveRefreshToken(kakaoFirstInfo.getUid()+"Kakao",kakaoFirstInfo.getRefreshToken());
     }
 
     @Transactional
@@ -75,8 +86,8 @@ public class UserKakaoSignServiceImpl implements UserKakaoSignService {
 
     @Transactional
     @Override
-    public void saveRefreshToken(KakaoFirstInfo kakaoFirstInfo) throws RuntimeException{
-        RefreshToken refreshToken = new RefreshToken(kakaoFirstInfo.getUid()+"Kakao",kakaoFirstInfo.getRefreshToken());
+    public void saveRefreshToken(String uid,String token) throws RuntimeException{
+        RefreshToken refreshToken = new RefreshToken(uid,token);
         try {
             refreshTokenRepository.saveAndFlush(refreshToken);
         }catch(Exception e){

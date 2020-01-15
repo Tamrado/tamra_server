@@ -50,6 +50,7 @@ dependencies {
     compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
     compile group: 'org.springframework', name: 'spring-context-support', version: '5.2.1.RELEASE'
     compile('org.springframework.boot:spring-boot-configuration-processor')
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 dependencyManagement {
     imports {
