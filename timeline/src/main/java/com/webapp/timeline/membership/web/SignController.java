@@ -60,7 +60,8 @@ public class SignController {
 
     @ApiOperation(value = "로그인", notes = "회원인지 아닌지 확인 후 token 발급 (response: 200 - 성공, 411 - 로그인 실패)")
     @PostMapping(value="/auth")
-    public LoggedInfo signIn(@RequestBody Map<String,Object> user, HttpServletResponse response) throws RuntimeException{
+    public LoggedInfo signIn(@RequestBody Map<String,Object> user, HttpServletRequest request,HttpServletResponse response) throws RuntimeException{
+        log.error("login");
         return tokenService.findUserAndAddCookie(user,response);
     }
 
