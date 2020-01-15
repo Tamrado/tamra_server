@@ -15,6 +15,8 @@ import com.webapp.timeline.follow.service.response.PostProfileInfo;
 import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.interfaces.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ import java.util.Optional;
 
 @Service
 public class FollowServiceImpl implements FollowService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     FollowersRepository followersRepository;
     FollowingRepository followingRepository;
     TokenService tokenService;
@@ -42,6 +45,7 @@ public class FollowServiceImpl implements FollowService {
     }
     @Override
     public FollowInfo sendMyInfo(HttpServletRequest request) throws RuntimeException {
+        log.info("FollowServiceImpl.sendMyInfo::::");
         String userId = friendService.sendLoginUserId(request).get();
         FollowInfo followInfo = sendFollowerNum(userId,sendFollowNum(userId));
         return followInfo;

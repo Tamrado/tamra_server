@@ -117,11 +117,11 @@ public class KakaoServiceImpl implements KakaoService {
 
     @Override
     public void checkExpiredTokenAndRefresh(HttpServletRequest request,HttpServletResponse response) throws RuntimeException{
-         ResponseEntity<String> responseEntity = jwtTokenProvider.isExpiredTokenKakaoAPI(request);
+         ResponseEntity<String> responseEntity = jwtTokenProvider.isExpiredTokenKakaoAPI(
+                 jwtTokenProvider.resolveKakaoCookie(request));
          if(responseEntity.getStatusCode() == HttpStatus.UNAUTHORIZED)
-             this.refreshExpiredKakaoToken(jwtTokenProvider.extractUserIdFromToken(
-                     jwtTokenProvider.resolveKakaoCookie(request)
-             ),response);
+             this.refreshExpiredKakaoToken(jwtTokenProvider.extractUserIdFromKakaoToken(
+                     jwtTokenProvider.resolveKakaoCookie(request)),response);
     }
 
 }
