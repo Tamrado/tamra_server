@@ -49,8 +49,8 @@ public class TokenService {
     public void removeCookies(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
         if (cookieList.isEmpty()) return;
-        this.removeCookie("accesstoken", cookieList, httpServletResponse);
-        this.removeCookie("kakaoAccesstoken", cookieList, httpServletResponse);
+        this.removeCookie("accesstoken", cookieList, httpServletResponse,httpServletRequest);
+        this.removeCookie("kakaoAccesstoken", cookieList, httpServletResponse,httpServletRequest);
     }
 
     public LoggedInfo addCookie(HttpServletResponse response, String userId) throws RuntimeException {
@@ -66,24 +66,23 @@ public class TokenService {
 
     public String sendIdInCookie(String name, HttpServletRequest httpServletRequest) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
-
         if (cookieList.isEmpty()) throw new NoInformationException();
-        Stream<Cookie> cookieStream = jwtTokenProvider.checkIsToken(name, cookieList);
-        if (cookieStream.count() == 0) return null;
-        return jwtTokenProvider.extractUserIdFromToken(jwtTokenProvider.checkIsToken(name, cookieList).iterator().next().getValue());
+        if (this.makeStreamForName(name,cookieList,httpServletRequest).count() == 0) return null;
+        return jwtTokenProvider.extractUserIdFromToken(this.makeStreamForName(name,cookieList,httpServletRequest)
+                .iterator().next().getValue());
     }
 
-    public void checkCookieAndRenew(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
+    public void checkCookieAndRenew(String name,HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
 
         if (cookieList.isEmpty()) throw new NoStoringException();
-        if (jwtTokenProvider.checkIsToken("accesstoken", cookieList).count() == 0) throw new NoMatchPointException();
+        if (this.makeStreamForName(name,cookieList,httpServletRequest).count() == 0) throw new NoMatchPointException();
 
-        this.cookieRenew(cookieList, httpServletResponse);
+        this.cookieRenew(name,cookieList, httpServletResponse,httpServletRequest);
     }
 
-    private void cookieRenew(List<Cookie> cookieList, HttpServletResponse httpServletResponse) {
-        jwtTokenProvider.checkIsToken("accesstoken", cookieList)
+    private void cookieRenew(String name,List<Cookie> cookieList, HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
+        this.makeStreamForName(name,cookieList,httpServletRequest)
                 .forEach(cookie -> {
                     String id = jwtTokenProvider.extractUserIdFromToken(cookie.getValue());
                     cookie.setMaxAge(0);
@@ -92,8 +91,8 @@ public class TokenService {
                 });
     }
 
-    private void removeCookie(String name, List<Cookie> cookieList, HttpServletResponse httpServletResponse) {
-        jwtTokenProvider.checkIsToken(name, cookieList)
+    private void removeCookie(String name, List<Cookie> cookieList, HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
+            this.makeStreamForName(name,cookieList,httpServletRequest)
                 .forEach(cookie -> {
                     cookie.setMaxAge(0);
                     cookie.setHttpOnly(true);
@@ -109,5 +108,11 @@ public class TokenService {
         if (id.equals(userId))
             return userService.setLoggedInfo(id);
         else throw new NoMatchPointException();
+    }
+    public Stream<Cookie> makeStreamForName(String name,List<Cookie> cookieList,HttpServletRequest request) throws RuntimeException{
+        if(name.equals("kakaoAccesstoken"))
+           return jwtTokenProvider.makeKakaoCookieStream(cookieList, request);
+        return jwtTokenProvider.makeBasicCookieStream(cookieList);
+
     }
 }
