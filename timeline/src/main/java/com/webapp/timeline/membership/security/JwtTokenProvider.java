@@ -7,6 +7,7 @@ import com.webapp.timeline.membership.domain.Users;
 import com.webapp.timeline.membership.service.TokenService;
 import com.webapp.timeline.membership.service.UserSignServiceImpl;
 import com.webapp.timeline.membership.service.response.KakaoTimeInfo;
+import com.webapp.timeline.membership.service.response.UserIdInfo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -21,6 +22,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.util.StringUtils;
@@ -43,8 +46,13 @@ public class JwtTokenProvider {
     }
     final long tokenValidMilisecond = 1000L *60*60*24;
 
-    @Value("${social.url.isExpiredToken}")
     private static String isExpiredTokenUrl;
+    private static String getUserInfoUrl;
+    @Value("${social.url.isExpiredToken}")
+    public void setIsExpiredTokenUrl(String isExpiredTokenUrl) {this.isExpiredTokenUrl = isExpiredTokenUrl;};
+    @Value("${social.url.getUserInfo}")
+    public void setGetUserInfoUrl(String getUserInfoUrl) { this.getUserInfoUrl = getUserInfoUrl;}
+
 
     public JwtTokenProvider(){}
     @PostConstruct
@@ -67,17 +75,26 @@ public class JwtTokenProvider {
 
         return accessToken;
     }
-    public String extractUserIdFromToken(String token) throws RuntimeException {
-        log.info("JwtTokenProvider.extractUserIdFromToken ::::");
+    public String extractUserIdFromAccessToken(String token) throws RuntimeException {
+        log.info("JwtTokenProvider.extractUserIdFromAccessToken ::::");
         try {
             return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
-            throw new NoInformationException();
+           return null;
         }
+    }
+    public String extractUserIdFromKakaoToken(String token) throws RuntimeException{
+        log.info("JwtTokenProvider.extractUserIdFromKakaoToken ::::");
+        ResponseEntity<String> responseEntity = this.getUserInfoKakaoAPI(token);
+        if(responseEntity.getStatusCode() == HttpStatus.OK){
+          UserIdInfo idInfo = gson.fromJson(responseEntity.getBody(), UserIdInfo.class);
+          return idInfo.getId().toString() + "Kakao";
+        }
+        else return null;
     }
 
     public Long getTokenExpiresInMillis(HttpServletRequest request) throws RuntimeException{
-        ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(request);
+        ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(this.resolveKakaoCookie(request));
         if(responseEntity.getStatusCode() == HttpStatus.OK)
             return  gson.fromJson(responseEntity.getBody(), KakaoTimeInfo.class).getExpiresInMillis();
         else
@@ -90,13 +107,27 @@ public class JwtTokenProvider {
                 .iterator().next().getValue();
 
     }
-    public ResponseEntity<String> isExpiredTokenKakaoAPI(HttpServletRequest request) throws RuntimeException{
-        log.info("KakaoServiceImpl:::: isExpiredToken");
+    private HttpHeaders makeHeader(String token){
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.add("Authorization", "Bearer "
-                + this.resolveKakaoCookie(request));
-        return restTemplate.exchange("https://kapi.kakao.com/v1/user/access_token_info", HttpMethod.GET, new HttpEntity<String>(headers), String.class);
+                + token);
+        return headers;
+    }
+    public ResponseEntity<String> isExpiredTokenKakaoAPI(String token) throws RuntimeException{
+        log.info("JwtTokenProvider:::: isExpiredTokenKakaoAPI");
+        return restTemplate.exchange(isExpiredTokenUrl, HttpMethod.GET,
+                new HttpEntity<String>(this.makeHeader(token)), String.class);
+    }
+
+    public ResponseEntity<String> getUserInfoKakaoAPI(String token) throws RuntimeException{
+        log.info("JwtTokenProvider:::: getUserInfoKakaoAPI");
+        log.error(token);
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("property_keys","[\"id\"]");
+        return restTemplate.postForEntity(getUserInfoUrl,new HttpEntity<>(
+              params,
+                this.makeHeader(token)),String.class);
     }
     public String resolveToken(HttpServletRequest request){
         log.info("JwtTokenProvider.resolveToken ::::");
@@ -105,7 +136,7 @@ public class JwtTokenProvider {
     }
     public Stream<Cookie> makeBasicCookieStream(List<Cookie> cookieList){
         return this.checkIsToken("accesstoken",
-                this.getExpirationToken(cookieList).getTime(),cookieList);
+                this.getExpirationToken(cookieList).getTime() - System.currentTimeMillis(),cookieList);
     }
     public Stream<Cookie> makeKakaoCookieStream(List<Cookie> cookieList,HttpServletRequest request){
         return this.checkIsToken("kakaoAccesstoken"
@@ -131,8 +162,16 @@ public class JwtTokenProvider {
             return new Date();
         }
     }
-    public boolean validateExpirationToken(String jwtToken) {
-        log.info("JwtTokenProvider.validateExpirationToken ::::");
+    public boolean validateExpirationKakaoToken(String jwtToken){
+        log.info("JwtTokenProvider.validateExpirationKakaoToken ::::");
+        ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(jwtToken);
+        if(responseEntity.getStatusCode() == HttpStatus.OK)
+            return true;
+        else
+            return false;
+    }
+    public boolean validateExpirationAccessToken(String jwtToken) {
+        log.info("JwtTokenProvider.validateExpirationAccessToken ::::");
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
@@ -144,7 +183,7 @@ public class JwtTokenProvider {
     public Stream<Cookie> checkIsToken(String name,Long time,List<Cookie> cookieList){
         return cookieList.stream()
                 .filter(cookie->cookie.getName().equals(name))
-                .filter(cookie->time - System.currentTimeMillis() > 0);
+                .filter(cookie-> time > 0);
     }
 
 }
