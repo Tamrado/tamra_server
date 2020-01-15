@@ -46,7 +46,7 @@ public class CookieAuthenticationFilter extends AbstractAuthenticationProcessing
         log.info("CookieAuthenticationFilter.attemptAuthentication ::::");
         if(request.getRequestURI().matches(".*/api/member.*"))
             return new JwtAuthenticationToken("ismember", null, null);
-        String token = Optional.of(jwtTokenProvider.resolveToken(request))
+        String token = Optional.ofNullable(jwtTokenProvider.resolveToken(request))
                 .orElseGet(()->jwtTokenProvider.resolveKakaoCookie(request));
         return new JwtAuthenticationToken(token,null,null);
     }
