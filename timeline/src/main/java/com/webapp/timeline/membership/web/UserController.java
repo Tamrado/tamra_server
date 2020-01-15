@@ -32,12 +32,13 @@ public class UserController {
     private KakaoService kakaoService;
 
     @Autowired
-    public UserController(AlarmService alarmService,UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
+    public UserController(KakaoService kakaoService,AlarmService alarmService,UserService userService,UserSignService userSignService, UserModifyService userModifyService, TokenService tokenService){
         this.userModifyService = userModifyService;
         this.tokenService = tokenService;
         this.userSignService = userSignService;
         this.userService = userService;
         this.alarmService = alarmService;
+        this.kakaoService = kakaoService;
     }
 
     public UserController(){}
