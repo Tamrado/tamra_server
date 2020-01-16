@@ -43,7 +43,7 @@ public class UserController {
 
     public UserController(){}
 
-    @ApiOperation(value = "새로 고침 시 유저인지 확인 후 유저 정보 전달",notes = "쿠키 내 accesstoken에서 userid 로 확인 후 유저 정보 전달 (response : 200 - 성공, 411 - 유저 정보가 다름)")
+    @ApiOperation(value = "수정시 유저인지 확인 후 유저 정보 전달",notes = "쿠키 내 accesstoken에서 userid 로 확인 후 유저 정보 전달 (response : 200 - 성공, 411 - 유저 정보가 다름)")
     @GetMapping(value="/info")
     public LoggedInfo checkUserAndSendProfile(@RequestParam String id,HttpServletRequest httpServletRequest) throws RuntimeException{
         return tokenService.sendInfo(id,httpServletRequest);
