@@ -95,6 +95,7 @@ public class JwtTokenProvider {
     }
 
     public Long getTokenExpiresInMillis(HttpServletRequest request) throws RuntimeException{
+        log.info("JwtToken.getTokenExpiresInMillis :::");
         ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(this.resolveKakaoCookie(request));
         if(responseEntity.getStatusCode() == HttpStatus.OK)
             return  gson.fromJson(responseEntity.getBody(), KakaoTimeInfo.class).getExpiresInMillis();
@@ -102,6 +103,7 @@ public class JwtTokenProvider {
             return Long.parseLong("0");
     }
     public String resolveKakaoCookie(HttpServletRequest request){
+        log.info("JwtToken.resolveKakaoCookie :::");
         Cookie[] cookies = request.getCookies();
        return Arrays.asList(cookies).stream()
                 .filter(item -> item.getName().equals("kakaoAccesstoken"))
@@ -109,6 +111,7 @@ public class JwtTokenProvider {
 
     }
     private HttpHeaders makeHeader(String token){
+        log.info("JwtToken.makeHeader :::");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.add("Authorization", "Bearer "
@@ -136,14 +139,17 @@ public class JwtTokenProvider {
         return extractTokenValue(cookieList,request);
     }
     public Stream<Cookie> makeBasicCookieStream(List<Cookie> cookieList){
+        log.info("JwtToken.makeBasicCookieStream :::");
         return this.checkIsToken("accesstoken",
                 this.getExpirationToken(cookieList).getTime() - System.currentTimeMillis(),cookieList);
     }
     public Stream<Cookie> makeKakaoCookieStream(List<Cookie> cookieList,HttpServletRequest request){
+        log.info("JwtToken.makeKakaoCookieStream :::");
         return this.checkIsToken("kakaoAccesstoken"
                 ,this.getTokenExpiresInMillis(request),cookieList);
     }
     public String extractTokenValue(List<Cookie> cookieList,HttpServletRequest request){
+        log.info("JwtToken.extractTokenValue :::");
         return makeBasicCookieStream(cookieList).count() > 0 ?
                         makeBasicCookieStream(cookieList).iterator().next().getValue() :
                 (makeKakaoCookieStream(cookieList, request).count() > 0 ?
@@ -152,6 +158,7 @@ public class JwtTokenProvider {
                         null);
     }
     public Date getExpirationToken(List<Cookie> cookieList){
+        log.info("JwtToken.getExpirationToken :::");
         try{
            String jwtToken = cookieList.stream()
                     .filter(cookie->cookie.getName().equals("accesstoken"))
@@ -182,6 +189,7 @@ public class JwtTokenProvider {
         }
     }
     public Stream<Cookie> checkIsToken(String name,Long time,List<Cookie> cookieList){
+        log.info("JwtToken.checkIsToken :::");
         return cookieList.stream()
                 .filter(cookie->cookie.getName().equals(name))
                 .filter(cookie-> time > 0);

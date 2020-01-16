@@ -11,6 +11,8 @@ import com.webapp.timeline.membership.repository.UsersEntityRepository;
 import com.webapp.timeline.membership.service.interfaces.UserService;
 import com.webapp.timeline.membership.service.response.LoggedInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.Map;
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
+    Logger log = LoggerFactory.getLogger(this.getClass());
     private UserImagesRepository userImagesRepository;
     private UsersEntityRepository usersEntityRepository;
     @Autowired
@@ -34,10 +37,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void isThereAnyProfileId(String userId) throws RuntimeException{
+        log.info("UserServiceImpl.isThereAnyProfileId:::");
         if(userImagesRepository.selectProfileNum(userId) == 1) throw new NoStoringException();
     }
     @Override
     public void saveImageURL(Profiles profile) throws RuntimeException{
+        log.info("UserServiceImpl.saveImageURL:::");
         try {
             userImagesRepository.saveAndFlush(profile);
         } catch (Exception e) {
@@ -46,6 +51,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public LoggedInfo setLoggedInfo(String userId) throws RuntimeException{
+        log.info("UserServiceImpl.setLoggedInfo:::");
         Profiles profiles = userImagesRepository.findImageURLById(userId);
         Map<String,String> userInfo = usersEntityRepository.findUserInfo(userId);
         if(userInfo.isEmpty()) throw new NoMatchPointException();
@@ -56,6 +62,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public ArrayList<String> sendActualUserFromList(ArrayList<String> userList) throws RuntimeException{
+        log.info("UserServiceImpl.sendActualUserFromList:::");
         if(userList.isEmpty()) throw new NoMatchPointException();
         for(Iterator<String> it = userList.iterator(); it.hasNext() ; ){
             String id = it.next();
@@ -68,6 +75,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void isTrueActualUser(String user) throws RuntimeException{
+        log.info("UserServiceImpl.isTrueActualUser:::");
         if(user == null) throw new NoInformationException();
         Map<String,String> userInfo = usersEntityRepository.findUserInfo(user);
         if(userInfo.isEmpty() || !userInfo.get("authority").equals("ROLE_USER")) throw new UnauthorizedUserException();
@@ -75,6 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String sendTokenCategory(String userId){
+        log.info("UserServiceImpl.sendTokenCategory:::");
         if(userId.contains("Kakao")) return "Kakao";
         else return "basic";
     }

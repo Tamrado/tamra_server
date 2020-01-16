@@ -39,6 +39,7 @@ public class TokenService {
     }
 
     public Cookie makeCookie(String accesstoken, String name) throws RuntimeException {
+        log.info("TokenService.makeCookie::::");
         Cookie cookie = new Cookie(name, accesstoken);
         cookie.setMaxAge(60 * 60 * 24);
         cookie.setHttpOnly(true);
@@ -47,6 +48,7 @@ public class TokenService {
     }
 
     public void removeCookies(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
+        log.info("TokenService.removeCookies::::");
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
         if (cookieList.isEmpty()) return;
         this.removeCookie("accesstoken", cookieList, httpServletResponse,httpServletRequest);
@@ -54,12 +56,14 @@ public class TokenService {
     }
 
     public LoggedInfo addCookie(HttpServletResponse response, String userId) throws RuntimeException {
+        log.info("TokenService.addCookie::::");
         String accesstoken = jwtTokenProvider.createToken(userId);
         response.addCookie(this.makeCookie(accesstoken, "accesstoken"));
         return userService.setLoggedInfo(userId);
     }
 
     public LoggedInfo findUserAndAddCookie(Map<String, Object> user, HttpServletResponse response) throws RuntimeException {
+        log.info("TokenService.findUserAndAddCookie::::");
         userSignService.findUser(user);
         return addCookie(response, user.get("id").toString());
     }
@@ -77,6 +81,7 @@ public class TokenService {
     }
 
     public void checkCookieAndRenew(String name,HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws RuntimeException {
+        log.info("TokenService.checkCookieAndRenew :::");
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
 
         if (cookieList.isEmpty()) throw new NoStoringException();
@@ -86,6 +91,7 @@ public class TokenService {
     }
 
     private void cookieRenew(String name,List<Cookie> cookieList, HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
+        log.info("TokenService.cookieRenew :::");
         this.makeStreamForName(name,cookieList,httpServletRequest)
                 .forEach(cookie -> {
                     String id = jwtTokenProvider.extractUserIdFromAccessToken(cookie.getValue());
@@ -96,7 +102,8 @@ public class TokenService {
     }
 
     private void removeCookie(String name, List<Cookie> cookieList, HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
-            this.makeStreamForName(name,cookieList,httpServletRequest)
+        log.info("TokenService.removeCookie :::");
+        this.makeStreamForName(name,cookieList,httpServletRequest)
                 .forEach(cookie -> {
                     cookie.setMaxAge(0);
                     cookie.setHttpOnly(true);
@@ -106,6 +113,7 @@ public class TokenService {
     }
 
     public LoggedInfo sendInfo(String userId, HttpServletRequest httpServletRequest) throws RuntimeException {
+        log.info("TokenService.sendInfo :::");
         String name = this.sendTokenName(userId);
         String id = Optional.ofNullable(sendIdInCookie(name, httpServletRequest))
                 .orElseThrow(() -> new NoMatchPointException());
@@ -115,12 +123,14 @@ public class TokenService {
         else throw new NoMatchPointException();
     }
     public Stream<Cookie> makeStreamForName(String name,List<Cookie> cookieList,HttpServletRequest request) throws RuntimeException{
+        log.info("TokenService.makeStreamForName :::");
         if(name.equals("kakaoAccesstoken"))
             return jwtTokenProvider.makeKakaoCookieStream(cookieList, request);
         return jwtTokenProvider.makeBasicCookieStream(cookieList);
 
     }
     public String sendTokenName(String userId){
+        log.info("TokenService.sendTokenName :::");
         if(userId.contains("Kakao")) return "KakaoAccesstoken";
         else return "accesstoken";
     }

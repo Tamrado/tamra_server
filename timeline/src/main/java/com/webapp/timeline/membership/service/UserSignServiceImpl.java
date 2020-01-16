@@ -40,7 +40,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
 
     @Override
     public Users loadUserByUsername(String username) throws RuntimeException {
-        log.info("loadUserByUsername");
+        log.info("UserService.loadUserByUsername:::");
         try {
             Users user = usersEntityRepository.findUsersById(username);
             return user;
@@ -53,6 +53,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     }
     @Override
     public Users extractUserFromToken(HttpServletRequest httpServletRequest) throws RuntimeException{
+        log.info("UserService.extractUserFromToken:::");
         jwtTokenProvider = new JwtTokenProvider();
         String username = Optional.ofNullable(jwtTokenProvider.extractUserIdFromAccessToken(jwtTokenProvider.resolveToken(httpServletRequest)))
                 .orElseGet(()->jwtTokenProvider.extractUserIdFromKakaoToken(jwtTokenProvider.resolveKakaoCookie(httpServletRequest)));
@@ -61,7 +62,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     }
     @Override
     public void confirmCorrectUser(HttpServletRequest httpServletRequest ,String password) throws RuntimeException {
-        log.error("UserService.confirmCorrectUser");
+        log.info("UserService.confirmCorrectUser:::");
         Users user = extractUserFromToken(httpServletRequest);
         if (!customPasswordEncoder.matches(password, user.getPassword()))
             throw new NoMatchPointException();
@@ -69,12 +70,14 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
 
     @Override
     public void validateUser(Users users) throws RuntimeException{
+        log.info("UserService.validateUser:::");
         signUpValidator.validate(users);
         initUserforSignUp(users);
     }
 
     @Override
     public void initUserforSignUp(Users user) throws RuntimeException{
+        log.info("UserService.initUserforSignUp:::");
         user.setPassword(customPasswordEncoder.encode(user.getPassword()));
         user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
         user.setAuthority();
@@ -82,6 +85,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     }
     @Override
     public void findUser(Map<String,Object> user) throws RuntimeException {
+        log.info("UserService.findUser:::");
         Users foundedUser = loadUserByUsername(user.get("id").toString());
         log.info(foundedUser.getPassword());
         if(!customPasswordEncoder.matches(user.get("password").toString(), foundedUser.getPassword()))
@@ -90,6 +94,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
     @Transactional
     @Override
     public void saveUser(Users user) throws RuntimeException {
+        log.info("UserService.saveUser:::");
         try {
             usersEntityRepository.save(user);
             usersEntityRepository.flush();
