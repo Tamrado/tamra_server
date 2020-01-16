@@ -23,7 +23,7 @@ public class UsersSerializer extends StdSerializer<Users> {
         if(users.getBirthday() != null)
             jgen.writeStringField("birthday",users.getBirthday().toString());
         else
-            jgen.writeStringField("birthday",null);
+            jgen.writeNullField("birthday");
         jgen.writeStringField("phone",users.getPhone());
         jgen.writeStringField("name",users.getUsername());
         jgen.writeNumberField("gender",users.getGender());
