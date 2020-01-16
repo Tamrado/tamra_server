@@ -108,7 +108,8 @@ public class KakaoServiceImpl implements KakaoService {
         log.info("KakaoServiceImpl:::: refreshExpiredKakaoToken");
        KakaoRefreshInfo kakaoRefreshInfo = this.requestRefreshRestAPI(makeHttpEntity(uid));
        userKakaoSignService.makeKakaoCookie(response,kakaoRefreshInfo.getAccess_token());
-       this.isRefreshTokenThenStore(uid,kakaoRefreshInfo.getRefresh_token());
+       if(kakaoRefreshInfo.getRefresh_token() != null)
+           this.isRefreshTokenThenStore(uid,kakaoRefreshInfo.getRefresh_token());
     }
 
     private String getUserRefreshToken(String uid) throws RuntimeException{
