@@ -69,8 +69,9 @@ public class TokenService {
         List<Cookie> cookieList = Arrays.asList(httpServletRequest.getCookies());
         if (cookieList.isEmpty()) throw new NoInformationException();
         if (this.makeStreamForName(name,cookieList,httpServletRequest).count() == 0) return null;
+        log.error("TokenService.sendIdInCookie:::: return 전");
         return Optional.ofNullable(jwtTokenProvider.extractUserIdFromAccessToken(
-                this.makeStreamForName(name,cookieList,httpServletRequest)
+                jwtTokenProvider.makeBasicCookieStream(cookieList)
                 .iterator().next().getValue())).orElseGet(()->jwtTokenProvider.extractUserIdFromKakaoToken(
                         jwtTokenProvider.resolveKakaoCookie(httpServletRequest)));
     }
@@ -108,7 +109,8 @@ public class TokenService {
         String name = this.sendTokenName(userId);
         String id = Optional.ofNullable(sendIdInCookie(name, httpServletRequest))
                 .orElseThrow(() -> new NoMatchPointException());
-	if (id.equals(userId))
+        log.error(id);
+        if (id.equals(userId))
             return userService.setLoggedInfo(id);
         else throw new NoMatchPointException();
     }
