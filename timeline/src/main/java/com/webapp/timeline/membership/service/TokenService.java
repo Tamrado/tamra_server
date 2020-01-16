@@ -105,7 +105,7 @@ public class TokenService {
     }
 
     public LoggedInfo sendInfo(String userId, HttpServletRequest httpServletRequest) throws RuntimeException {
-        String name = userService.sendTokenCategory(userId);
+        String name = this.sendTokenName(userId);
         String id = Optional.ofNullable(sendIdInCookie(name, httpServletRequest))
                 .orElseThrow(() -> new NoMatchPointException());
         if (id.equals(userId))
@@ -117,5 +117,9 @@ public class TokenService {
             return jwtTokenProvider.makeKakaoCookieStream(cookieList, request);
         return jwtTokenProvider.makeBasicCookieStream(cookieList);
 
+    }
+    public String sendTokenName(String userId){
+        if(userId.contains("Kakao")) return "KakaoAccesstoken";
+        else return "accesstoken";
     }
 }

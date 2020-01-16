@@ -20,7 +20,10 @@ public class UsersSerializer extends StdSerializer<Users> {
         jgen.writeStartObject();
         jgen.writeStringField("id",users.getUserId());
         jgen.writeStringField("email",users.getEmail());
-        jgen.writeStringField("birthday",users.getBirthday().toString());
+        if(users.getBirthday() != null)
+            jgen.writeStringField("birthday",users.getBirthday().toString());
+        else
+            jgen.writeStringField("birthday",null);
         jgen.writeStringField("phone",users.getPhone());
         jgen.writeStringField("name",users.getUsername());
         jgen.writeNumberField("gender",users.getGender());
