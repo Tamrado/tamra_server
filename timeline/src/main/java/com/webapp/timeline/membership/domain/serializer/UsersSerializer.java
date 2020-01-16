@@ -19,16 +19,31 @@ public class UsersSerializer extends StdSerializer<Users> {
     public void serialize(Users users, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("id",users.getUserId());
-        jgen.writeStringField("email",users.getEmail());
+        if(users.getEmail() == null)
+            jgen.writeNullField("email");
+        else
+            jgen.writeStringField("email",users.getEmail());
         if(users.getBirthday() != null)
             jgen.writeStringField("birthday",users.getBirthday().toString());
         else
             jgen.writeNullField("birthday");
-        jgen.writeStringField("phone",users.getPhone());
+        if(users.getPhone() == null)
+            jgen.writeNullField("phone");
+        else
+            jgen.writeStringField("phone",users.getPhone());
         jgen.writeStringField("name",users.getUsername());
-        jgen.writeNumberField("gender",users.getGender());
-        jgen.writeStringField("comment",users.getComment());
-        jgen.writeStringField("address",users.getAddress());
+        if(users.getGender() == null)
+            jgen.writeNullField("gender");
+        else
+            jgen.writeNumberField("gender",users.getGender());
+        if(users.getComment() == null)
+            jgen.writeNullField("comment");
+        else
+            jgen.writeStringField("comment",users.getComment());
+        if(users.getAddress() == null)
+            jgen.writeNullField("address");
+        else
+            jgen.writeStringField("address",users.getAddress());
         jgen.writeStringField("timestamp",users.getTimestamp().toString());
         jgen.writeStringField("authority",users.getAuthority());
         jgen.writeEndObject();
