@@ -136,7 +136,7 @@ public class JwtTokenProvider {
                     params,
                     this.makeHeader(token)), String.class);
         }catch(Exception e){
-            return null;
+            throw new NoInformationException();
         }
     }
     public String resolveToken(HttpServletRequest request){
