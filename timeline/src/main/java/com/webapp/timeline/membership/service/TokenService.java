@@ -122,4 +122,5 @@ public class TokenService {
         if(userId.contains("Kakao")) return "KakaoAccesstoken";
         else return "accesstoken";
     }
+
 }
