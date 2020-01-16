@@ -88,6 +88,7 @@ public class JwtTokenProvider {
         ResponseEntity<String> responseEntity = this.getUserInfoKakaoAPI(token);
         if(responseEntity.getStatusCode() == HttpStatus.OK){
           UserIdInfo idInfo = gson.fromJson(responseEntity.getBody(), UserIdInfo.class);
+          log.info(idInfo.getId().toString() + "Kakao");
           return idInfo.getId().toString() + "Kakao";
         }
         else return null;
