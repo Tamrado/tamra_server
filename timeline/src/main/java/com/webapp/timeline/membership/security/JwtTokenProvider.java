@@ -87,12 +87,9 @@ public class JwtTokenProvider {
     public String extractUserIdFromKakaoToken(String token) throws RuntimeException{
         log.info("JwtTokenProvider.extractUserIdFromKakaoToken ::::");
         ResponseEntity<String> responseEntity = this.getUserInfoKakaoAPI(token);
-        if(responseEntity.getStatusCode() == HttpStatus.OK){
+        if(responseEntity == null) return null;
           UserIdInfo idInfo = gson.fromJson(responseEntity.getBody(), UserIdInfo.class);
-          log.info(idInfo.getId().toString() + "Kakao");
           return idInfo.getId().toString() + "Kakao";
-        }
-        else return null;
     }
 
     public Long getTokenExpiresInMillis(HttpServletRequest request) throws RuntimeException{
@@ -132,12 +129,15 @@ public class JwtTokenProvider {
 
     public ResponseEntity<String> getUserInfoKakaoAPI(String token) throws RuntimeException{
         log.info("JwtTokenProvider:::: getUserInfoKakaoAPI");
-        log.error(token);
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("property_keys","[\"id\"]");
-        return restTemplate.postForEntity(getUserInfoUrl,new HttpEntity<>(
-              params,
-                this.makeHeader(token)),String.class);
+        try {
+             return restTemplate.postForEntity(getUserInfoUrl, new HttpEntity<>(
+                    params,
+                    this.makeHeader(token)), String.class);
+        }catch(Exception e){
+            return null;
+        }
     }
     public String resolveToken(HttpServletRequest request){
         log.info("JwtTokenProvider.resolveToken ::::");
