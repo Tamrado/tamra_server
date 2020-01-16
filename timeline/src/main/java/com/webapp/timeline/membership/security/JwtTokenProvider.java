@@ -31,6 +31,7 @@ import org.thymeleaf.util.StringUtils;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.ws.Response;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -96,9 +97,8 @@ public class JwtTokenProvider {
 
     public Long getTokenExpiresInMillis(HttpServletRequest request) throws RuntimeException{
         log.info("JwtToken.getTokenExpiresInMillis :::");
-        ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(this.resolveKakaoCookie(request));
-        if(responseEntity.getStatusCode() == HttpStatus.OK)
-            return  gson.fromJson(responseEntity.getBody(), KakaoTimeInfo.class).getExpiresInMillis();
+        if(this.isExpiredTokenKakaoAPI(this.resolveKakaoCookie(request)))
+            return  Long.parseLong("4000");
         else
             return Long.parseLong("0");
     }
@@ -118,10 +118,16 @@ public class JwtTokenProvider {
                 + token);
         return headers;
     }
-    public ResponseEntity<String> isExpiredTokenKakaoAPI(String token) throws RuntimeException{
+    public Boolean isExpiredTokenKakaoAPI(String token) throws RuntimeException{
         log.info("JwtTokenProvider:::: isExpiredTokenKakaoAPI");
-        return restTemplate.exchange(isExpiredTokenUrl, HttpMethod.GET,
-                new HttpEntity<String>(this.makeHeader(token)), String.class);
+        try {
+             ResponseEntity<String> responseEntity = restTemplate.exchange(isExpiredTokenUrl, HttpMethod.GET,
+                    new HttpEntity<String>(this.makeHeader(token)), String.class);
+             if(responseEntity.getStatusCode() == HttpStatus.OK)
+                 return true;
+        }catch(Exception e){
+        }
+        return false;
     }
 
     public ResponseEntity<String> getUserInfoKakaoAPI(String token) throws RuntimeException{
@@ -172,8 +178,7 @@ public class JwtTokenProvider {
     }
     public boolean validateExpirationKakaoToken(String jwtToken){
         log.info("JwtTokenProvider.validateExpirationKakaoToken ::::");
-        ResponseEntity<String> responseEntity = this.isExpiredTokenKakaoAPI(jwtToken);
-        if(responseEntity.getStatusCode() == HttpStatus.OK)
+        if(this.isExpiredTokenKakaoAPI(jwtToken))
             return true;
         else
             return false;

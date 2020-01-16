@@ -80,11 +80,13 @@ public class KakaoServiceImpl implements KakaoService {
     @Override
     public KakaoRefreshInfo requestRefreshRestAPI(HttpEntity<MultiValueMap<String, String>> httpEntity) throws RuntimeException{
         log.info("KakaoServiceImpl:::: requestRefreshRestAPI");
-            ResponseEntity<String> response = restTemplate.postForEntity(refreshExpiredTokenUrl,httpEntity,String.class);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(refreshExpiredTokenUrl, httpEntity, String.class);
             if (response.getStatusCode() == HttpStatus.OK)
                 return gson.fromJson(response.getBody(), KakaoRefreshInfo.class);
-            else
-                throw new NoInformationException();
+        }catch(Exception e){
+        }
+        throw new NoInformationException();
     }
     private void isRefreshTokenThenStore(String uid,String refreshToken) throws RuntimeException{
         log.info("KakaoServiceImpl:::: isRefreshTokenThenStore");
@@ -118,9 +120,7 @@ public class KakaoServiceImpl implements KakaoService {
     @Override
     public void checkExpiredTokenAndRefresh(HttpServletRequest request,HttpServletResponse response) throws RuntimeException{
         log.info("KakaoServiceImpl:::: checkExpiredTokenAndRefresh");
-        ResponseEntity<String> responseEntity = jwtTokenProvider.isExpiredTokenKakaoAPI(
-                 jwtTokenProvider.resolveKakaoCookie(request));
-         if(responseEntity.getStatusCode() == HttpStatus.UNAUTHORIZED)
+         if(!jwtTokenProvider.isExpiredTokenKakaoAPI(jwtTokenProvider.resolveKakaoCookie(request)))
              this.refreshExpiredKakaoToken(jwtTokenProvider.extractUserIdFromKakaoToken(
                      jwtTokenProvider.resolveKakaoCookie(request)),response);
     }
