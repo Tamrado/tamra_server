@@ -108,7 +108,7 @@ public class TokenService {
         String name = this.sendTokenName(userId);
         String id = Optional.ofNullable(sendIdInCookie(name, httpServletRequest))
                 .orElseThrow(() -> new NoMatchPointException());
-        if (id.equals(userId))
+	if (id.equals(userId))
             return userService.setLoggedInfo(id);
         else throw new NoMatchPointException();
     }
