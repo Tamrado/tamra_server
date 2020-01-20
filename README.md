@@ -50,6 +50,7 @@ with Spring Boot
 *  [AWS S3](https://aws.amazon.com/ko/s3/)
 *  [Tomcat](http://tomcat.apache.org/)
 * Spring Security
+* Kakao api
 * Spring batch/ Quartz 
 * [Lombok](https://projectlombok.org/)
 * front repo : [https://github.com/jeongdaeun98/timeline_front](https://github.com/jeongdaeun98/timeline_front)
