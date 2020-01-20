@@ -174,6 +174,7 @@ public class NewsfeedServiceImpl implements NewsfeedService, SnsResponseHelper<N
 
             senderInfo.put("username", newsfeed.getSender());
             senderInfo.put("nickname", nickname);
+            senderInfoList.add(senderInfo);
 
             if(newsfeed.getSender().equals(loggedIn)) {
                 message = "회원님이 이 게시물을 좋아합니다.";
