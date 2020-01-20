@@ -162,6 +162,9 @@ $ java -jar build/libs/*.jar
 ## Details 
 
 ### Features
+0. spring security filter
+	- check accesstoken / kakao accesstoken
+	- renew accesstoken / kakao refreshtoken and accesstoken
 1. membership 
 	- sign up/ in/ out
 	- kakao-membership
