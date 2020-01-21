@@ -32,7 +32,7 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         Date birthday = null;
         Users user = new Users();
         String userId = node.get("id").asText();
-        String password = node.get("password").asText();
+        String password = node.get("password").asText(null);
         String username = node.get("name").asText();
         String phone = node.get("phone").asText();
         String email = node.get("email").asText();
