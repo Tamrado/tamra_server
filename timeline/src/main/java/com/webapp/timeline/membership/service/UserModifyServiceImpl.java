@@ -55,6 +55,7 @@ public class UserModifyServiceImpl implements UserModifyService {
     public void modifyUser(Users user) throws RuntimeException{
         signUpValidator.validateForModify(user);
         if(userSignServiceImpl.loadUserByUsername(user.getUserId()) == null) throw new NoInformationException();
+        if(user.getPassword() != null)
             user.setPassword(customPasswordEncoder.encode(user.getPassword()));
             try {
                 usersEntityRepository.updateUser(user.getGender(), user.getComment(), user.getAddress(), user.getUsername(), user.getEmail(), user.getPassword(), user.getPhone(), user.getUserId());
