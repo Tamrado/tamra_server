@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -46,11 +47,12 @@ public interface UsersEntityRepository extends JpaRepository<Users,String> {
     @Modifying
     @Query(value = "update Users u set u.gender = :gender, u.comment = :comment," +
             " u.address = :address ,u.name = :name, u.password = :password,u.phone = :phone," +
-            "u.email = :email where u.userId = :userId")
+            "u.email = :email, u.birthday = :birthday where u.userId = :userId")
     void updateUser(@Param("gender") int gender, @Param("comment") String comment,
                     @Param("address") String address, @Param("name") String name,
                     @Param("email") String email, @Param("password") String password,
-                    @Param("phone") String phone, @Param("userId") String userId);
+                    @Param("phone") String phone, @Param("userId") String userId,
+                    @Param("birthday") Date birthday);
 
     @Modifying
     @Query(value = "update Users u set u.authority = :authority where u.userId = :userId")
