@@ -30,7 +30,6 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         log.debug("UsersDeserializer.deserialize ::::");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         JsonNode node = parser.getCodec().readTree(parser);
-        Date birthday = null;
         Users user = new Users();
         String userId = node.get("id").asText();
         String password = node.get("password").asText(null);
@@ -40,7 +39,7 @@ public class UsersDeserializer extends StdDeserializer<Users> {
         String birthdayStr = node.get("birthday").asText(null);
         try {
             if(birthdayStr != null) {
-                birthday = new Date(format.parse(birthdayStr).getTime());
+                Date birthday = new Date(format.parse(birthdayStr).getTime());
                 user.setBirthday(birthday);
             }
         } catch (Exception e) {

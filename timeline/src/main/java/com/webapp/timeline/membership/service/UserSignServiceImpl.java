@@ -82,6 +82,7 @@ public class UserSignServiceImpl implements UserDetailsService, UserSignService 
         user.setPassword(customPasswordEncoder.encode(user.getPassword()));
         user.setTimestamp(new java.sql.Date(System.currentTimeMillis()));
         user.setAuthority();
+        user.setIsAlarm(1);
         saveUser(user);
     }
     @Override
