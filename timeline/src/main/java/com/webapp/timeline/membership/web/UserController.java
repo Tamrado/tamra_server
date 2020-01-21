@@ -64,7 +64,7 @@ public class UserController {
         kakaoService.checkExpiredTokenAndRefresh(httpServletRequest,httpServletResponse);
     }
     @ApiOperation(value="개인정보 수정",notes = "회원의 개인정보를 수정함 (response : 200 - 성공 404 - 유저 아님 409 - 유저 id 존재하지 않음 )")
-    @PutMapping(value="")
+    @PutMapping(value="/info")
     public void modify(@ApiParam(value= "수정하고자 하는 값") @RequestBody Users user,HttpServletRequest request) throws RuntimeException{
         userModifyService.modifyUser(user);
     }
