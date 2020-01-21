@@ -61,7 +61,7 @@ public class SignUpValidator{
     }
     private Boolean checkIfPasswordIsWrongForm(Users user){
         Boolean returnValue = false;
-
+        if(user.getPassword() == null) return returnValue;
         //정규식 (영문(대소문자 구분), 숫자, 특수문자 조합, 9~12자리)
         String regex = "^(?=.*\\d)(?=.*[~`!@#$%\\^&*()-])(?=.*[a-z])(?=.*[A-Z]).{9,12}$";
         Pattern p = Pattern.compile(regex);
